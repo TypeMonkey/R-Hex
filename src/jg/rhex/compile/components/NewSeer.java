@@ -1,12 +1,15 @@
 package jg.rhex.compile.components;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Stack;
 
 import net.percederberg.grammatica.parser.Node;
 import net.percederberg.grammatica.parser.ParseException;
 import net.percederberg.grammatica.parser.Production;
 import net.percederberg.grammatica.parser.Token;
+import jg.rhex.compile.components.tnodes.atoms.TChar;
+import jg.rhex.compile.components.tnodes.atoms.TString;
 import jg.rhex.compile.components.tnodes.TArrayAcc;
 import jg.rhex.compile.components.tnodes.TCast;
 import jg.rhex.compile.components.tnodes.TExpr;
@@ -14,6 +17,7 @@ import jg.rhex.compile.components.tnodes.TFuncCall;
 import jg.rhex.compile.components.tnodes.TMemberInvoke;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.TOp;
+import jg.rhex.compile.components.tnodes.atoms.TBool;
 import jg.rhex.compile.components.tnodes.atoms.TCParen;
 import jg.rhex.compile.components.tnodes.atoms.TComma;
 import jg.rhex.compile.components.tnodes.atoms.TDouble;
@@ -22,6 +26,7 @@ import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TLong;
 import jg.rhex.compile.components.tnodes.atoms.TNew;
+import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TOParen;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 
@@ -80,6 +85,30 @@ public class NewSeer extends GramPracAnalyzer{
     return node;
   } 
   
+  protected Node exitTrue(Token node) throws ParseException{
+    actualNodes.add(new TBool(true));
+    return node;
+  }
+  
+  protected Node exitFalse(Token node) throws ParseException{  
+    actualNodes.add(new TBool(false));
+    return node;
+  }
+  
+  protected Node exitString(Token node){
+    actualNodes.add(new TString(node.getImage()));
+    return node;
+  }
+  
+  protected Node exitChar(Token node){
+    
+    String actualChar = node.getImage().substring(1);
+    actualChar = actualChar.substring(0, actualChar.length());
+    
+    actualNodes.add(new TChar(actualChar.charAt(0)));
+    return node;
+  }
+  
   protected Node exitOpParen(Token node) throws ParseException {
     //node.addValue("(");
     actualNodes.add(new TOParen());
@@ -99,8 +128,8 @@ public class NewSeer extends GramPracAnalyzer{
   }
   
   protected Node exitName(Token node) throws ParseException{
-    //System.out.println("NAME: "+node.getImage()+" | children: "+getChildValues(node));
-    //node.addValue(node.getImage());
+    System.out.println("NAME: "+node.getImage()+" | children: "+getChildValues(node));
+    node.addValue(node.getImage());
     actualNodes.add(new TIden(node));
     return node;
   }
@@ -185,10 +214,88 @@ public class NewSeer extends GramPracAnalyzer{
     actualNodes.push(new TOp("%="));
     return token;
   }
+  
+  protected Node exitGreat(Token token) throws ParseException{
+    actualNodes.push(new TOp(">"));
+    return token;
+  }
+  
+  protected Node exitLess(Token token) throws ParseException{
+    actualNodes.push(new TOp("<"));
+    return token;
+  }
+  
+  protected Node exitLsEq(Token token) throws ParseException{
+    actualNodes.push(new TOp("<="));
+    return token;
+  }
+  
+  protected Node exitGrEq(Token token) throws ParseException{
+    actualNodes.push(new TOp(">="));
+    return token;
+  }
+  
+  protected Node exitNotEq(Token token) throws ParseException{
+    actualNodes.push(new TOp("!="));
+    return token;
+  }
+  
+  protected Node exitEqEq(Token token) throws ParseException{
+    actualNodes.push(new TOp("=="));
+    return token;
+  }
+  
+  protected Node exitBoolAnd(Token token) throws ParseException{
+    actualNodes.push(new TOp("&&"));
+    return token;
+  }
+  
+  protected Node exitBoolOr(Token token) throws ParseException{
+    actualNodes.push(new TOp("||"));
+    return token;
+  }
 
   //----OPERATOR visitations DONE
   
   //EXPR visitations 
+  
+  protected void enterNumber(Production production) {
+    System.out.println("----ENTER NUMBER");
+    setEntrance();
+  }
+  
+  protected Node exitNumber(Production production){
+    System.out.println("----EXIT NUMBER");
+    ArrayDeque<TNode> latest = exitEntrance();
+    
+    TNode potentialNumber = null;
+    if ((potentialNumber = latest.poll()) instanceof TOp) {
+      //negative number
+      TNumber number = (TNumber) latest.poll();
+      if (number instanceof TInt) {
+        int originalValue = (int) number.getActValue();
+        actualNodes.push(new TInt(-originalValue));
+      }
+      else if (number instanceof TLong) {
+        long originalValue = (long) number.getActValue();
+        actualNodes.push(new TLong(-originalValue));
+      }
+      else if (number instanceof TFloat) {
+        float originalValue = (float) number.getActValue();
+        actualNodes.push(new TFloat(-originalValue));
+      }
+      else if (number instanceof TDouble) {
+        double originalValue = (double) number.getActValue();
+        actualNodes.push(new TDouble(-originalValue));
+      }
+    }
+    else {
+      //positive number
+      actualNodes.push(potentialNumber);
+    }
+   
+    return production;
+  }
   
   protected void enterAssgn(Production production){
     System.out.println("----Enter Assign");
@@ -256,7 +363,7 @@ public class NewSeer extends GramPracAnalyzer{
     
     funcCall.addArgs(latest);
     
-    if (actualNodes.peek().getValue().toString().equals("new")) {
+    if (actualNodes.peek() != null && actualNodes.peek().getValue().toString().equals("new")) {
       actualNodes.pop();
       actualNodes.push(new TNew(funcCall));
     }
@@ -382,15 +489,15 @@ public class NewSeer extends GramPracAnalyzer{
   }
   //HELPER methods DONE
 
-  public Stack<TNode> getStackNodes(){
-    return actualNodes;
-  }
-  
   /**
    * Resets this Analyzer for reuse with a different source
    */
   public void reset() {
     stack.clear();
     actualNodes.clear();
+  }
+
+  public Stack<TNode> getStackNodes() {
+    return actualNodes;
   }
 }

@@ -59,6 +59,10 @@ public class RStatement {
   public TNode getStatement() {
     return statement;
   }
+  
+  public String toString() {
+    return statement.toString();
+  }
 
   public RStateDescriptor getDescriptor() {
     return descriptor;

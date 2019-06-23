@@ -10,7 +10,7 @@ public class TIden extends TAtom<Token>{
 
   @Override
   public String toString() {
-    return "IDEN ~ "+getActValue().getId();
+    return "IDEN ~ "+getActValue().getImage();
   }
 
 }

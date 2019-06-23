@@ -62,8 +62,7 @@ public class TypeNameParser {
     
     TType baseType = null;
     if (expected.noContainsThrow(nameToken, "TypeAnnotation")) {
-      baseType = new TType(new ArrayList<>(Arrays.asList(new TIden(nameToken))));
-      baseType.formalizeRawTypeBody();
+      baseType = new TType(nameToken);
     }
     
     System.out.println("BASE: "+nameToken.getImage());
@@ -123,7 +122,7 @@ public class TypeNameParser {
   
   /*
   public static void main(String [] args) throws Exception{
-    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("Hello<T<W>>;"));
+    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("Hello<T<W>>,"));
     List<Token> tokens = new ArrayList<>();
         
     Token token = null;

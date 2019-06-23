@@ -44,7 +44,7 @@ public class RVariable extends RStatement{
    */
   public RVariable(TType type, TIden identifier, TNode value, Set<Descriptor> descriptors) {
     super(RStateDescriptor.VAR_DEC, null, value);
-    
+    this.providedType = type;
     this.identifier = identifier;
     this.descriptors = descriptors;
   }
@@ -64,6 +64,10 @@ public class RVariable extends RStatement{
   public Set<Descriptor> getDescriptors() {
     return descriptors;
   }
+  
+  public String toString() {
+    return "VAR: '"+identifier.getActValue().getImage()+"' |  VAL:  "+getValue()+" | Type: "+providedType;
+  }
 
   /**
    * Returns true if the type of this variable is to be inferred
@@ -73,6 +77,6 @@ public class RVariable extends RStatement{
    * 
    */
   public boolean toBeInferred() {
-    return providedType != null;
+    return providedType == null;
   }
 }

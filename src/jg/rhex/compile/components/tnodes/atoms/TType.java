@@ -18,6 +18,12 @@ public class TType extends TAtom<List<TType>> {
     super(new ArrayList<>());
     this.rawTypeBody = rawBody;
   }
+  
+  public TType(Token baseType){
+    super(new ArrayList<>());
+    this.baseType = baseType;
+    hasBeenFormalized = true;
+  }
 
   public void setGenericArgTypes(List<TType> generics){
     getActValue().clear();
@@ -64,7 +70,7 @@ public class TType extends TAtom<List<TType>> {
 
   @Override
   public String toString() {
-    return "TYPE ~ "+rawTypeBody+" | "+getActValue();
+    return "TYPE ~ "+baseType+" | "+getActValue();
   }
 
 }

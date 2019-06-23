@@ -1,10 +1,10 @@
-package jg.rhex.compile.components;
-
 /*
  * GramPracTokenizer.java
  *
  * THIS FILE HAS BEEN GENERATED AUTOMATICALLY. DO NOT EDIT!
  */
+
+package jg.rhex.compile.components;
 
 import java.io.Reader;
 
@@ -65,25 +65,25 @@ public class GramPracTokenizer extends Tokenizer {
         pattern = new TokenPattern(GramPracConstants.INTEGER,
                                    "INTEGER",
                                    TokenPattern.REGEXP_TYPE,
-                                   "(-)?([0-9]+)");
+                                   "([0-9]+)");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.LONG,
                                    "LONG",
                                    TokenPattern.REGEXP_TYPE,
-                                   "(-)?([0-9]+L|[0-9]+l)");
+                                   "([0-9]+L|[0-9]+l)");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.FLOAT,
                                    "FLOAT",
                                    TokenPattern.REGEXP_TYPE,
-                                   "(-)?(((\\d+\\.\\d+|\\d+\\.\\d+)(f|F))|([0-9]+(f|F)))");
+                                   "(((\\d+\\.\\d+|\\d+\\.\\d+)(f|F))|([0-9]+(f|F)))");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.DOUBLE,
                                    "DOUBLE",
                                    TokenPattern.REGEXP_TYPE,
-                                   "(-)?(\\d+\\.\\d+|\\d+\\.\\d+)");
+                                   "(\\d+\\.\\d+|\\d+\\.\\d+)");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.TRUE,
@@ -330,18 +330,6 @@ public class GramPracTokenizer extends Tokenizer {
                                    "MOD",
                                    TokenPattern.STRING_TYPE,
                                    "%");
-        addPattern(pattern);
-
-        pattern = new TokenPattern(GramPracConstants.INC,
-                                   "INC",
-                                   TokenPattern.STRING_TYPE,
-                                   "++");
-        addPattern(pattern);
-
-        pattern = new TokenPattern(GramPracConstants.DEC,
-                                   "DEC",
-                                   TokenPattern.STRING_TYPE,
-                                   "--");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.AND,

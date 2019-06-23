@@ -16,9 +16,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import jg.rhex.compile.ExpectedSet;
+import jg.rhex.compile.components.comparsers.BlockParser;
 import jg.rhex.compile.components.comparsers.TypeNameParser;
+import jg.rhex.compile.components.comparsers.VarDecParsers;
 import jg.rhex.compile.components.errors.FormationException;
+import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RFunc;
+import jg.rhex.compile.components.structs.RStateBlock;
+import jg.rhex.compile.components.structs.RStateBlock.BlockType;
+import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.RhexFile;
 import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
@@ -86,11 +92,8 @@ public class FileBuilder {
         if (current.getId() == GramPracConstants.USE) {
           rhexFile.addUseDec(formUseDeclaration(current, iterator));
         }
-        else if (current.getId() == GramPracConstants.FUNC) {
-          rhexFile.addFunction(formFunction(current, iterator));
-        }
         else {
-          
+          //TODO: make helper methods to distinguish between classes, functions and variables
         }
       }
     }
@@ -103,46 +106,155 @@ public class FileBuilder {
    * @return
    */
   private RFunc formFunction(Token useToken, ListIterator<Token> iterator){ 
-    ExpectedSet expected = new ExpectedSet(GramPracConstants.VOID, GramPracConstants.NAME);
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.PUBL,
+                                           GramPracConstants.PRIV,
+                                           GramPracConstants.VOID,
+                                           GramPracConstants.NAME);
     
-    Token funcName = null;
-    TType returnType = null;
-    List<TType> throwTypes = new ArrayList<>();
+    RFunc function = new RFunc();    
         
     while (iterator.hasNext()) {
       Token current = iterator.next();
-
       if (expected.noContainsThrow(current, "Function")) {
-        if (current.getId() == GramPracConstants.VOID) {
+        if (current.getId() == GramPracConstants.PUBL || current.getId() == GramPracConstants.PRIV) {
+          function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()));
+          expected.replace(GramPracConstants.VOID, GramPracConstants.NAME, GramPracConstants.LESS);
+        }
+        else if (current.getId() == GramPracConstants.VOID) {
           TIden typeNameToken = new TIden(current);
-          returnType = new TType(new ArrayList<>(Arrays.asList(typeNameToken)));
+          TType returnType = new TType(new ArrayList<>(Arrays.asList(typeNameToken)));
+          function.setReturnType(returnType);
           
-          expected.clear();
-          expected.add(GramPracConstants.NAME);
+          expected.replace(GramPracConstants.NAME, GramPracConstants.LESS);
         }
         else if (current.getId() == GramPracConstants.NAME) {
-          if (returnType == null) {
+          if (function.getName() == null) {
             //then this is the return type
-            returnType = TypeNameParser.parseType(iterator);
-            expected.replace(GramPracConstants.NAME);
+            TType returnType = TypeNameParser.parseType(iterator);
+            function.setReturnType(returnType);
+            expected.replace(GramPracConstants.NAME, GramPracConstants.LESS);
           }
           else {
             //the this is the function's name
-            funcName = current;
+            function.setName(current);
             expected.replace(GramPracConstants.OP_PAREN);
           }
         }
-        else if (current.getId() == GramPracConstants.OP_PAREN) {
+        else if (current.getId() == GramPracConstants.LESS) {
+          //function generic argument begins
+          function.addGenericTypeArg(TypeNameParser.parseType(iterator));
           
+          ExpectedSet genExpected = new ExpectedSet(GramPracConstants.GREAT, GramPracConstants.COMMA);
+          
+          while (iterator.hasNext()) {
+            Token curGeneric = iterator.next();
+            if (genExpected.noContainsThrow(curGeneric, "Function")) {
+              if (curGeneric.getId() == GramPracConstants.GREAT) {
+                genExpected.clear();
+                break;
+              }
+              else if (curGeneric.getId() == GramPracConstants.COMMA) {
+                function.addGenericTypeArg(TypeNameParser.parseType(iterator));
+                genExpected.replace(GramPracConstants.GREAT, GramPracConstants.COMMA);
+              }
+            }
+          }
+          
+          if (genExpected.isEmpty() || genExpected.contains(-1)) {
+            expected.replace(GramPracConstants.NAME);
+            continue;
+          }
+          throw FormationException.createException("Function", iterator.previous(), genExpected);
+        }
+        else if (current.getId() == GramPracConstants.OP_PAREN) {
+          //function parameters begin
+          if (iterator.hasNext()) {
+            if (iterator.next().getId() == GramPracConstants.CL_PAREN) {
+              //function has no parameters
+              expected.clear();
+              break;
+            }
+            else {
+              //function has parameters
+              iterator.previous(); //roll back iterator 
+                            
+              RVariable param = VarDecParsers.parseVariable(iterator); //parse first parameter
+              int paramAmnt = 1;
+              function.addStatement(param);
+              
+              ExpectedSet paramExpected = new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
+              while (iterator.hasNext()) {
+                Token curGeneric = iterator.next();
+                if (paramExpected.noContainsThrow(curGeneric, "Function")) {
+                  if (curGeneric.getId() == GramPracConstants.CL_PAREN) {
+                    paramExpected.clear();
+                    expected.replace(GramPracConstants.CL_PAREN);
+                    iterator.previous();
+                    break;
+                  }
+                  else if (curGeneric.getId() == GramPracConstants.COMMA) {
+                    function.addStatement(VarDecParsers.parseVariable(iterator));
+                    paramAmnt++;
+                    paramExpected.replace(GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
+                  }
+                }
+              }
+              
+              if (paramExpected.isEmpty() || paramExpected.contains(-1)) {
+                function.setParamAmnt(paramAmnt);
+                continue;
+              }
+              throw FormationException.createException("Function", iterator.previous(), paramExpected);
+            }
+          }
+          
+        }
+        else if (current.getId() == GramPracConstants.CL_PAREN) {
+          expected.clear();
+          expected.add(GramPracConstants.THROWS);
+          break;
+        }
+        else if (current.getId() == GramPracConstants.THROWS) {
+          TType firstException = TypeNameParser.parseType(iterator);
+          function.addDeclaredException(firstException);
+          
+          ExpectedSet throwExpected = new ExpectedSet(GramPracConstants.COMMA, 
+                                                      GramPracConstants.OP_CU_BRACK);
+          
+          while (iterator.hasNext()) {
+            Token nextToken = iterator.next();
+            throwExpected.noContainsThrow(nextToken, "Function");
+
+            if (nextToken.getId() == GramPracConstants.OP_CU_BRACK) {
+              iterator.previous();  //rollback iterator
+              throwExpected.clear();
+              break; 
+            }
+            else if (nextToken.getId() == GramPracConstants.COMMA) {
+              TType exception = TypeNameParser.parseType(iterator);
+              function.addDeclaredException(exception);
+            }
+          }
+          
+          if (throwExpected.isEmpty() || throwExpected.contains(-1)) {
+            expected.clear();
+            continue;
+          }
+          throw FormationException.createException("Function", current, throwExpected);
+       
         }
       }
     }
     
-    if (expected.isEmpty() || expected.contains(-1)) {
-      
+    //want to make sure that all expected tokens are met
+    if (!(expected.isEmpty() || expected.contains(-1))) {
+      throw FormationException.createException("Function", useToken, expected);
     }
     
-    throw FormationException.createException("use-statement", useToken, expected);
+    //at this point, the very next token from iterator should be an opening curly brace
+    
+    BlockParser.parseBlock(function.getBody(), iterator);
+    return function;
   }
   
   /**

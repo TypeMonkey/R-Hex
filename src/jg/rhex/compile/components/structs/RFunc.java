@@ -1,6 +1,8 @@
 package jg.rhex.compile.components.structs;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,38 +25,52 @@ public class RFunc {
   private Token name;
   private TType returnType;
   private List<TType> declaredExceptions;
+  private List<TType> genericArgs;
   private Set<Descriptor> descriptors;
   private RStateBlock body;
   private int parameterAmount;
-  private boolean isPublic;
  
-  public RFunc(Token name, boolean isPublic, int parameterAmount, List<TType> decExceptions, Set<Descriptor> descriptors){
+  public RFunc(){
+    declaredExceptions = new ArrayList<>();
+    genericArgs = new ArrayList<>();
+    descriptors = new HashSet<>();
+    this.body = new RStateBlock(null, BlockType.GENERAL);  
+  }
+  
+  public void setParamAmnt(int paramAmnt) {
+    this.parameterAmount = paramAmnt;
+  }
+  
+  public void setName(Token name){
     this.name = name;
-    this.isPublic = isPublic;
-    this.parameterAmount = parameterAmount;
-    this.declaredExceptions = decExceptions;
-    this.descriptors = descriptors;
-    this.body = new RStateBlock(null, BlockType.GENERAL);
   }
   
-  public void setReturnType(TType returnType){
-    this.returnType = returnType;
+  public void setReturnType(TType tType){
+    this.returnType = tType;
   }
   
-  public void addStatement(RStatement statement){
+  public void addDeclaredException(TType exception){
+    declaredExceptions.add(exception);
+  }
+  
+  public void addGenericTypeArg(TType generic){
+    genericArgs.add(generic);
+  }
+  
+  public void addStatement(RStatement statement) {
     body.addStatement(statement);
   }
   
-  public void addStatements(Collection<RStatement> statements){
+  public void addStatements(List<RStatement> statements) {
     body.addStatements(statements);
+  }
+  
+  public boolean addDescriptor(Descriptor descriptor){
+    return descriptors.add(descriptor);
   }
   
   public TType getReturnType() {
     return returnType;
-  }
-  
-  public boolean isPublic(){
-    return isPublic;
   }
 
   public Token getName() {
@@ -63,6 +79,10 @@ public class RFunc {
 
   public RStateBlock getBody() {
     return body;
+  }
+  
+  public List<TType> getGenericArgs(){
+    return genericArgs;
   }
 
   public List<TType> getDeclaredExceptions() {
@@ -76,4 +96,5 @@ public class RFunc {
   public int getParameterAmount() {
     return parameterAmount;
   }
+  
 }

@@ -32,8 +32,8 @@ public class RStateBlock extends RStatement {
    * @param descirptor - the Token that describes this block
    * @param blockType - the corresponding BlockType of this block's descriptor
    */
-  public RStateBlock(Token descirptor, BlockType blockType){
-    this(new ArrayList<>(), descirptor, blockType);
+  public RStateBlock(Token descriptor, BlockType blockType){
+    this(new ArrayList<>(), descriptor, blockType);
   }
   
   /**
@@ -42,8 +42,8 @@ public class RStateBlock extends RStatement {
    * @param descirptor - the Token that describes this block
    * @param blockType - the corresponding BlockType of this block's descriptor
    */
-  public RStateBlock(List<RStatement> statements, Token descirptor, BlockType blockType) {
-    super(RStateDescriptor.BLOCK, descirptor);
+  public RStateBlock(List<RStatement> statements, Token descriptor, BlockType blockType) {
+    super(RStateDescriptor.BLOCK, descriptor);
     this.statements = statements;
     this.blockType = blockType;
   }
@@ -64,4 +64,7 @@ public class RStateBlock extends RStatement {
     return blockType;
   }  
   
+  public String toString() {
+    return "BLOCK ~ "+getBlockType()+" | STATEMENT COUNT: "+statements.size();
+  }
 }

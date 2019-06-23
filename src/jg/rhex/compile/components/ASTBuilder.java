@@ -91,7 +91,7 @@ public class ASTBuilder {
     
     
     while (!operators.isEmpty()) {
-      System.out.println("CONC ADDING: "+operators.peek());
+      //System.out.println("CONC ADDING: "+operators.peek());
       output.add(operators.pop());
     }
     
@@ -100,7 +100,7 @@ public class ASTBuilder {
   }
   
   private boolean isLeft(TOp node){
-    System.out.println("CHECK: "+node.getActValue()+" | "+node.getClass()+" | "+(node instanceof TOParen));
+    //System.out.println("CHECK: "+node.getActValue()+" | "+node.getClass()+" | "+(node instanceof TOParen));
     return node instanceof TOParen;
   }
   
@@ -152,14 +152,14 @@ public class ASTBuilder {
    * Returns null if operators aren't in the same precedence level
    * @return
    */
-  private String associativity(String ... ops){  
-    System.out.println("CHECK ASSC: "+Arrays.toString(ops));
+  public static String associativity(String ... ops){  
+    //System.out.println("CHECK ASSC: "+Arrays.toString(ops));
     Set<String> allops = new HashSet<>();
     for(String pString : ops){
       allops.add(pString);
     }
     
-    System.out.println("CHECK ASSC 1: "+allops);
+    //System.out.println("CHECK ASSC 1: "+allops);
     
     Set<String> equals = new HashSet<>();
     equals.add("=");
@@ -168,6 +168,18 @@ public class ASTBuilder {
     equals.add("*=");
     equals.add("%=");
     equals.add("-=");
+    
+    Set<String> comps = new HashSet<>();
+    comps.add("<");
+    comps.add(">");
+    comps.add("<=");
+    comps.add(">=");
+    comps.add("!=");
+    comps.add("==");
+
+    Set<String> andOr = new HashSet<>();
+    andOr.add("&&");
+    andOr.add("||");
     
     Set<String> addMinus = new HashSet<>();
     addMinus.add("+");
@@ -181,6 +193,8 @@ public class ASTBuilder {
     addMinus.retainAll(allops);
     factor.retainAll(allops);
     equals.retainAll(allops);
+    comps.retainAll(allops);
+    andOr.retainAll(allops);
     
     if (addMinus.size() == allops.size()) {
       return "LR";
@@ -190,6 +204,12 @@ public class ASTBuilder {
     }
     else if (equals.size() == allops.size()) {
       return "RL";
+    }
+    else if (comps.size() == allops.size()) {
+      return "LR";
+    }
+    else if (andOr.size() == allops.size()) {
+      return "LR";
     }
     else{
       System.out.println(addMinus.size()+" | "+factor+" | "+allops.size());
@@ -205,14 +225,27 @@ public class ASTBuilder {
    * @param op2
    * @return
    */
-  private int precedence(String op1, String op2){
-    System.out.println("OP1 : "+op1+" | OP2: "+op2);
+  public static int precedence(String op1, String op2){
+    //System.out.println("OP1 : "+op1+" | OP2: "+op2);
     HashMap<String, Integer> map = new HashMap<>();
-    map.put("*", 3);
-    map.put("/", 3);
-    map.put("%", 3);
-    map.put("-", 2);
-    map.put("+", 2);
+    map.put("*", 6);
+    map.put("/", 6);
+    map.put("%", 6);
+    
+    map.put("-", 5);
+    map.put("+", 5);
+    
+    map.put("<", 4);
+    map.put("<=", 4);
+    map.put(">", 4);
+    map.put(">=", 4);
+    
+    map.put("==", 3);
+    map.put("!=", 3);
+    
+    map.put("&&", 2);
+    map.put("||", 2);
+    
     map.put("=", 1);
     map.put("/=", 1);
     map.put("+=", 1);
@@ -222,4 +255,5 @@ public class ASTBuilder {
     
     return map.get(op1) - map.get(op2);
   }
+
 }

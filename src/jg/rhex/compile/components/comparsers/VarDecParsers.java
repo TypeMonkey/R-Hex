@@ -35,6 +35,8 @@ public class VarDecParsers {
    * 
    *  (static | volatile | final | public | private) <Type | "infer"> name;
    *  (static | volatile | final | public | private) <Type | "infer"> name = Expr;
+   *  
+   *  The semicolon is also parsed and consumed!
    * 
    * @param iterator - a ListIterator to consume tokens from
    * @return RVariable that was parsed from the Token source
@@ -51,6 +53,7 @@ public class VarDecParsers {
     TType varType = null;
     Token varName = null;
     TNode value = null;
+    boolean varToBeInferred = false;
     
     while (iterator.hasNext()) {
       Token current = iterator.next();
@@ -70,13 +73,18 @@ public class VarDecParsers {
               GramPracConstants.FINAL,
               GramPracConstants.INFER);
         }
+        else if (current.getId() == GramPracConstants.INFER) {
+          varToBeInferred = true;
+          
+          expected.replace(GramPracConstants.NAME);
+        }
         else if (current.getId() == GramPracConstants.NAME) {
-          if (varType == null) {
+          if (varType == null && !varToBeInferred) {
             //then this name is the start of the variable's type
             iterator.previous(); //backtrack iterator
             varType = TypeNameParser.parseType(iterator);
             
-            System.out.println("---GOT TYPE: "+varType.getBaseType());
+            System.out.println("---GOT TYPE: "+varType.getBaseType()+" | "+varType.hasBeenFormalized());
             
             expected.replace(GramPracConstants.NAME);
           }
@@ -158,7 +166,7 @@ public class VarDecParsers {
   
   
   public static void main(String [] args) throws Exception{
-    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("int<W> hello = 10+10;"));
+    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("String<T> wow = 10+2*3;"));
     List<Token> tokens = new ArrayList<>();
         
     Token token = null;
@@ -173,6 +181,8 @@ public class VarDecParsers {
     RVariable variable = parseVariable(iterator);
     
     System.out.println(" PARSED: "+variable.getIdentifier()+" | Value: "+variable.getValue()+"LATEST: "+iterator.next());
+    System.out.println(" TYPE: "+variable.getProvidedType());
+    System.out.println(" INFER? "+variable.toBeInferred());
   }
   
 }
