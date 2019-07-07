@@ -29,6 +29,7 @@ import jg.rhex.compile.components.tnodes.atoms.TNew;
 import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TOParen;
 import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.components.tnodes.atoms.TUnary;
 
 public class NewSeer extends GramPracAnalyzer{
 
@@ -259,42 +260,9 @@ public class NewSeer extends GramPracAnalyzer{
   
   //EXPR visitations 
   
-  protected void enterNumber(Production production) {
-    System.out.println("----ENTER NUMBER");
+  protected void enterUnary(Production production){
+    System.out.println("---ENTER UNARY");
     setEntrance();
-  }
-  
-  protected Node exitNumber(Production production){
-    System.out.println("----EXIT NUMBER");
-    ArrayDeque<TNode> latest = exitEntrance();
-    
-    TNode potentialNumber = null;
-    if ((potentialNumber = latest.poll()) instanceof TOp) {
-      //negative number
-      TNumber number = (TNumber) latest.poll();
-      if (number instanceof TInt) {
-        int originalValue = (int) number.getActValue();
-        actualNodes.push(new TInt(-originalValue));
-      }
-      else if (number instanceof TLong) {
-        long originalValue = (long) number.getActValue();
-        actualNodes.push(new TLong(-originalValue));
-      }
-      else if (number instanceof TFloat) {
-        float originalValue = (float) number.getActValue();
-        actualNodes.push(new TFloat(-originalValue));
-      }
-      else if (number instanceof TDouble) {
-        double originalValue = (double) number.getActValue();
-        actualNodes.push(new TDouble(-originalValue));
-      }
-    }
-    else {
-      //positive number
-      actualNodes.push(potentialNumber);
-    }
-   
-    return production;
   }
   
   protected void enterAssgn(Production production){
@@ -302,6 +270,103 @@ public class NewSeer extends GramPracAnalyzer{
     setEntrance();
   }
   
+  protected void enterExpr(Production production){
+    System.out.println("----enter expr");
+    setEntrance();
+  }
+  
+  protected void enterParenExpr(Production production){
+    System.out.println("----enter paren expr");
+    setEntrance();
+  }
+  
+  protected void enterFuncCall(Production production){
+    System.out.println("----enter func call");
+    setEntrance();
+  }
+  
+  protected void enterArrayAcc(Production production){
+    System.out.println("----enter ARRAY ACC call");
+    setEntrance();
+  }
+  
+  protected void enterInvoke(Production production){
+    System.out.println("----enter INVOKE");
+    setEntrance();
+  }
+  
+  protected void enterTypeName(Production production){
+    System.out.println("----> ENTER TYPE: "+actualNodes);
+    setEntrance();   
+  }
+  
+  protected void enterGeneric(Production production){
+    System.out.println("---> ENTER GENERIC!  "+actualNodes);
+    setEntrance();
+  }
+
+  protected void enterCast(Production production){
+    System.out.println("----> ENTER CAST "+actualNodes);
+    setEntrance();
+  }
+  
+  protected void enterConstructor(Production production){
+    System.out.println("----> ENTER CONSTRUCTOR  "+actualNodes);
+    setEntrance();
+  }
+  
+  protected Node exitConstructor(Production production) {
+    ArrayDeque<TNode> latest = exitEntrance();
+    System.out.println("-----EXIT CONSTRUCTOR  "+latest+" | "+latest.peek());
+    
+    ArrayList<TIden> binaryName = new ArrayList<>();
+    //remove the "new" operator
+    latest.poll();
+    
+    while (!(latest.peek() instanceof TFuncCall)) {
+      binaryName.add((TIden) latest.poll());
+    }
+    
+    TFuncCall funcCall = (TFuncCall) latest.poll();
+    binaryName.add(funcCall.getFuncName());
+    System.out.println("CONS: "+binaryName);
+    
+    TNew constructorCall = new TNew(binaryName, funcCall);
+    actualNodes.add(constructorCall);
+    
+    return production;
+  }
+  
+  protected Node exitUnary(Production production){
+    ArrayDeque<TNode> latest = exitEntrance();
+    System.out.println("----EXIT UNARY "+latest);
+    
+    TNode potentialOp = latest.poll();
+    
+    if (potentialOp instanceof TOp) {
+      TOp op = (TOp) potentialOp;
+      if (latest.size() == 1) {
+        actualNodes.push(new TUnary<>(latest.poll(), op));
+      }
+      else {
+        TExpr expr = new TExpr(new ArrayList<>(latest));
+        actualNodes.push(new TUnary<>(expr, op));
+      }
+      
+      System.out.println("----POST: Top");
+    }
+    else {
+      actualNodes.push(potentialOp);
+      for(TNode node : latest){
+        actualNodes.push(node);
+      }
+      
+      System.out.println("---POST: "+actualNodes+" | BUT: "+latest);
+    }
+    
+    return production;
+  }
+
   protected Node exitAssgn(Production production){
     System.out.println("-----EXIT ASSGN");
     
@@ -311,15 +376,10 @@ public class NewSeer extends GramPracAnalyzer{
     }
     return production;
   }
-  
-  protected void enterExpr(Production production){
-    System.out.println("----enter expr");
-    setEntrance();
-  }
-  
+
   protected Node exitExpr(Production production){
     System.out.println("----exit expr");
-
+  
     ArrayDeque<TNode> latest = exitEntrance();
     
     for(TNode node : latest){
@@ -328,56 +388,52 @@ public class NewSeer extends GramPracAnalyzer{
     //actualNodes.push(new TExpr(new ArrayList<>(latest))); 
     return production;
   }
-  
-  protected void enterParenExpr(Production production){
-    System.out.println("----enter paren expr");
-    setEntrance();
-  }
-  
+
   protected Node exitParenExpr(Production production){
     System.out.println("----exit paren expr");
-
+  
     ArrayDeque<TNode> latest = exitEntrance();
     
     System.out.println("    ----***> "+latest);
-
+  
     actualNodes.push(new TExpr(new ArrayList<>(latest))); 
     return production;
   }
-  
-  protected void enterFuncCall(Production production){
-    System.out.println("----enter func call");
-    setEntrance();
-  }
-  
+
   protected Node exitFuncCall(Production production){    
     ArrayDeque<TNode> latest = exitEntrance();
-    System.out.println("----exit func call ");
+    System.out.println("----exit func call    "+latest);
 
-    TFuncCall funcCall = new TFuncCall(latest.pollFirst().getValue().toString());
+    TFuncCall funcCall = new TFuncCall((TIden) latest.pollFirst());
     
+    while ( !(latest.peek() instanceof TOParen) ) {
+      TNode current = latest.pollFirst();
+      if (current instanceof TComma) {
+        continue;
+      }
+      
+      funcCall.addGenericType((TType) current);
+    }
+
     //these two polls remove the ending and closing parenthesis of a function invocations
     //Ex: func ( ) <-- removes those outer parenthesis
     latest.pollFirst();
     latest.pollLast();  
     
-    funcCall.addArgs(latest);
-    
-    if (actualNodes.peek() != null && actualNodes.peek().getValue().toString().equals("new")) {
-      actualNodes.pop();
-      actualNodes.push(new TNew(funcCall));
+    while (!latest.isEmpty()) {
+      TNode current = latest.pollFirst();
+      if (current instanceof TComma) {
+        continue;
+      }
+      
+      funcCall.addArg(current);
     }
-    else {
-      actualNodes.push(funcCall); 
-    }
-        
+
+    actualNodes.push(funcCall); 
+
     return production;
   }
-  
-  protected void enterArrayAcc(Production production){
-    setEntrance();
-  }
-  
+
   protected Node exitArrayAcc(Production production){
     ArrayDeque<TNode> latest = exitEntrance();
     
@@ -404,15 +460,11 @@ public class NewSeer extends GramPracAnalyzer{
       previous = arrayAcc;
     }
     
-    actualNodes.add(previous);
+    actualNodes.push(previous);
     
     return production;
   }
-  
-  protected void enterInvoke(Production production){
-    setEntrance();
-  }
-  
+
   protected Node exitInvoke(Production production){
     //So, given the invocation sequence: x1.x2.x3.x4.x5 
     //(where each xi is either a function call or variable)
@@ -430,25 +482,56 @@ public class NewSeer extends GramPracAnalyzer{
     
     return production;
   }
-  
-  
-  protected void enterTypeName(Production production){
-    System.out.println("----> ENTER TYPE: "+actualNodes);
-    setEntrance();   
+
+  protected Node exitGeneric(Production production){
+    ArrayDeque<TNode> latest = exitEntrance();
+    System.out.println("---> EXIIT GENERIC:  "+latest);
+    
+    //remove opening '!(' and closing ')' as with generics
+    latest.removeFirst();
+    latest.removeFirst();
+    latest.removeLast();
+    
+    for(TNode cur: latest){
+      actualNodes.push(cur);
+    }
+    
+    System.out.println("-----> GIVEN: "+latest+"  ||  "+actualNodes);
+    
+    return production;
   }
-  
+
   protected Production exitTypeName(Production production){
     ArrayDeque<TNode> latest = exitEntrance();
     System.out.println("-----> EXIT TYPE: "+latest+" | "+actualNodes);
-    actualNodes.push(new TType(new ArrayList<>(latest)));   
+   
+    
+    ArrayList<TIden> base = new ArrayList<>();
+    while (!latest.isEmpty()) {
+      TNode current = latest.pollFirst();
+      System.out.println("~ ADD BASE: "+current);
+      if (current instanceof TType) {
+        latest.addFirst(current);
+        break;
+      }
+      base.add((TIden) current);
+    }
+    
+    TType baseTType = new TType(base);
+    while (!latest.isEmpty()) {
+      TNode current = latest.pollFirst();
+      System.out.println("ADDDING: "+current);
+      if (current instanceof TComma) {
+        continue;
+      }
+      baseTType.addGenericArgType((TType) current);
+    }
+    
+    actualNodes.push(baseTType);
+    
     return production;
   }
-  
-  protected void enterCast(Production production){
-    System.out.println("----> ENTER CAST "+actualNodes);
-    setEntrance();
-  }
-  
+
   protected Production exitCast(Production production){
     ArrayDeque<TNode> latest = exitEntrance();
     System.out.println(" ----> EXIT CAST: "+latest+" | "+actualNodes);
@@ -462,7 +545,6 @@ public class NewSeer extends GramPracAnalyzer{
     }
     
     TType targetType = (TType) latest.pollFirst();
-    targetType.formalizeRawTypeBody();
     
     TCast cast = new TCast(new TExpr(targetBody), targetType);
     actualNodes.push(cast);
@@ -496,7 +578,7 @@ public class NewSeer extends GramPracAnalyzer{
     stack.clear();
     actualNodes.clear();
   }
-
+  
   public Stack<TNode> getStackNodes() {
     return actualNodes;
   }

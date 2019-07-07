@@ -278,6 +278,18 @@ public class GramPracTokenizer extends Tokenizer {
                                    "interface");
         addPattern(pattern);
 
+        pattern = new TokenPattern(GramPracConstants.EXTNDS,
+                                   "EXTNDS",
+                                   TokenPattern.STRING_TYPE,
+                                   "extends");
+        addPattern(pattern);
+
+        pattern = new TokenPattern(GramPracConstants.TPARAM,
+                                   "TPARAM",
+                                   TokenPattern.STRING_TYPE,
+                                   "tparam");
+        addPattern(pattern);
+
         pattern = new TokenPattern(GramPracConstants.USE,
                                    "USE",
                                    TokenPattern.STRING_TYPE,

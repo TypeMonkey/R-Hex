@@ -7,6 +7,7 @@ public abstract class TAtom<T> extends TNode{
   public TAtom(T value) {
     super(value);
   }
+  
 
   public T getActValue(){
     return (T) getValue();

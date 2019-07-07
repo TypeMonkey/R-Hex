@@ -211,192 +211,202 @@ public interface GramPracConstants {
     /**
      * A token identity constant.
      */
-    public static final int USE = 1040;
+    public static final int EXTNDS = 1040;
 
     /**
      * A token identity constant.
      */
-    public static final int THROW = 1041;
+    public static final int TPARAM = 1041;
 
     /**
      * A token identity constant.
      */
-    public static final int NAME = 1042;
+    public static final int USE = 1042;
 
     /**
      * A token identity constant.
      */
-    public static final int ARROW = 1043;
+    public static final int THROW = 1043;
 
     /**
      * A token identity constant.
      */
-    public static final int PLUS = 1044;
+    public static final int NAME = 1044;
 
     /**
      * A token identity constant.
      */
-    public static final int MINUS = 1045;
+    public static final int ARROW = 1045;
 
     /**
      * A token identity constant.
      */
-    public static final int MULT = 1046;
+    public static final int PLUS = 1046;
 
     /**
      * A token identity constant.
      */
-    public static final int DIV = 1047;
+    public static final int MINUS = 1047;
 
     /**
      * A token identity constant.
      */
-    public static final int MOD = 1048;
+    public static final int MULT = 1048;
 
     /**
      * A token identity constant.
      */
-    public static final int AND = 1049;
+    public static final int DIV = 1049;
 
     /**
      * A token identity constant.
      */
-    public static final int OR = 1050;
+    public static final int MOD = 1050;
 
     /**
      * A token identity constant.
      */
-    public static final int BANG = 1051;
+    public static final int AND = 1051;
 
     /**
      * A token identity constant.
      */
-    public static final int WLDCRD = 1052;
+    public static final int OR = 1052;
 
     /**
      * A token identity constant.
      */
-    public static final int COLON = 1053;
+    public static final int BANG = 1053;
 
     /**
      * A token identity constant.
      */
-    public static final int SEMICOLON = 1054;
+    public static final int WLDCRD = 1054;
 
     /**
      * A token identity constant.
      */
-    public static final int EXPONENT = 1055;
+    public static final int COLON = 1055;
 
     /**
      * A token identity constant.
      */
-    public static final int LESS = 1056;
+    public static final int SEMICOLON = 1056;
 
     /**
      * A token identity constant.
      */
-    public static final int GREAT = 1057;
+    public static final int EXPONENT = 1057;
 
     /**
      * A token identity constant.
      */
-    public static final int EQUAL = 1058;
+    public static final int LESS = 1058;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_EQ = 1059;
+    public static final int GREAT = 1059;
 
     /**
      * A token identity constant.
      */
-    public static final int NOT_EQ = 1060;
+    public static final int EQUAL = 1060;
 
     /**
      * A token identity constant.
      */
-    public static final int GR_EQ = 1061;
+    public static final int EQ_EQ = 1061;
 
     /**
      * A token identity constant.
      */
-    public static final int LS_EQ = 1062;
+    public static final int NOT_EQ = 1062;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MULT = 1063;
+    public static final int GR_EQ = 1063;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_ADD = 1064;
+    public static final int LS_EQ = 1064;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_DIV = 1065;
+    public static final int EQ_MULT = 1065;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MIN = 1066;
+    public static final int EQ_ADD = 1066;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MOD = 1067;
+    public static final int EQ_DIV = 1067;
 
     /**
      * A token identity constant.
      */
-    public static final int BOOL_AND = 1068;
+    public static final int EQ_MIN = 1068;
 
     /**
      * A token identity constant.
      */
-    public static final int BOOL_OR = 1069;
+    public static final int EQ_MOD = 1069;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_PAREN = 1070;
+    public static final int BOOL_AND = 1070;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_PAREN = 1071;
+    public static final int BOOL_OR = 1071;
 
     /**
      * A token identity constant.
      */
-    public static final int COMMA = 1072;
+    public static final int OP_PAREN = 1072;
 
     /**
      * A token identity constant.
      */
-    public static final int DOT = 1073;
+    public static final int CL_PAREN = 1073;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_SQ_BRACK = 1074;
+    public static final int COMMA = 1074;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_SQ_BRACK = 1075;
+    public static final int DOT = 1075;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_CU_BRACK = 1076;
+    public static final int OP_SQ_BRACK = 1076;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_CU_BRACK = 1077;
+    public static final int CL_SQ_BRACK = 1077;
+
+    /**
+     * A token identity constant.
+     */
+    public static final int OP_CU_BRACK = 1078;
+
+    /**
+     * A token identity constant.
+     */
+    public static final int CL_CU_BRACK = 1079;
 
     /**
      * A production node identity constant.
@@ -456,37 +466,37 @@ public interface GramPracConstants {
     /**
      * A production node identity constant.
      */
-    public static final int PAREN_EXPR = 2012;
+    public static final int CONSTRUCTOR = 2012;
 
     /**
      * A production node identity constant.
      */
-    public static final int INVOKE = 2013;
+    public static final int PAREN_EXPR = 2013;
 
     /**
      * A production node identity constant.
      */
-    public static final int GENERIC = 2014;
+    public static final int INVOKE = 2014;
 
     /**
      * A production node identity constant.
      */
-    public static final int TYPE_NAME = 2015;
+    public static final int GENERIC = 2015;
 
     /**
      * A production node identity constant.
      */
-    public static final int CAST = 2016;
+    public static final int TYPE_NAME = 2016;
 
     /**
      * A production node identity constant.
      */
-    public static final int ARRAY_ACC = 2017;
+    public static final int CAST = 2017;
 
     /**
      * A production node identity constant.
      */
-    public static final int NUMBER = 2018;
+    public static final int ARRAY_ACC = 2018;
 
     /**
      * A production node identity constant.

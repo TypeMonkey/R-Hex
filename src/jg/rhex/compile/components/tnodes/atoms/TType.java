@@ -1,28 +1,42 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import jg.rhex.compile.components.tnodes.TExpr;
 import jg.rhex.compile.components.tnodes.TNode;
-import net.percederberg.grammatica.parser.Token;
 
 public class TType extends TAtom<List<TType>> {
 
-  private Token baseType;
-  private List<TNode> rawTypeBody;
-  private boolean hasBeenFormalized;
+  private List<TIden> rawTypeBody;
   
-  public TType(List<TNode> rawBody) {
+  public TType(List<TIden> rawBody) {
     super(new ArrayList<>());
     this.rawTypeBody = rawBody;
   }
   
-  public TType(Token baseType){
-    super(new ArrayList<>());
-    this.baseType = baseType;
-    hasBeenFormalized = true;
+  public boolean equals(Object object){
+    if (object instanceof TType) {
+      TType other = (TType) object;
+      
+      if (other.getGenericTypeArgs().size() == getGenericTypeArgs().size()) {
+        for(int i = 0; i < getGenericTypeArgs().size() ; i++){
+          if (!other.getGenericTypeArgs().get(i).equals(getGenericTypeArgs().get(i))) {
+            return false;
+          }
+        }
+        
+        return other.getBaseString().equals(getBaseString());
+      }
+      else {
+        return false;
+      }
+    }
+    return false;
+  }
+  
+  public int hashCode(){
+    return Objects.hash(getBaseString(), getActValue());
   }
 
   public void setGenericArgTypes(List<TType> generics){
@@ -38,39 +52,28 @@ public class TType extends TAtom<List<TType>> {
     return getActValue();
   }
   
-  public Token getBaseType() {
-    return baseType;
+  public List<TIden> getBaseType(){
+    return rawTypeBody;
   }
   
-  public boolean hasBeenFormalized(){
-    return hasBeenFormalized;
-  }
-  
-  public void formalizeRawTypeBody(){
-    ArrayDeque<TNode> deque = new ArrayDeque<>(rawTypeBody);
+  public String getBaseString(){
+    String x = "";
     
-    TIden iden = (TIden) deque.poll();
-    baseType = iden.getActValue();  //first TNode is an TIden that is the base type's name
-    
-    while (!deque.isEmpty()) {
-      TNode commaOrType = deque.poll();
-      if (commaOrType instanceof TType) {
-        TType type = (TType) commaOrType;
-        type.formalizeRawTypeBody();
-        
-        addGenericArgType(type);
+    for(int i = 0; i < rawTypeBody.size(); i++){
+      if (i == rawTypeBody.size() - 1) {
+        x += rawTypeBody.get(i).getActValue().getImage();
+      }
+      else {
+        x += rawTypeBody.get(i).getActValue().getImage() + "."; 
       }
     }
     
-    rawTypeBody.clear();
-    rawTypeBody = null;
-    
-    hasBeenFormalized = true;
+    return x;
   }
 
   @Override
   public String toString() {
-    return "TYPE ~ "+baseType+" | "+getActValue();
+    return "TYPE ~ "+getBaseString()+" : GENS: "+getActValue();
   }
 
 }

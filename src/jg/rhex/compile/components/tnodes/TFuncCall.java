@@ -6,56 +6,65 @@ import java.util.Collection;
 import java.util.List;
 
 import jg.rhex.compile.components.tnodes.atoms.TAtom;
+import jg.rhex.compile.components.tnodes.atoms.TIden;
+import jg.rhex.compile.components.tnodes.atoms.TType;
 
-public class TFuncCall extends TAtom<List<TNode>> {
-
-  private String name;
-
-  public TFuncCall(String name) {
+public class TFuncCall extends TAtom<List<TNode>> {  
+  
+  private TIden name;
+  private List<TType> typeArguments;
+  
+  public TFuncCall(TIden name) {
     super(new ArrayList<>());
     this.name = name;
+    this.typeArguments = new ArrayList<>();
   }
-
-  public void setArgs(List<TNode> nodes) {
+  
+  public void setArgs(List<TNode> nodes){
     getActValue().clear();
     getActValue().addAll(nodes);
   }
-
-  public void setArgs(TNode... nodes) {
+  
+  public void setArgs(TNode ... nodes){
     getActValue().clear();
     getActValue().addAll(Arrays.asList(nodes));
   }
-
-  public void addArgs(TNode... nodes) {
+  
+  public void addArgs(TNode ... nodes){
     getActValue().addAll(Arrays.asList(nodes));
   }
-
-  public void addArgs(Collection<TNode> nodes) {
+  
+  public void addArgs(Collection<TNode> nodes){
     getActValue().addAll(nodes);
   }
-
-  public void addArg(TNode node) {
+  
+  public void addArg(TNode node){
     getActValue().add(node);
   }
-
-  public int argCount() {
+  
+  public void addGenericType(TType type){
+    typeArguments.add(type);
+  }
+  
+  public int argCount(){
     return getActValue().size();
   }
-
-  public List<TNode> getArgList() {
+  
+  public List<TNode> getArgList(){
     return getActValue();
   }
-
-  public String getFuncName() {
-    return name;
+  
+  public List<TType> getGenericTypes(){
+    return typeArguments;
   }
 
+  public TIden getFuncName() {
+    return name;
+  }
+  
   @Override
   public String toString() {
-    String argListString = getActValue().toString();
-    argListString = argListString.substring(1);
-    argListString = argListString.substring(0, argListString.length());
-    return "INV ~ " + name + " | ARGS: " + argListString;
+    return "INV ~ "+name+" | ARGS: "+getActValue()+" || "+typeArguments;
   }
 
 }

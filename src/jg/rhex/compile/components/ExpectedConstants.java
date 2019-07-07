@@ -17,8 +17,11 @@ public final class ExpectedConstants {
         GramPracConstants.PUBL,
         GramPracConstants.PRO));
 
-    CLASS_DESC = new HashSet<>(Arrays.asList(GramPracConstants.ABSTRACT, 
-        GramPracConstants.FINAL));
+    CLASS_DESC = new HashSet<>(Arrays.asList(GramPracConstants.PRIV, 
+        GramPracConstants.PUBL, 
+        GramPracConstants.ABSTRACT, 
+        GramPracConstants.FINAL,
+        GramPracConstants.STATIC));
 
     VAR_FUNC_DESC = new HashSet<>(Arrays.asList(GramPracConstants.STATIC, 
         GramPracConstants.VOLATILE,

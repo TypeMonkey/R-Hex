@@ -16,6 +16,9 @@ public class ExpectedSet extends HashSet<Integer>{
     super(Arrays.asList(initialAmnt));
   }
   
+  public boolean addAll(Integer  ... args){
+    return super.addAll(Arrays.asList(args));
+  }
   
   /**
    * Check whether a Token's ID is in this Set's values. If it's not, it throws a FormationException

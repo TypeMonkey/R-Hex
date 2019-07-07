@@ -17,7 +17,7 @@ import net.percederberg.grammatica.parser.Token;
  *
  *
  */
-abstract class GramPracAnalyzer extends Analyzer {
+public abstract class GramPracAnalyzer extends Analyzer {
 
     /**
      * Called when entering a parse tree node.
@@ -141,6 +141,12 @@ abstract class GramPracAnalyzer extends Analyzer {
             break;
         case GramPracConstants.INTER:
             enterInter((Token) node);
+            break;
+        case GramPracConstants.EXTNDS:
+            enterExtnds((Token) node);
+            break;
+        case GramPracConstants.TPARAM:
+            enterTparam((Token) node);
             break;
         case GramPracConstants.USE:
             enterUse((Token) node);
@@ -289,6 +295,9 @@ abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.FUNC_CALL:
             enterFuncCall((Production) node);
             break;
+        case GramPracConstants.CONSTRUCTOR:
+            enterConstructor((Production) node);
+            break;
         case GramPracConstants.PAREN_EXPR:
             enterParenExpr((Production) node);
             break;
@@ -306,9 +315,6 @@ abstract class GramPracAnalyzer extends Analyzer {
             break;
         case GramPracConstants.ARRAY_ACC:
             enterArrayAcc((Production) node);
-            break;
-        case GramPracConstants.NUMBER:
-            enterNumber((Production) node);
             break;
         case GramPracConstants.UNIT:
             enterUnit((Production) node);
@@ -404,6 +410,10 @@ abstract class GramPracAnalyzer extends Analyzer {
             return exitClass((Token) node);
         case GramPracConstants.INTER:
             return exitInter((Token) node);
+        case GramPracConstants.EXTNDS:
+            return exitExtnds((Token) node);
+        case GramPracConstants.TPARAM:
+            return exitTparam((Token) node);
         case GramPracConstants.USE:
             return exitUse((Token) node);
         case GramPracConstants.THROW:
@@ -502,6 +512,8 @@ abstract class GramPracAnalyzer extends Analyzer {
             return exitFuncArgs((Production) node);
         case GramPracConstants.FUNC_CALL:
             return exitFuncCall((Production) node);
+        case GramPracConstants.CONSTRUCTOR:
+            return exitConstructor((Production) node);
         case GramPracConstants.PAREN_EXPR:
             return exitParenExpr((Production) node);
         case GramPracConstants.INVOKE:
@@ -514,8 +526,6 @@ abstract class GramPracAnalyzer extends Analyzer {
             return exitCast((Production) node);
         case GramPracConstants.ARRAY_ACC:
             return exitArrayAcc((Production) node);
-        case GramPracConstants.NUMBER:
-            return exitNumber((Production) node);
         case GramPracConstants.UNIT:
             return exitUnit((Production) node);
         }
@@ -567,6 +577,9 @@ abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.FUNC_CALL:
             childFuncCall(node, child);
             break;
+        case GramPracConstants.CONSTRUCTOR:
+            childConstructor(node, child);
+            break;
         case GramPracConstants.PAREN_EXPR:
             childParenExpr(node, child);
             break;
@@ -584,9 +597,6 @@ abstract class GramPracAnalyzer extends Analyzer {
             break;
         case GramPracConstants.ARRAY_ACC:
             childArrayAcc(node, child);
-            break;
-        case GramPracConstants.NUMBER:
-            childNumber(node, child);
             break;
         case GramPracConstants.UNIT:
             childUnit(node, child);
@@ -1503,6 +1513,54 @@ abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected Node exitInter(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterExtnds(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitExtnds(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterTparam(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitTparam(Token node) throws ParseException {
         return node;
     }
 
@@ -2852,6 +2910,47 @@ abstract class GramPracAnalyzer extends Analyzer {
      *
      * @throws ParseException if the node analysis discovered errors
      */
+    protected void enterConstructor(Production node)
+        throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitConstructor(Production node)
+        throws ParseException {
+
+        return node;
+    }
+
+    /**
+     * Called when adding a child to a parse tree node.
+     *
+     * @param node           the parent node
+     * @param child          the child node, or null
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void childConstructor(Production node, Node child)
+        throws ParseException {
+
+        node.addChild(child);
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
     protected void enterParenExpr(Production node)
         throws ParseException {
     }
@@ -3073,44 +3172,6 @@ abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected void childArrayAcc(Production node, Node child)
-        throws ParseException {
-
-        node.addChild(child);
-    }
-
-    /**
-     * Called when entering a parse tree node.
-     *
-     * @param node           the node being entered
-     *
-     * @throws ParseException if the node analysis discovered errors
-     */
-    protected void enterNumber(Production node) throws ParseException {
-    }
-
-    /**
-     * Called when exiting a parse tree node.
-     *
-     * @param node           the node being exited
-     *
-     * @return the node to add to the parse tree, or
-     *         null if no parse tree should be created
-     *
-     * @throws ParseException if the node analysis discovered errors
-     */
-    protected Node exitNumber(Production node) throws ParseException {
-        return node;
-    }
-
-    /**
-     * Called when adding a child to a parse tree node.
-     *
-     * @param node           the parent node
-     * @param child          the child node, or null
-     *
-     * @throws ParseException if the node analysis discovered errors
-     */
-    protected void childNumber(Production node, Node child)
         throws ParseException {
 
         node.addChild(child);

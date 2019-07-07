@@ -41,7 +41,7 @@ public class FormationException extends RuntimeException{
   }
   
   public FormationException(Token encountered, String expecteds){
-    super("Unexpted token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds);
+    super("Unexpected token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds);
   }
   
   protected static String getStringDescribers(Set<Integer> expecteds){

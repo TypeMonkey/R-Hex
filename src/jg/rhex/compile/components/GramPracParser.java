@@ -112,6 +112,16 @@ public class GramPracParser extends RecursiveDescentParser {
     private static final int SUBPRODUCTION_18 = 3018;
 
     /**
+     * A generated production node identity constant.
+     */
+    private static final int SUBPRODUCTION_19 = 3019;
+
+    /**
+     * A generated production node identity constant.
+     */
+    private static final int SUBPRODUCTION_20 = 3020;
+
+    /**
      * Creates a new parser with a default analyzer.
      *
      * @param in             the input stream to read from
@@ -226,7 +236,7 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern = new ProductionPattern(GramPracConstants.UNARY,
                                         "unary");
         alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.BANG, 0, 1);
+        alt.addProduction(SUBPRODUCTION_13, 0, 1);
         alt.addProduction(GramPracConstants.UNIT, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
@@ -242,7 +252,7 @@ public class GramPracParser extends RecursiveDescentParser {
                                         "func_args");
         alt = new ProductionPatternAlternative();
         alt.addProduction(GramPracConstants.FUNC_ARG, 1, 1);
-        alt.addProduction(SUBPRODUCTION_13, 0, -1);
+        alt.addProduction(SUBPRODUCTION_14, 0, -1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
@@ -250,9 +260,19 @@ public class GramPracParser extends RecursiveDescentParser {
                                         "func_call");
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.NAME, 1, 1);
+        alt.addProduction(GramPracConstants.GENERIC, 0, 1);
         alt.addToken(GramPracConstants.OP_PAREN, 1, 1);
         alt.addProduction(GramPracConstants.FUNC_ARGS, 0, 1);
         alt.addToken(GramPracConstants.CL_PAREN, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
+        pattern = new ProductionPattern(GramPracConstants.CONSTRUCTOR,
+                                        "constructor");
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.NEW, 1, 1);
+        alt.addProduction(SUBPRODUCTION_15, 0, -1);
+        alt.addProduction(GramPracConstants.FUNC_CALL, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
@@ -268,17 +288,18 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern = new ProductionPattern(GramPracConstants.INVOKE,
                                         "invoke");
         alt = new ProductionPatternAlternative();
-        alt.addProduction(SUBPRODUCTION_15, 1, -1);
+        alt.addProduction(SUBPRODUCTION_17, 1, -1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
         pattern = new ProductionPattern(GramPracConstants.GENERIC,
                                         "generic");
         alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.LESS, 1, 1);
+        alt.addToken(GramPracConstants.BANG, 1, 1);
+        alt.addToken(GramPracConstants.OP_PAREN, 1, 1);
         alt.addProduction(GramPracConstants.TYPE_NAME, 1, 1);
-        alt.addProduction(SUBPRODUCTION_16, 0, -1);
-        alt.addToken(GramPracConstants.GREAT, 1, 1);
+        alt.addProduction(SUBPRODUCTION_18, 0, -1);
+        alt.addToken(GramPracConstants.CL_PAREN, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
@@ -286,6 +307,7 @@ public class GramPracParser extends RecursiveDescentParser {
                                         "type_name");
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.NAME, 1, 1);
+        alt.addProduction(SUBPRODUCTION_19, 0, -1);
         alt.addProduction(GramPracConstants.GENERIC, 0, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
@@ -307,21 +329,13 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         addPattern(pattern);
 
-        pattern = new ProductionPattern(GramPracConstants.NUMBER,
-                                        "number");
-        alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.MINUS, 0, 1);
-        alt.addProduction(SUBPRODUCTION_17, 1, 1);
-        pattern.addAlternative(alt);
-        addPattern(pattern);
-
         pattern = new ProductionPattern(GramPracConstants.UNIT,
                                         "unit");
         alt = new ProductionPatternAlternative();
-        alt.addProduction(SUBPRODUCTION_18, 1, 1);
-        alt.addProduction(GramPracConstants.CAST, 0, -1);
+        alt.addProduction(SUBPRODUCTION_20, 1, 1);
         alt.addProduction(GramPracConstants.INVOKE, 0, 1);
         alt.addProduction(GramPracConstants.ARRAY_ACC, 0, -1);
+        alt.addProduction(GramPracConstants.CAST, 0, -1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
@@ -471,13 +485,33 @@ public class GramPracParser extends RecursiveDescentParser {
                                         "Subproduction13");
         pattern.setSynthetic(true);
         alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.COMMA, 1, 1);
-        alt.addProduction(GramPracConstants.FUNC_ARG, 1, 1);
+        alt.addToken(GramPracConstants.BANG, 1, 1);
+        pattern.addAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.MINUS, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
         pattern = new ProductionPattern(SUBPRODUCTION_14,
                                         "Subproduction14");
+        pattern.setSynthetic(true);
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.COMMA, 1, 1);
+        alt.addProduction(GramPracConstants.FUNC_ARG, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
+        pattern = new ProductionPattern(SUBPRODUCTION_15,
+                                        "Subproduction15");
+        pattern.setSynthetic(true);
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.NAME, 1, 1);
+        alt.addToken(GramPracConstants.DOT, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
+        pattern = new ProductionPattern(SUBPRODUCTION_16,
+                                        "Subproduction16");
         pattern.setSynthetic(true);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.NAME, 1, 1);
@@ -487,18 +521,18 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         addPattern(pattern);
 
-        pattern = new ProductionPattern(SUBPRODUCTION_15,
-                                        "Subproduction15");
+        pattern = new ProductionPattern(SUBPRODUCTION_17,
+                                        "Subproduction17");
         pattern.setSynthetic(true);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.DOT, 1, 1);
-        alt.addProduction(SUBPRODUCTION_14, 1, 1);
+        alt.addProduction(SUBPRODUCTION_16, 1, 1);
         alt.addProduction(GramPracConstants.ARRAY_ACC, 0, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
-        pattern = new ProductionPattern(SUBPRODUCTION_16,
-                                        "Subproduction16");
+        pattern = new ProductionPattern(SUBPRODUCTION_18,
+                                        "Subproduction18");
         pattern.setSynthetic(true);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.COMMA, 1, 1);
@@ -506,8 +540,17 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         addPattern(pattern);
 
-        pattern = new ProductionPattern(SUBPRODUCTION_17,
-                                        "Subproduction17");
+        pattern = new ProductionPattern(SUBPRODUCTION_19,
+                                        "Subproduction19");
+        pattern.setSynthetic(true);
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.DOT, 1, 1);
+        alt.addToken(GramPracConstants.NAME, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
+        pattern = new ProductionPattern(SUBPRODUCTION_20,
+                                        "Subproduction20");
         pattern.setSynthetic(true);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.INTEGER, 1, 1);
@@ -520,14 +563,6 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.LONG, 1, 1);
-        pattern.addAlternative(alt);
-        addPattern(pattern);
-
-        pattern = new ProductionPattern(SUBPRODUCTION_18,
-                                        "Subproduction18");
-        pattern.setSynthetic(true);
-        alt = new ProductionPatternAlternative();
-        alt.addProduction(GramPracConstants.NUMBER, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.STRING, 1, 1);
@@ -542,14 +577,16 @@ public class GramPracParser extends RecursiveDescentParser {
         alt.addToken(GramPracConstants.FALSE, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.NAME, 1, 1);
+        pattern.addAlternative(alt);
+        alt = new ProductionPatternAlternative();
         alt.addProduction(GramPracConstants.PAREN_EXPR, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.NEW, 0, 1);
         alt.addProduction(GramPracConstants.FUNC_CALL, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
-        alt.addToken(GramPracConstants.NAME, 1, 1);
+        alt.addProduction(GramPracConstants.CONSTRUCTOR, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
     }

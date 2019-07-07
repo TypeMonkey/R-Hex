@@ -17,10 +17,12 @@ import org.apache.commons.io.FilenameUtils;
 
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.comparsers.BlockParser;
-import jg.rhex.compile.components.comparsers.TypeNameParser;
+import jg.rhex.compile.components.comparsers.ClassParser;
+import jg.rhex.compile.components.comparsers.TypeParser;
 import jg.rhex.compile.components.comparsers.VarDecParsers;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.structs.Descriptor;
+import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFunc;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
@@ -80,7 +82,7 @@ public class FileBuilder {
    * @param iterator - the token iterator to consume tokens from
    */
   private void scanFileBody(RhexFile rhexFile, ListIterator<Token> iterator) {
-    ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, GramPracConstants.FUNC);
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.USE);
     expected.addAll(ExpectedConstants.VAR_FUNC_DESC);
     expected.addAll(ExpectedConstants.VISIBILITY);
     expected.addAll(ExpectedConstants.CLASS_DESC);
@@ -94,22 +96,64 @@ public class FileBuilder {
         }
         else {
           //TODO: make helper methods to distinguish between classes, functions and variables
+          //Gather Tokens until a ';' or '{'
+          ArrayList<Token> unknownComp = new ArrayList<>();
+          
+          boolean terminatorFound = false;
+          while (iterator.hasNext()) {
+            Token cur = iterator.next();
+            unknownComp.add(cur);
+            if (cur.getId() == GramPracConstants.SEMICOLON || cur.getId() == GramPracConstants.OP_CU_BRACK) {
+              terminatorFound = true;
+              break;
+            }
+          }
+          
+          if (!terminatorFound) {
+            throw FormationException.createException("FileComponent", iterator.previous(), expected);
+          }
+          
+          //now, attempt to parse
+          if (unknownComp.get(unknownComp.size()-1).getId() == GramPracConstants.SEMICOLON) {
+            //then this is a statement. All external statements (outside functions and classes)
+            //must be variable declarations
+            RVariable variable = VarDecParsers.parseVariable(unknownComp.listIterator());
+            rhexFile.addVariable(variable);
+          }
+          else {
+            //then this is either a function declaration or a class declaration
+            //first, attempt to parse as a function
+            try {
+              RFunc rFunc = formFunctionHeader(false, unknownComp.listIterator());
+              
+              BlockParser.parseBlock(rFunc.getBody(), iterator);
+              rhexFile.addFunction(rFunc);
+            } catch (FormationException e) {
+              //if function parsing fails, try to parse the header as a class declaration
+              RClass rClass = ClassParser.formClassHeader(iterator);
+            }
+          }
         }
       }
     }
   }
   
+  
   /**
-   * 
-   * @param useToken
-   * @param iterator
-   * @return
+   * Forms the header of an RHex function 
+   * @param iterator - the ListIterator to consume Tokens from
+   * @return the RFunc object representing the header of the function
    */
-  private RFunc formFunction(Token useToken, ListIterator<Token> iterator){ 
+  private RFunc formFunctionHeader(boolean isClassFunc, ListIterator<Token> iterator){ 
     ExpectedSet expected = new ExpectedSet(GramPracConstants.PUBL,
                                            GramPracConstants.PRIV,
                                            GramPracConstants.VOID,
                                            GramPracConstants.NAME);
+    
+    if (isClassFunc) {
+      expected.addAll(GramPracConstants.ABSTRACT, GramPracConstants.FINAL);
+    }
+    
     
     RFunc function = new RFunc();    
         
@@ -117,7 +161,16 @@ public class FileBuilder {
       Token current = iterator.next();
       if (expected.noContainsThrow(current, "Function")) {
         if (current.getId() == GramPracConstants.PUBL || current.getId() == GramPracConstants.PRIV) {
-          function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()));
+          if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
+            throw FormationException.createException("Function", current, expected);
+          }
+          expected.replace(GramPracConstants.VOID, GramPracConstants.NAME, GramPracConstants.LESS);
+        }
+        else if (current.getId() == GramPracConstants.ABSTRACT || current.getId() == GramPracConstants.FINAL) {
+          //should only be valid for class function
+          if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
+            throw FormationException.createException("Function", current, expected);
+          }
           expected.replace(GramPracConstants.VOID, GramPracConstants.NAME, GramPracConstants.LESS);
         }
         else if (current.getId() == GramPracConstants.VOID) {
@@ -130,7 +183,7 @@ public class FileBuilder {
         else if (current.getId() == GramPracConstants.NAME) {
           if (function.getName() == null) {
             //then this is the return type
-            TType returnType = TypeNameParser.parseType(iterator);
+            TType returnType = TypeParser.parseType(iterator);
             function.setReturnType(returnType);
             expected.replace(GramPracConstants.NAME, GramPracConstants.LESS);
           }
@@ -142,7 +195,7 @@ public class FileBuilder {
         }
         else if (current.getId() == GramPracConstants.LESS) {
           //function generic argument begins
-          function.addGenericTypeArg(TypeNameParser.parseType(iterator));
+          function.addGenericTypeArg(TypeParser.parseType(iterator));
           
           ExpectedSet genExpected = new ExpectedSet(GramPracConstants.GREAT, GramPracConstants.COMMA);
           
@@ -154,7 +207,7 @@ public class FileBuilder {
                 break;
               }
               else if (curGeneric.getId() == GramPracConstants.COMMA) {
-                function.addGenericTypeArg(TypeNameParser.parseType(iterator));
+                function.addGenericTypeArg(TypeParser.parseType(iterator));
                 genExpected.replace(GramPracConstants.GREAT, GramPracConstants.COMMA);
               }
             }
@@ -215,7 +268,7 @@ public class FileBuilder {
           break;
         }
         else if (current.getId() == GramPracConstants.THROWS) {
-          TType firstException = TypeNameParser.parseType(iterator);
+          TType firstException = TypeParser.parseType(iterator);
           function.addDeclaredException(firstException);
           
           ExpectedSet throwExpected = new ExpectedSet(GramPracConstants.COMMA, 
@@ -231,7 +284,7 @@ public class FileBuilder {
               break; 
             }
             else if (nextToken.getId() == GramPracConstants.COMMA) {
-              TType exception = TypeNameParser.parseType(iterator);
+              TType exception = TypeParser.parseType(iterator);
               function.addDeclaredException(exception);
             }
           }
@@ -248,12 +301,10 @@ public class FileBuilder {
     
     //want to make sure that all expected tokens are met
     if (!(expected.isEmpty() || expected.contains(-1))) {
-      throw FormationException.createException("Function", useToken, expected);
+      throw FormationException.createException("Function", iterator.previous(), expected);
     }
     
-    //at this point, the very next token from iterator should be an opening curly brace
-    
-    BlockParser.parseBlock(function.getBody(), iterator);
+    //at this point, the very next token from iterator should be an opening curly brace   
     return function;
   }
   

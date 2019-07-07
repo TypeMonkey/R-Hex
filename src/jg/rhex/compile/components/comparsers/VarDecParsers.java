@@ -1,6 +1,5 @@
 package jg.rhex.compile.components.comparsers;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
@@ -11,7 +10,6 @@ import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.ASTBuilder;
 import jg.rhex.compile.components.GramPracConstants;
 import jg.rhex.compile.components.GramPracParser;
-import jg.rhex.compile.components.GramPracTokenizer;
 import jg.rhex.compile.components.NewSeer;
 import jg.rhex.compile.components.errors.EmptyExprException;
 import jg.rhex.compile.components.errors.FormationException;
@@ -24,9 +22,8 @@ import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.ParserCreationException;
 import net.percederberg.grammatica.parser.ParserLogException;
 import net.percederberg.grammatica.parser.Token;
-import net.percederberg.grammatica.parser.Tokenizer;
 
-public class VarDecParsers {
+public final class VarDecParsers {
   
   /**
    * Parses a Token source (ListIterator) for a variable declaration
@@ -82,9 +79,9 @@ public class VarDecParsers {
           if (varType == null && !varToBeInferred) {
             //then this name is the start of the variable's type
             iterator.previous(); //backtrack iterator
-            varType = TypeNameParser.parseType(iterator);
+            varType = TypeParser.parseType(iterator);
             
-            System.out.println("---GOT TYPE: "+varType.getBaseType()+" | "+varType.hasBeenFormalized());
+            System.out.println("---GOT TYPE: "+varType.getBaseType());
             
             expected.replace(GramPracConstants.NAME);
           }
@@ -164,9 +161,9 @@ public class VarDecParsers {
     throw FormationException.createException("VariableDeclaration", iterator.previous(), expected);
   }
   
-  
+  /*
   public static void main(String [] args) throws Exception{
-    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("String<T> wow = 10+2*3;"));
+    Tokenizer tokenizer = new GramPracTokenizer(new StringReader("java.lang.String<T<W>, wow.lmao.ca<O>> wow = 10+2*3;"));
     List<Token> tokens = new ArrayList<>();
         
     Token token = null;
@@ -184,5 +181,5 @@ public class VarDecParsers {
     System.out.println(" TYPE: "+variable.getProvidedType());
     System.out.println(" INFER? "+variable.toBeInferred());
   }
-  
+  */
 }

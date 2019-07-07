@@ -20,6 +20,9 @@ public class Tester {
     String test = "while( i < 10*h+2.5 ) {"
                  
                  + "  String<T> wow = 10+2*3;"
+                 + "  for(int i = 0; i < 10; i = i +1){  "
+                 + "       if(i % 2 == 0){ prinln(i+10); }"
+                 +"   }"
                  + "   while(j < 10) {"
                  +"        yo();"
                  +"        if(j < 5){"

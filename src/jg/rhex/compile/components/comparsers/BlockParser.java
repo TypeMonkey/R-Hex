@@ -137,15 +137,29 @@ public class BlockParser {
         
         boolean terminatorFound = false;
         
-        //consume Tokens from the iterator until a semicolon or '{' is found.
-        while (iterator.hasNext()) {
-          Token tempCur = iterator.next();
-          System.out.println("---STATE CUR: "+tempCur);
-          tempStatement.add(tempCur);
-          if (tempCur.getId() == GramPracConstants.SEMICOLON || 
-              tempCur.getId() == GramPracConstants.OP_CU_BRACK) {
-            terminatorFound = true;
-            break;
+        if (tempStatement.get(0).getId() == GramPracConstants.FOR) {
+          //consume Tokens from the iterator until a '{' is found.
+          while (iterator.hasNext()) {
+            Token tempCur = iterator.next();
+            System.out.println("---STATE FOR CUR: "+tempCur);
+            tempStatement.add(tempCur);
+            if (tempCur.getId() == GramPracConstants.OP_CU_BRACK) {
+              terminatorFound = true;
+              break;
+            }
+          }
+        }
+        else {
+          //consume Tokens from the iterator until a semicolon or '{' is found.
+          while (iterator.hasNext()) {
+            Token tempCur = iterator.next();
+            System.out.println("---STATE CUR: "+tempCur);
+            tempStatement.add(tempCur);
+            if (tempCur.getId() == GramPracConstants.SEMICOLON || 
+                tempCur.getId() == GramPracConstants.OP_CU_BRACK) {
+              terminatorFound = true;
+              break;
+            }
           }
         }
         
@@ -235,25 +249,13 @@ public class BlockParser {
       }
     }
     
+    System.out.println("----> FOR INIT STATEMENTS: "+initState);
+    
     RStatement initStatement = null;
-    if (initTermFound) {
-      initState.remove(initState.size() - 1);
-      
+    if (initTermFound) {      
       if (!initState.isEmpty()) {
         try {
-          NewSeer seer = new NewSeer();
-          GramPracParser parser = new GramPracParser(null, seer);
-          parser.parseFromTokenList(initState);
-          
-          ASTBuilder postFixer = new ASTBuilder();
-          Deque<TNode> postFix = postFixer.build(seer.getStackNodes());
-          
-          if (postFix.size() == 1) {
-            initStatement = new RStatement(postFix.pollFirst());
-          }
-          else {
-            initStatement = new RStatement(new TExpr(new ArrayList<>(postFix)));
-          }        
+          initStatement = parseStatement(initState.listIterator());
         } catch (ParserCreationException | ParserLogException e1) {
           e1.printStackTrace();
         }
@@ -278,26 +280,11 @@ public class BlockParser {
     
     RStatement condStatement = null;
     if (condTermFound) {
-      conditionState.remove(conditionState.size() - 1);
-      
-      if (!conditionState.isEmpty()) {
-        try {
-          NewSeer seer = new NewSeer();
-          GramPracParser parser = new GramPracParser(null, seer);
-          parser.parseFromTokenList(conditionState);
-
-          ASTBuilder postFixer = new ASTBuilder();
-          Deque<TNode> postFix = postFixer.build(seer.getStackNodes());
-
-          if (postFix.size() == 1) {
-            condStatement = new RStatement(postFix.pollFirst());
-          }
-          else {
-            condStatement = new RStatement(new TExpr(new ArrayList<>(postFix)));
-          }} catch (ParserCreationException | ParserLogException e1) {
-          e1.printStackTrace();
-        }
-      }
+      try {
+        condStatement = parseStatement(conditionState.listIterator());
+      } catch (ParserCreationException | ParserLogException e) {
+        e.printStackTrace();
+      } 
     }
     else {
       throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
@@ -316,9 +303,7 @@ public class BlockParser {
     }
     
     RStatement changeStatement = null;
-    if (changeTermFound) {
-      changeState.remove(changeState.size() - 1);
-      
+    if (changeTermFound) {      
       if (!changeState.isEmpty()) {
         try {
           NewSeer seer = new NewSeer();
