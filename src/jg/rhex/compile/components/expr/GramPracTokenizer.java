@@ -4,7 +4,7 @@
  * THIS FILE HAS BEEN GENERATED AUTOMATICALLY. DO NOT EDIT!
  */
 
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 
 import java.io.Reader;
 
@@ -294,6 +294,12 @@ public class GramPracTokenizer extends Tokenizer {
                                    "USE",
                                    TokenPattern.STRING_TYPE,
                                    "use");
+        addPattern(pattern);
+
+        pattern = new TokenPattern(GramPracConstants.FROM,
+                                   "FROM",
+                                   TokenPattern.STRING_TYPE,
+                                   "from");
         addPattern(pattern);
 
         pattern = new TokenPattern(GramPracConstants.THROW,

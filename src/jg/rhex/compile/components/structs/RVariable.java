@@ -1,19 +1,17 @@
 package jg.rhex.compile.components.structs;
 
-import java.util.List;
 import java.util.Set;
 
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
-import net.percederberg.grammatica.parser.Token;
 
 /**
  * Represents variable declarations - including type declarations (ex: type [DESCRIPTORS] typeName = otherTypeName)
  * @author Jose
  *
  */
-public class RVariable extends RStatement{
+public class RVariable extends RStatement implements Sealable{
   
   private TIden identifier;  //variable name
   
@@ -49,6 +47,18 @@ public class RVariable extends RStatement{
     this.descriptors = descriptors;
   }
   
+  public boolean equals(Object object){
+    if (object instanceof RVariable) {
+      RVariable variable = (RVariable) object;
+      return variable.getIdentifier().getActValue().getImage().equals(identifier.getActValue().getImage());
+    }
+    return false;
+  }
+  
+  public int hashCode(){
+    return identifier.getActValue().getImage().hashCode();
+  }
+  
   public TNode getValue(){
     return getStatement();
   }
@@ -78,5 +88,15 @@ public class RVariable extends RStatement{
    */
   public boolean toBeInferred() {
     return providedType == null;
+  }
+
+  @Override
+  public void seal() {
+    //RVariables should be complete in information at construction
+  }
+
+  @Override
+  public boolean isSealed() {
+    return true;
   }
 }

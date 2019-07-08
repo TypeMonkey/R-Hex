@@ -26,6 +26,7 @@ public class RStateBlock extends RStatement {
   
   private List<RStatement> statements;
   private BlockType blockType;
+  protected boolean isSealed;
   
   /**
    * Constructs an empty RStateBlock
@@ -49,10 +50,16 @@ public class RStateBlock extends RStatement {
   }
   
   public void addStatements(Collection<RStatement> statements){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.statements.addAll(statements);
   }
   
   public void addStatement(RStatement statement){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     statements.add(statement);
   }
 
@@ -63,6 +70,20 @@ public class RStateBlock extends RStatement {
   public BlockType getBlockType() {
     return blockType;
   }  
+  
+  public void seal() {
+    //TODO: Decide whether RStateBlock should recursively seal component statements
+    //      If so, we may incur runtime speed costs, but at the benefit of immutability
+    isSealed = true;
+    
+    for (RStatement rStatement : statements) {
+      rStatement.seal();
+    }
+  }
+  
+  public boolean isSealed() {
+    return isSealed;
+  }
   
   public String toString() {
     return "BLOCK ~ "+getBlockType()+" | STATEMENT COUNT: "+statements.size();

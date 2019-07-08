@@ -4,7 +4,7 @@ import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
-public class RepeatedTParamException extends RuntimeException{
+public class RepeatedTParamException extends RhexConstructionException{
 
   public RepeatedTParamException(Token paramName) {
     super("Repeated type parameter '"+paramName.getImage()+"' at <ln:"+paramName.getStartLine()+">");

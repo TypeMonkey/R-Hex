@@ -1,36 +1,47 @@
 package jg.rhex.compile.components.structs;
 
 import java.util.Objects;
+import java.util.Set;
 
+import jg.rhex.compile.components.tnodes.atoms.TIden;
+import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
-public class UseDeclaration {
+public class UseDeclaration implements Sealable{
   
   private Token useToken;
-  private String filePath;
+  private TType baseImport;
+  private Set<TIden> funcsToImport;
   
-  public UseDeclaration(Token useToken, String filePath){
+  public UseDeclaration(Token useToken, TType baseImport) {
+    this(useToken, baseImport, null);
+  }
+  
+  public UseDeclaration(Token useToken, TType baseImport, Set<TIden> funcsToImport){
     this.useToken = useToken;
-    this.filePath = filePath;
-  }
-  
-  public boolean equals(Object declaration){
-    if (declaration instanceof UseDeclaration) {
-      UseDeclaration decl = (UseDeclaration) declaration;
-      return filePath.equals(decl.filePath);
-    }
-    return false;
-  }
-  
-  public int hashCode(){
-    return Objects.hash(filePath);
+    this.baseImport = baseImport;
+    this.funcsToImport = funcsToImport;
   }
 
   public Token getUseToken() {
     return useToken;
   }
 
-  public String getFilePath() {
-    return filePath;
+  public TType getBaseImport() {
+    return baseImport;
+  }
+
+  public Set<TIden> getImportedFuncs(){
+    return funcsToImport;
+  }
+  
+  @Override
+  public void seal() {
+    //Use statements shoudl be complete in information at construction
+  }
+
+  @Override
+  public boolean isSealed() {
+    return true;
   }
 }

@@ -6,7 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import jg.rhex.compile.components.GramPracTokenizer;
+import jg.rhex.compile.components.TestUtils;
+import jg.rhex.compile.components.expr.GramPracTokenizer;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RVariable;
@@ -35,13 +36,7 @@ public class Tester {
                  +"  else{println(5);}"
                  + "} ";
     
-    Tokenizer tokenizer = new GramPracTokenizer(new StringReader(test));
-    List<Token> tokens = new ArrayList<>();
-        
-    Token token = null;
-    while ((token = tokenizer.next()) != null) {
-      tokens.add(token);
-    }
+    List<Token> tokens = TestUtils.tokenizeString(test);
     
     System.out.println("RAW: ------");
     for(Token x: tokens){
@@ -53,17 +48,18 @@ public class Tester {
     ListIterator<Token> iterator = tokens.listIterator();
     
     System.out.println("----PARSING WHILE HEADER-----");
-    WhileBlock block = (WhileBlock) BlockParser.parseBlockHeader(iterator);
+    WhileBlock block = (WhileBlock) StatementParser.parseBlockHeader(iterator);
     System.out.println(block.getConditional().getStatement());
-
     
     System.out.println("----PARSING BLOCK----");
-    BlockParser.parseBlock(block, iterator);
+    StatementParser.parseBlock(block, iterator);
     
     System.out.println("**************STATEMENT***************");
     for(RStatement statement : block.getStatements()){
       printStatement(statement); 
     }
+    
+    block.seal();
     
     System.out.println(" -----> LAST "+(iterator.hasNext() ? iterator.next().toString() : "NONE"));
     

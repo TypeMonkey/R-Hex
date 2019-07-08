@@ -1,4 +1,4 @@
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,7 +36,7 @@ public class NewSeer extends GramPracAnalyzer{
   protected Stack<ArrayDeque<TNode>> stack;
   protected Stack<TNode> actualNodes;
   
-  public NewSeer(){
+  protected NewSeer(){
     stack = new Stack<>();
     actualNodes = new Stack<>();
   }

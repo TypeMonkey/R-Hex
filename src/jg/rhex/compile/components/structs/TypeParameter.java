@@ -1,9 +1,7 @@
 package jg.rhex.compile.components.structs;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import jg.rhex.common.FunctionInfo;
@@ -25,7 +23,7 @@ public class TypeParameter {
     
     extendedClasses = new HashSet<>();
     expectedFunctions = new HashSet<>();
-    tParamsInScope = new HashSet<>();
+    tParamsInScope = new LinkedHashSet<>();
   }
   
   public boolean equals(Object object){

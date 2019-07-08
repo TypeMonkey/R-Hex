@@ -2,41 +2,68 @@ package jg.rhex.compile.components.structs;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class RhexFile {
+public class RhexFile implements Sealable{
 
   private String fileName;
   
   private Set<UseDeclaration> useDeclarations;
   
-  private List<RVariable> variables;
+  private Set<RVariable> variables;
   private List<RFunc> functions;
-  private List<RClass> classes;
+  private Set<RClass> classes;
+  
+  private boolean isSealed;
   
   public RhexFile(String fileName){
     this.fileName = fileName;
     
     useDeclarations = new HashSet<UseDeclaration>();
-    variables = new ArrayList<RVariable>();
+    variables = new LinkedHashSet<>();
     functions = new ArrayList<RFunc>();
-    classes = new ArrayList<RClass>();
+    classes = new LinkedHashSet<>();
   }
   
   public void addUseDec(UseDeclaration useDeclaration){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     useDeclarations.add(useDeclaration);
   }
   
-  public void addVariable(RVariable variable){
-    variables.add(variable);
+  /**
+   * Adds a variable to this RhexFile
+   * @param variable - the variable to add
+   * @return true if this variable (by its name) is not already present in this file
+   *         false if else
+   */
+  public boolean addVariable(RVariable variable){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
+    return variables.add(variable);
   }
   
-  public void addClass(RClass rClass){
-    classes.add(rClass);
+  /**
+   * Adds a class to this RhexFile
+   * @param rClass - the class to add
+   * @return true if this class (by its simple name) is not already present in this file
+   *         false if else
+   */
+  public boolean addClass(RClass rClass){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
+    return classes.add(rClass);
   }
   
   public void addFunction(RFunc func){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     functions.add(func);
   }
 
@@ -48,7 +75,7 @@ public class RhexFile {
     return useDeclarations;
   }
 
-  public List<RVariable> getVariables() {
+  public Set<RVariable> getVariables() {
     return variables;
   }
 
@@ -56,7 +83,17 @@ public class RhexFile {
     return functions;
   }
 
-  public List<RClass> getClasses() {
+  public Set<RClass> getClasses() {
     return classes;
+  }
+
+  @Override
+  public void seal() {
+    isSealed = true;
+  }
+
+  @Override
+  public boolean isSealed() {
+    return isSealed;
   }
 }

@@ -13,14 +13,23 @@ public class ForBlock extends RStateBlock{
   }
 
   public void setInitStatement(RStatement init){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.intialization = init;
   }
   
   public void setConditional(RStatement conditional){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.conditional = conditional;
   }
   
   public void setChange(RStatement change){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.change = change;
   }
 

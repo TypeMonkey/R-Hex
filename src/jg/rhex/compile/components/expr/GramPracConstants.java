@@ -4,7 +4,7 @@
  * THIS FILE HAS BEEN GENERATED AUTOMATICALLY. DO NOT EDIT!
  */
 
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 
 /**
  * An interface with constants for the parser and tokenizer.
@@ -226,187 +226,192 @@ public interface GramPracConstants {
     /**
      * A token identity constant.
      */
-    public static final int THROW = 1043;
+    public static final int FROM = 1043;
 
     /**
      * A token identity constant.
      */
-    public static final int NAME = 1044;
+    public static final int THROW = 1044;
 
     /**
      * A token identity constant.
      */
-    public static final int ARROW = 1045;
+    public static final int NAME = 1045;
 
     /**
      * A token identity constant.
      */
-    public static final int PLUS = 1046;
+    public static final int ARROW = 1046;
 
     /**
      * A token identity constant.
      */
-    public static final int MINUS = 1047;
+    public static final int PLUS = 1047;
 
     /**
      * A token identity constant.
      */
-    public static final int MULT = 1048;
+    public static final int MINUS = 1048;
 
     /**
      * A token identity constant.
      */
-    public static final int DIV = 1049;
+    public static final int MULT = 1049;
 
     /**
      * A token identity constant.
      */
-    public static final int MOD = 1050;
+    public static final int DIV = 1050;
 
     /**
      * A token identity constant.
      */
-    public static final int AND = 1051;
+    public static final int MOD = 1051;
 
     /**
      * A token identity constant.
      */
-    public static final int OR = 1052;
+    public static final int AND = 1052;
 
     /**
      * A token identity constant.
      */
-    public static final int BANG = 1053;
+    public static final int OR = 1053;
 
     /**
      * A token identity constant.
      */
-    public static final int WLDCRD = 1054;
+    public static final int BANG = 1054;
 
     /**
      * A token identity constant.
      */
-    public static final int COLON = 1055;
+    public static final int WLDCRD = 1055;
 
     /**
      * A token identity constant.
      */
-    public static final int SEMICOLON = 1056;
+    public static final int COLON = 1056;
 
     /**
      * A token identity constant.
      */
-    public static final int EXPONENT = 1057;
+    public static final int SEMICOLON = 1057;
 
     /**
      * A token identity constant.
      */
-    public static final int LESS = 1058;
+    public static final int EXPONENT = 1058;
 
     /**
      * A token identity constant.
      */
-    public static final int GREAT = 1059;
+    public static final int LESS = 1059;
 
     /**
      * A token identity constant.
      */
-    public static final int EQUAL = 1060;
+    public static final int GREAT = 1060;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_EQ = 1061;
+    public static final int EQUAL = 1061;
 
     /**
      * A token identity constant.
      */
-    public static final int NOT_EQ = 1062;
+    public static final int EQ_EQ = 1062;
 
     /**
      * A token identity constant.
      */
-    public static final int GR_EQ = 1063;
+    public static final int NOT_EQ = 1063;
 
     /**
      * A token identity constant.
      */
-    public static final int LS_EQ = 1064;
+    public static final int GR_EQ = 1064;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MULT = 1065;
+    public static final int LS_EQ = 1065;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_ADD = 1066;
+    public static final int EQ_MULT = 1066;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_DIV = 1067;
+    public static final int EQ_ADD = 1067;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MIN = 1068;
+    public static final int EQ_DIV = 1068;
 
     /**
      * A token identity constant.
      */
-    public static final int EQ_MOD = 1069;
+    public static final int EQ_MIN = 1069;
 
     /**
      * A token identity constant.
      */
-    public static final int BOOL_AND = 1070;
+    public static final int EQ_MOD = 1070;
 
     /**
      * A token identity constant.
      */
-    public static final int BOOL_OR = 1071;
+    public static final int BOOL_AND = 1071;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_PAREN = 1072;
+    public static final int BOOL_OR = 1072;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_PAREN = 1073;
+    public static final int OP_PAREN = 1073;
 
     /**
      * A token identity constant.
      */
-    public static final int COMMA = 1074;
+    public static final int CL_PAREN = 1074;
 
     /**
      * A token identity constant.
      */
-    public static final int DOT = 1075;
+    public static final int COMMA = 1075;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_SQ_BRACK = 1076;
+    public static final int DOT = 1076;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_SQ_BRACK = 1077;
+    public static final int OP_SQ_BRACK = 1077;
 
     /**
      * A token identity constant.
      */
-    public static final int OP_CU_BRACK = 1078;
+    public static final int CL_SQ_BRACK = 1078;
 
     /**
      * A token identity constant.
      */
-    public static final int CL_CU_BRACK = 1079;
+    public static final int OP_CU_BRACK = 1079;
+
+    /**
+     * A token identity constant.
+     */
+    public static final int CL_CU_BRACK = 1080;
 
     /**
      * A production node identity constant.

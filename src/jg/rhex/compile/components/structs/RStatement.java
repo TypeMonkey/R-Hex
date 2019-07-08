@@ -8,7 +8,7 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class RStatement {
+public class RStatement implements Sealable{
   
   public enum RStateDescriptor{
     RETURN,    //a return statement - to return value from functions / methods
@@ -70,5 +70,15 @@ public class RStatement {
 
   public Token getDescriptorToken() {
     return descriptorToken;
+  }
+
+  @Override
+  public void seal() {
+    //RStatements should be complete in information at construction
+  }
+
+  @Override
+  public boolean isSealed() {
+    return true;
   }
 }

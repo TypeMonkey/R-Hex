@@ -2,25 +2,35 @@ package jg.rhex.compile.components.comparsers;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
 import java.util.ListIterator;
 
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.ASTBuilder;
-import jg.rhex.compile.components.GramPracConstants;
-import jg.rhex.compile.components.GramPracParser;
-import jg.rhex.compile.components.NewSeer;
 import jg.rhex.compile.components.errors.EmptyExprException;
+import jg.rhex.compile.components.errors.ExpressionParseException;
 import jg.rhex.compile.components.errors.FormationException;
+import jg.rhex.compile.components.errors.InvalidPlacementException;
+import jg.rhex.compile.components.errors.RepeatedStructureException;
+import jg.rhex.compile.components.errors.RhexConstructionException;
+import jg.rhex.compile.components.expr.ASTBuilder;
+import jg.rhex.compile.components.expr.ExprParser;
+import jg.rhex.compile.components.expr.GramPracConstants;
+import jg.rhex.compile.components.expr.GramPracParser;
+import jg.rhex.compile.components.expr.NewSeer;
 import jg.rhex.compile.components.structs.ForBlock;
 import jg.rhex.compile.components.structs.IfBlock;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RStatement.RStateDescriptor;
 import jg.rhex.compile.components.structs.RVariable;
+import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.structs.WhileBlock;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
 import jg.rhex.compile.components.tnodes.TExpr;
 import jg.rhex.compile.components.tnodes.TNode;
+import jg.rhex.compile.components.tnodes.atoms.TIden;
+import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.ParserCreationException;
 import net.percederberg.grammatica.parser.ParserLogException;
 import net.percederberg.grammatica.parser.Token;
@@ -30,7 +40,151 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class BlockParser {
+public class StatementParser {
+  
+  /**
+   * Forms the upcoming sequence of tokens in iterator
+   * as a UseDeclaration. 
+   * 
+   * Once this method finishes, the next token to be consumed from the provided
+   * iterator will be the Token AFTER the concluding semicolon of this statement. 
+   * So, it's possible that all tokens may be consumed in this iterator
+   * 
+   * @param useToken - the Token that has the "use" keyword
+   * @param iterator - the Iterator to consume Tokens from
+   * @return a UseDeclaration 
+   */
+  public static UseDeclaration formUseDeclaration(ListIterator<Token> iterator){
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.USE);
+    
+    HashSet<TIden> importedFunctions = new HashSet<>();
+    ArrayList<TIden> baseImport = new ArrayList<>();
+    Token useToken = null;
+    
+    boolean nameIsForFunction = false;
+        
+    while (iterator.hasNext()) {
+      Token current = iterator.next();
+      if (expected.noContainsThrow(current, "UseStatement")) {
+        if (current.getId() == GramPracConstants.USE) {
+          useToken = current;
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.NAME) {
+          if (nameIsForFunction) {
+            if (!importedFunctions.add(new TIden(current))) {
+              throw new RepeatedStructureException(current, "UseStatement");
+            }
+            
+            expected.replace(GramPracConstants.COMMA, GramPracConstants.FROM);
+          }
+          else {
+            //lookahead and see if the next token is a comma, dot, or semicolon
+            //if it's a dot, then this name is the beginning of a binary name
+            //if it's a comma, then this use statement follows a "from" syntax
+            //if it's a semicolon, then this use statement is simple
+
+            if (iterator.hasNext()) {
+              Token next = iterator.next();
+              if (next.getId() == GramPracConstants.DOT) {
+                
+                ExpectedSet dotExpected = new ExpectedSet(GramPracConstants.NAME);
+
+                baseImport.add(new TIden(current));
+                
+                boolean terminatorFound = false;
+                while (iterator.hasNext()) {
+                  Token dotCurrent = iterator.next();
+                  if (dotExpected.noContainsThrow(dotCurrent, "UseStatement")) {
+                    if (dotCurrent.getId() == GramPracConstants.NAME) {
+                      baseImport.add(new TIden(dotCurrent));
+                      dotExpected.replace(GramPracConstants.DOT, GramPracConstants.SEMICOLON);
+                    }
+                    else if (dotCurrent.getId() == GramPracConstants.DOT) {
+                      dotExpected.replace(GramPracConstants.NAME);
+                    }
+                    else if (dotCurrent.getId() == GramPracConstants.SEMICOLON) {
+                      terminatorFound = true;
+                      break;
+                    }
+                  }
+                }
+                
+                if (terminatorFound) {
+                  expected.replace(GramPracConstants.SEMICOLON);
+                }
+                else {
+                  throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+                }
+              }
+              else if (next.getId() == GramPracConstants.COMMA) {
+                nameIsForFunction = true;
+                if (!importedFunctions.add(new TIden(current))) {
+                  throw new RepeatedStructureException(current, "UseStatement");
+                }                
+                expected.replace(GramPracConstants.COMMA);
+              }
+              else if (next.getId() == GramPracConstants.SEMICOLON) {
+                baseImport.add(new TIden(current));
+                expected.replace(GramPracConstants.SEMICOLON);
+              }
+              else {
+                throw new InvalidPlacementException(next);
+              }
+
+              iterator.previous(); //roll back iterator
+            }
+            else {
+              continue;
+            }
+          }
+        }
+        else if (current.getId() == GramPracConstants.COMMA) {
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.FROM) {
+          ExpectedSet dotExpected = new ExpectedSet(GramPracConstants.NAME);
+          
+          boolean terminatorFound = false;
+          while (iterator.hasNext()) {
+            Token dotCurrent = iterator.next();
+            System.out.println("from current: "+dotCurrent);
+            if (dotExpected.noContainsThrow(dotCurrent, "UseStatement")) {
+              if (dotCurrent.getId() == GramPracConstants.NAME) {
+                baseImport.add(new TIden(dotCurrent));
+                dotExpected.replace(GramPracConstants.DOT, GramPracConstants.SEMICOLON);
+              }
+              else if (dotCurrent.getId() == GramPracConstants.DOT) {
+                dotExpected.replace(GramPracConstants.NAME);
+              }
+              else if (dotCurrent.getId() == GramPracConstants.SEMICOLON) {
+                terminatorFound = true;
+                break;
+              }
+            }
+          }
+          
+          if (terminatorFound) {
+            expected.replace(GramPracConstants.SEMICOLON);
+            iterator.previous();
+          }
+          else {
+            throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+          }
+        }
+        else if (current.getId() == GramPracConstants.SEMICOLON) {
+          expected.clear();
+          break;
+        }
+      }
+    }
+    
+    if (expected.isEmpty() || expected.contains(-1)) {
+      return new UseDeclaration(useToken, new TType(baseImport), importedFunctions);
+    }
+    throw FormationException.createException("UseStatement", iterator.previous(), expected);
+  }
+
   
   /**
    * Parses a statement from a Token source
@@ -81,24 +235,27 @@ public class BlockParser {
 
         try {
           RVariable variable = VarDecParsers.parseVariable(tokens.listIterator());
+          variable.seal();
           return variable;
-        } catch (FormationException e) {
+        } catch (RhexConstructionException e) {
           //if not variable declaration, continue on and parse as regular statement
         }
       }
 
       //remove ending semicolon as to not get a parse error from parser
       tokens.remove(tokens.size()-1);
-      
-      NewSeer seer = new NewSeer();
-      GramPracParser parser = new GramPracParser(null, seer);
-      parser.parseFromTokenList(tokens);
+           
+      List<TNode> exprNodes = ExprParser.getUniversalParser().parseExpression(tokens);
 
-      if (seer.getStackNodes().size() == 1) {
-        return new RStatement(descriptor, firstToken, seer.getStackNodes().pop());
+      if (exprNodes.size() == 1) {
+        RStatement statement = new RStatement(descriptor, firstToken, exprNodes.get(0));
+        statement.seal();
+        return statement;
       }
       else {
-        return new RStatement(descriptor, firstToken, new TExpr(new ArrayList<>(seer.getStackNodes())));
+        RStatement statement = new RStatement(descriptor, firstToken, new TExpr(exprNodes));
+        statement.seal();
+        return statement;
       }
     }
     else {
@@ -126,10 +283,6 @@ public class BlockParser {
       System.out.println("CURRENT: "+current);
       if (current.getId() == GramPracConstants.CL_CU_BRACK) {
         break;
-      }
-      else if (current.getId() == GramPracConstants.OP_CU_BRACK) {
-        //TODO: First, make a method that can parse statement block headers (for, while, if, else if , else blocks)
-        iterator.previous();
       }
       else {
         ArrayList<Token> tempStatement = new ArrayList<>();
@@ -193,6 +346,10 @@ public class BlockParser {
   
   /**
    * Parses a Token stream for block headers.
+   * 
+   * Once this method completes, the next call to next() on 
+   * the iterator should return the opening '{'
+   * 
    * @param iterator - source to consume Tokens from
    * @return
    */
@@ -204,21 +361,41 @@ public class BlockParser {
                                            GramPracConstants.ELSE);
     
     if (!iterator.hasNext()) {
-      throw FormationException.createException("BlockHeader", iterator.next(), expected);
+      throw FormationException.createException("BlockHeader", iterator.previous(), expected);
     }
     
     Token headerDesciptor = iterator.next();
     expected.noContainsThrow(headerDesciptor, "BlockHeader");
     
+    ArrayList<Token> headerList = new ArrayList<>();
+    
+    boolean terminatorFound = false;
+    while (iterator.hasNext()) {
+      Token current = iterator.next();
+      headerList.add(current);
+      if (current.getId() == GramPracConstants.OP_CU_BRACK) {
+        terminatorFound = true;
+        break;
+      }
+    }
+    
+    if (!terminatorFound) {
+      throw FormationException.createException("BlockHeader", 
+          iterator.previous(), 
+          new ExpectedSet(GramPracConstants.OP_CU_BRACK));
+    }
+    
+    iterator.previous(); //roll back
+    
     switch (headerDesciptor.getId()) {
     case GramPracConstants.FOR:
-      return parseForHeader(headerDesciptor, iterator);
+      return parseForHeader(headerDesciptor, headerList.listIterator());
     case GramPracConstants.WHILE:
-      return parseWhileHeader(headerDesciptor, iterator, "WhileLoopBlock");
+      return parseWhileHeader(headerDesciptor, headerList.listIterator(), "WhileLoopBlock");
     case GramPracConstants.IF:
-      return parseIfHeader(headerDesciptor, iterator);
+      return parseIfHeader(headerDesciptor, headerList.listIterator());
     case GramPracConstants.ELSE:
-      return parseElseHeader(headerDesciptor, iterator);
+      return parseElseHeader(headerDesciptor, headerList.listIterator());
     default:
       return new RStateBlock(headerDesciptor, BlockType.GENERAL);
     }   
@@ -296,8 +473,10 @@ public class BlockParser {
     while (iterator.hasNext()) {
       Token current = iterator.next();
       changeState.add(current);
-      if (current.getId() == GramPracConstants.CL_PAREN) {
+      if (current.getId() == GramPracConstants.OP_CU_BRACK) {
         changeTermFound = true;
+        changeState.remove(changeState.size() - 1); //remove opening '{'
+        changeState.remove(changeState.size() - 1); //remove closing ')'
         break;
       }
     }
@@ -306,22 +485,18 @@ public class BlockParser {
     if (changeTermFound) {      
       if (!changeState.isEmpty()) {
         try {
-          NewSeer seer = new NewSeer();
-          GramPracParser parser = new GramPracParser(null, seer);
-          parser.parseFromTokenList(changeState);
-          
-          ASTBuilder postFixer = new ASTBuilder();
-          Deque<TNode> postFix = postFixer.build(seer.getStackNodes());
+          List<TNode> postFix = ExprParser.getUniversalParser().parseExpression(changeState);
           
           if (postFix.size() == 1) {
-            changeStatement = new RStatement(postFix.pollFirst());
+            changeStatement = new RStatement(postFix.get(0));
           }
           else {
-            changeStatement = new RStatement(new TExpr(new ArrayList<>(postFix)));
+            changeStatement = new RStatement(new TExpr(postFix));
           }
           
-        } catch (ParserCreationException | ParserLogException e1) {
-          e1.printStackTrace();
+        } catch (ParserLogException e1) {
+          System.out.println(changeState);
+          throw new ExpressionParseException(e1);
         }
       }
     }
@@ -351,8 +526,9 @@ public class BlockParser {
     while (iterator.hasNext()) {
       Token current = iterator.next();
       conditionState.add(current);
-      if (current.getId() == GramPracConstants.CL_PAREN) {
+      if (current.getId() == GramPracConstants.OP_CU_BRACK) {
         changeTermFound = true;
+        conditionState.remove(conditionState.size() - 1); //removes opening '{'
         break;
       }
     }
@@ -363,22 +539,17 @@ public class BlockParser {
       
       if (!conditionState.isEmpty()) {
         try {
-          NewSeer seer = new NewSeer();
-          GramPracParser parser = new GramPracParser(null, seer);
-          parser.parseFromTokenList(conditionState);
-          
-          ASTBuilder postFixer = new ASTBuilder();
-          Deque<TNode> postFix = postFixer.build(seer.getStackNodes());
+          List<TNode> postFix = ExprParser.getUniversalParser().parseExpression(conditionState);
           
           if (postFix.size() == 1) {
-            conditionStatement = new RStatement(postFix.pollFirst());
+            conditionStatement = new RStatement(postFix.get(0));
           }
           else {
-            conditionStatement = new RStatement(new TExpr(new ArrayList<>(postFix)));
+            conditionStatement = new RStatement(new TExpr(postFix));
           }
           
-        } catch (ParserCreationException | ParserLogException e1) {
-          e1.printStackTrace();
+        } catch (ParserLogException e1) {
+          throw new ExpressionParseException(e1);
         }
       }
     }

@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import jg.rhex.compile.components.expr.GramPracConstants;
+
 public final class ExpectedConstants {
   
   public static final Set<Integer> VISIBILITY;

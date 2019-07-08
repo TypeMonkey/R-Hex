@@ -28,7 +28,6 @@ public class RhexCompiler {
     rhexFiles = new HashMap<String, RhexFile>();
   }
   
-  
   public List<RhexFile> formSourceFiles(String ... files){
     
     return new ArrayList<>(rhexFiles.values());

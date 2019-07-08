@@ -4,8 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
 
-import jg.rhex.compile.components.GramPracConstants;
-
+import jg.rhex.compile.components.expr.GramPracConstants;
 import net.percederberg.grammatica.parser.Token;
 
 /**
@@ -15,7 +14,7 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class FormationException extends RuntimeException{
+public class FormationException  extends RhexConstructionException{
   
   private static final HashMap<Integer, String> tokenIDMap;
   

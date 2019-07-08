@@ -1,4 +1,4 @@
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import jg.rhex.compile.components.tnodes.atoms.TOParen;
 
 public class ASTBuilder {
   
-  public Deque<TNode> build(Collection<TNode> tokens){
+  protected Deque<TNode> build(Collection<TNode> tokens){
     return build(tokens.toArray(new TNode[tokens.size()]));
   }
   

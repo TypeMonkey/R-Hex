@@ -4,7 +4,7 @@
  * THIS FILE HAS BEEN GENERATED AUTOMATICALLY. DO NOT EDIT!
  */
 
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 
 import net.percederberg.grammatica.parser.Analyzer;
 import net.percederberg.grammatica.parser.Node;
@@ -150,6 +150,9 @@ public abstract class GramPracAnalyzer extends Analyzer {
             break;
         case GramPracConstants.USE:
             enterUse((Token) node);
+            break;
+        case GramPracConstants.FROM:
+            enterFrom((Token) node);
             break;
         case GramPracConstants.THROW:
             enterThrow((Token) node);
@@ -416,6 +419,8 @@ public abstract class GramPracAnalyzer extends Analyzer {
             return exitTparam((Token) node);
         case GramPracConstants.USE:
             return exitUse((Token) node);
+        case GramPracConstants.FROM:
+            return exitFrom((Token) node);
         case GramPracConstants.THROW:
             return exitThrow((Token) node);
         case GramPracConstants.NAME:
@@ -1585,6 +1590,30 @@ public abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected Node exitUse(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterFrom(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitFrom(Token node) throws ParseException {
         return node;
     }
 

@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.ListIterator;
 
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.ASTBuilder;
-import jg.rhex.compile.components.GramPracConstants;
-import jg.rhex.compile.components.GramPracParser;
-import jg.rhex.compile.components.NewSeer;
 import jg.rhex.compile.components.errors.EmptyExprException;
+import jg.rhex.compile.components.errors.ExpressionParseException;
 import jg.rhex.compile.components.errors.FormationException;
+import jg.rhex.compile.components.expr.ASTBuilder;
+import jg.rhex.compile.components.expr.ExprParser;
+import jg.rhex.compile.components.expr.GramPracConstants;
+import jg.rhex.compile.components.expr.GramPracParser;
+import jg.rhex.compile.components.expr.NewSeer;
 import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.tnodes.TExpr;
@@ -135,19 +137,14 @@ public final class VarDecParsers {
             iterator.previous(); //backtrack iterator for callee method
           }
           
-          try {
-            NewSeer seer = new NewSeer();
-            GramPracParser parser = new GramPracParser(null, seer);
-            parser.parseFromTokenList(valueContent);
+          try {         
+            List<TNode> exprNodes = ExprParser.getUniversalParser().parseExpression(valueContent);
             
-            ASTBuilder builder = new ASTBuilder();
-            Deque<TNode> builtExpr = builder.build(seer.getStackNodes());
-            
-            value = new TExpr(new ArrayList<>(builtExpr));
+            value = new TExpr(new ArrayList<>(exprNodes));
             expected.clear();
             break;
-          } catch (ParserCreationException | ParserLogException e) {
-            e.printStackTrace();
+          } catch (ParserLogException e) {
+            throw new ExpressionParseException(e);
           }
         }
         

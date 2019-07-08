@@ -9,11 +9,11 @@ import java.util.ListIterator;
 
 import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.GramPracConstants;
-import jg.rhex.compile.components.GramPracTokenizer;
 import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
+import jg.rhex.compile.components.expr.GramPracConstants;
+import jg.rhex.compile.components.expr.GramPracTokenizer;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
@@ -133,7 +133,14 @@ public final class TypeParser {
   }
   
   /**
-   * Parses a 
+   * Parses a type parameter declaration ("tparam").
+   *
+   * Syntax for tparam is:
+   * 
+   * tparam '<' TypeHandle ':' (function_constraint | ('extends' className (',' className)*) | tparam)+ '>'
+   * 
+   * The terminating '>' is consumed by this method
+   * 
    * @param source
    * @return
    */

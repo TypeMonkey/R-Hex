@@ -4,7 +4,7 @@
  * THIS FILE HAS BEEN GENERATED AUTOMATICALLY. DO NOT EDIT!
  */
 
-package jg.rhex.compile.components;
+package jg.rhex.compile.components.expr;
 
 import java.io.Reader;
 

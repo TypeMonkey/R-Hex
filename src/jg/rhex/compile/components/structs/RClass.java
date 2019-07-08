@@ -1,25 +1,24 @@
 package jg.rhex.compile.components.structs;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
-public class RClass {
+public class RClass extends Parametric implements Sealable{
   
   private boolean isAnInterface;
+  private boolean isSealed;
   
   private Token name;
   private Set<Descriptor> descriptors;
   private TType parent;
   private List<TType> extensions;
-  
-  private Set<TypeParameter> typeParameters;
-  
-  private List<RVariable> classVariables;
+    
+  private Set<RVariable> classVariables;
   private List<RFunc> methods;
   
   public RClass(Token name, Set<Descriptor> descriptors, TType parent, List<TType> extensions, boolean isAnInterface){
@@ -29,31 +28,47 @@ public class RClass {
     this.extensions = extensions;
     this.isAnInterface = isAnInterface;
     
-    typeParameters = new HashSet<>();
-    classVariables = new ArrayList<RVariable>();
+    classVariables = new LinkedHashSet<>();
     methods = new ArrayList<RFunc>();
   }
   
+  public boolean equals(Object object) {
+    if (object instanceof RClass) {
+      RClass rClass = (RClass) object;
+      return rClass.getName().getImage().equals(name.getImage());
+    }
+    return false;
+  }
+  
+  public int hashCode() {
+    return name.getImage().hashCode();
+  }
+  
   public void addMethod(RFunc func){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     methods.add(func);
   }
   
-  public void addClassVar(RVariable variable){
-    classVariables.add(variable);
-  }
-  
   /**
-   * Adds a type parameter to this class
-   * @param parameter - the type parameter
-   * @return true if the type parameter's handle has already been used
+   * Adds a class variable (static and non-static) to the class
+   * @param variable - the RVariable to add
+   * @return true if this variable (by it's name) has not already been added
    *         false if else
    */
-  public boolean addTypeParameter(TypeParameter parameter){
-    return typeParameters.add(parameter);
-  }
+  public boolean addClassVar(RVariable variable){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
+    return classVariables.add(variable);
+  } 
   
   public void setTypeParameters(Set<TypeParameter> typeParameters){
-    this.typeParameters = new HashSet<>(typeParameters);
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
+    this.typeParameters = new LinkedHashSet<>(typeParameters);
   }
   
   public boolean isAnInterface() {
@@ -62,10 +77,6 @@ public class RClass {
   
   public Token getName() {
     return name;
-  }
-  
-  public Set<TypeParameter> getTypeParameters(){
-    return typeParameters;
   }
 
   public Set<Descriptor> getDescriptors() {
@@ -80,12 +91,22 @@ public class RClass {
     return extensions;
   }
 
-  public List<RVariable> getClassVariables() {
+  public Set<RVariable> getClassVariables() {
     return classVariables;
   }
 
   public List<RFunc> getMethods() {
     return methods;
+  }
+
+  @Override
+  public void seal() {
+    isSealed = true;
+  }
+
+  @Override
+  public boolean isSealed() {
+    return isSealed;
   } 
   
 }

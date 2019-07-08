@@ -1,11 +1,12 @@
 package jg.rhex.compile.components.structs;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
@@ -20,52 +21,74 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class RFunc {
+public class RFunc extends Parametric implements Sealable{
   
   private Token name;
   private TType returnType;
+  
   private List<TType> declaredExceptions;
-  private List<TType> genericArgs;
+  
   private Set<Descriptor> descriptors;
+  
   private RStateBlock body;
   private int parameterAmount;
+  
+  private boolean isSealed;
  
   public RFunc(){
     declaredExceptions = new ArrayList<>();
-    genericArgs = new ArrayList<>();
     descriptors = new HashSet<>();
+    typeParameters = new LinkedHashSet<>();
+    
     this.body = new RStateBlock(null, BlockType.GENERAL);  
   }
   
   public void setParamAmnt(int paramAmnt) {
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.parameterAmount = paramAmnt;
   }
   
   public void setName(Token name){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.name = name;
   }
   
   public void setReturnType(TType tType){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     this.returnType = tType;
   }
   
   public void addDeclaredException(TType exception){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     declaredExceptions.add(exception);
   }
   
-  public void addGenericTypeArg(TType generic){
-    genericArgs.add(generic);
-  }
-  
   public void addStatement(RStatement statement) {
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     body.addStatement(statement);
   }
   
   public void addStatements(List<RStatement> statements) {
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     body.addStatements(statements);
   }
   
   public boolean addDescriptor(Descriptor descriptor){
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
     return descriptors.add(descriptor);
   }
   
@@ -80,10 +103,6 @@ public class RFunc {
   public RStateBlock getBody() {
     return body;
   }
-  
-  public List<TType> getGenericArgs(){
-    return genericArgs;
-  }
 
   public List<TType> getDeclaredExceptions() {
     return declaredExceptions;
@@ -95,6 +114,17 @@ public class RFunc {
 
   public int getParameterAmount() {
     return parameterAmount;
+  }
+
+  @Override
+  public void seal() {
+    isSealed = true;
+    body.seal();
+  }
+
+  @Override
+  public boolean isSealed() {
+    return isSealed;
   }
   
 }

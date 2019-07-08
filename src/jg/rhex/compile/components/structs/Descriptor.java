@@ -1,6 +1,6 @@
 package jg.rhex.compile.components.structs;
 
-import jg.rhex.compile.components.GramPracConstants;
+import jg.rhex.compile.components.expr.GramPracConstants;
 
 public enum Descriptor {
   STATIC,   //static variables, methods
