@@ -2,14 +2,17 @@ package jg.rhex.compile.components.comparsers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ListIterator;
 
 import jg.rhex.compile.ExpectedSet;
+import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RFunc;
+import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
@@ -56,6 +59,7 @@ public final class FunctionParser {
         
     while (iterator.hasNext()) {
       Token current = iterator.next();
+      System.out.println("--FUNCTION CURRENT: "+current);
       if (expected.noContainsThrow(current, "Function")) {
         if (current.getId() == GramPracConstants.TPARAM) {
           TypeParameter parameter = TypeParser.parseTParam(iterator);
@@ -92,11 +96,14 @@ public final class FunctionParser {
           expected.replace(GramPracConstants.NAME);
         }
         else if (current.getId() == GramPracConstants.NAME) {
-          if (function.getName() == null) {
+          if (function.getReturnType() == null) {
             //then this is the return type
+            System.out.println("* FUNCTION RETURN: "+current);
+            iterator.previous(); //roll back iterator
             TType returnType = TypeParser.parseType(iterator);
             function.setReturnType(returnType);
             expected.replace(GramPracConstants.NAME);
+            System.out.println("NEXT INDER: "+iterator.nextIndex());
           }
           else {
             //the this is the function's name
@@ -107,16 +114,17 @@ public final class FunctionParser {
         else if (current.getId() == GramPracConstants.OP_PAREN) {
           //function parameters begin
           if (iterator.hasNext()) {
-            if (iterator.next().getId() == GramPracConstants.CL_PAREN) {
+            Token next = iterator.next();
+            iterator.previous();
+            if (next.getId() == GramPracConstants.CL_PAREN) {
               //function has no parameters
               expected.clear();
               break;
             }
             else {
               //function has parameters
-              iterator.previous(); //roll back iterator 
                             
-              RVariable param = VarDecParsers.parseVariable(iterator); //parse first parameter
+              RVariable param = VarDecParsers.parseVariable(iterator, GramPracConstants.COMMA); //parse first parameter
               int paramAmnt = 1;
               function.addStatement(param);
               
@@ -189,6 +197,27 @@ public final class FunctionParser {
     
     //at this point, the very next token from iterator should be an opening curly brace   
     return function;
+  }
+  
+  public static void main(String [] args) {
+    String target = "List!(String) hello(int val = 10, String x) {"+
+                    "    what();      "+
+                    "    if(i < 10){ bye();}                "+
+                    "                }";
+    List<Token> tokens = TestUtils.tokenizeString(target);
+    TestUtils.printTokens(tokens);
+    
+    RFunc rFunc = parseFunction(false, tokens.listIterator());
+    
+    System.out.println("--------------------------");
+    System.out.println(rFunc.getReturnType());
+    
+    System.out.println("-----PARAMS: "+rFunc.getParameterAmount());
+    
+    
+    for(RStatement statement : rFunc.getBody().getStatements()) {
+      System.out.println(statement);
+    }
   }
   
 }

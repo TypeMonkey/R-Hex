@@ -37,7 +37,7 @@ public final class TypeParser {
    * Note: The next call to next() on the iterator should be an Identifier Token
    * 
    * Once parseType() finishes, the next call to next() on ListIterator should
-   * be the Token after the latest Identifier - if type has no generic arguments, or '>' - if type had generic arguments
+   * be the Token after the latest Identifier - if type has no generic arguments. Or ')' - if type had generic arguments
    * 
    * Example:  Provided Token sequence in ListIterator: "Type1"
    *           After parseType(), a call to next() should throw a "NoSuchElementException" as there's no token
@@ -413,6 +413,16 @@ public final class TypeParser {
     infos.add(info1);
     System.out.println(infos.add(info2));
     */
+    
+    // SIMPLE TYPE PARSE
+    String target = "boolean hello()";
+    ListIterator<Token> listIterator = TestUtils.tokenizeString(target).listIterator();
+    TestUtils.printTokens(TestUtils.tokenizeString(target));
+    TType info1 = parseType(listIterator);
+    
+    System.out.println(info1.getBaseString());
+    System.out.println(listIterator.nextIndex());
+    
   }
   
   

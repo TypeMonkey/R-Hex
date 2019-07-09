@@ -234,7 +234,7 @@ public class StatementParser {
         //attempt to parse it as a variable declaration
 
         try {
-          RVariable variable = VarDecParsers.parseVariable(tokens.listIterator());
+          RVariable variable = VarDecParsers.parseVariable(tokens.listIterator(), GramPracConstants.SEMICOLON);
           variable.seal();
           return variable;
         } catch (RhexConstructionException e) {

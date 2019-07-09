@@ -38,9 +38,10 @@ public final class VarDecParsers {
    *  The semicolon is also parsed and consumed!
    * 
    * @param iterator - a ListIterator to consume tokens from
+   * @param terminatingId- the Token ID that this variable declaration stops at
    * @return RVariable that was parsed from the Token source
    */
-  public static RVariable parseVariable(ListIterator<Token> iterator){
+  public static RVariable parseVariable(ListIterator<Token> iterator, int terminatingID){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME, 
                                            GramPracConstants.STATIC,
                                            GramPracConstants.VOLATILE,
@@ -117,7 +118,7 @@ public final class VarDecParsers {
           
           while (iterator.hasNext()) {
             Token cur = iterator.next();
-            if (cur.getId() == GramPracConstants.SEMICOLON) {
+            if (cur.getId() == terminatingID) {
               semiColonEncountered = true;
               break;
             }
@@ -138,6 +139,9 @@ public final class VarDecParsers {
           }
           
           try {         
+            
+            System.out.println("EXPECTEDS: "+valueContent);
+            
             List<TNode> exprNodes = ExprParser.getUniversalParser().parseExpression(valueContent);
             
             value = new TExpr(new ArrayList<>(exprNodes));

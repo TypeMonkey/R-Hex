@@ -25,7 +25,7 @@ import net.percederberg.grammatica.parser.ParserLogException;
 import net.percederberg.grammatica.parser.Token;
 import net.percederberg.grammatica.parser.Tokenizer;
 
-public class ClassParser {
+public final class ClassParser {
   
   /**
    * Parses a class from a Token source
@@ -188,7 +188,7 @@ public class ClassParser {
           
           if (isSemincolonTerm) {
             //parse as variable declaration
-            RVariable variable = VarDecParsers.parseVariable(source);
+            RVariable variable = VarDecParsers.parseVariable(source, GramPracConstants.SEMICOLON);
             if (!container.addClassVar(variable)) {
               throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable");
             }

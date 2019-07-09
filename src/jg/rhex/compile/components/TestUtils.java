@@ -32,5 +32,13 @@ public class TestUtils {
 
     return tokens;
   }
+  
+  public static void printTokens(List<Token> tokens) {
+    System.out.println("------->TOKENS<-------");
+    for (Token token : tokens) {
+      System.out.println(token);
+    }
+    System.out.println("------->END TOKENS<-------");
+  }
 
 }
