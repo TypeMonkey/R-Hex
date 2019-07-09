@@ -35,12 +35,12 @@ public class FormationException  extends RhexConstructionException{
     }
   }
   
-  public FormationException(String context, Token encountered, String expecteds){
-    super("In forming '"+context+"' : Unexpted token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds);
+  public FormationException(String context, Token encountered, String expecteds, String fileName){
+    super("In forming '"+context+"' : Unexpted token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds, fileName);
   }
   
-  public FormationException(Token encountered, String expecteds){
-    super("Unexpected token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds);
+  public FormationException(Token encountered, String expecteds, String fileName){
+    super("Unexpected token '"+encountered.getImage()+"' <"+encountered.getName()+"> ! Expected "+expecteds, fileName);
   }
   
   protected static String getStringDescribers(Set<Integer> expecteds){
@@ -53,12 +53,12 @@ public class FormationException  extends RhexConstructionException{
     return desc;
   }
   
-  public static FormationException createException(Token encountered, Set<Integer> expectedTokens){
-    return new FormationException(encountered, getStringDescribers(expectedTokens));
+  public static FormationException createException(Token encountered, Set<Integer> expectedTokens, String fileName){
+    return new FormationException(encountered, getStringDescribers(expectedTokens), fileName);
   }
   
-  public static FormationException createException(String context, Token encountered, Set<Integer> expectedTokens){
-    return new FormationException(context, encountered, getStringDescribers(expectedTokens));
+  public static FormationException createException(String context, Token encountered, Set<Integer> expectedTokens, String fileName){
+    return new FormationException(context, encountered, getStringDescribers(expectedTokens), fileName);
   }
     
 }

@@ -9,7 +9,6 @@ import java.util.ListIterator;
 
 import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.expr.GramPracConstants;
@@ -18,20 +17,21 @@ import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.test.TestUtils;
 import net.percederberg.grammatica.parser.Token;
 import net.percederberg.grammatica.parser.Tokenizer;
 
 public final class TypeParser {
 
-  public static TType parseType(List<Token> tokenList){
-    return parseType(tokenList.listIterator());
+  public static TType parseType(List<Token> tokenList, String fileName){
+    return parseType(tokenList.listIterator(), fileName);
   }
   
   /**
    * Parses a type declaration/annotation.
    * 
    * R-Hex type annotations have the following grammar: 
-   *  typeAnno = Identifier (. Identifier)* [ Generic ]
+   *  typeAnno = Identifier (. Identifier)* [ Generic ] [ArrayDimensions]
    *  Generic = '!(' typeAnno (, typeAnno)* ')'
    *  
    * Note: The next call to next() on the iterator should be an Identifier Token
@@ -59,7 +59,7 @@ public final class TypeParser {
    * @param source - a ListIterator to consume tokens from
    * @return the TType parsed from this iterator
    */
-  public static TType parseType(ListIterator<Token> source){
+  public static TType parseType(ListIterator<Token> source, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME);
     
     ArrayList<TIden> fullTypeName = new ArrayList<>();
@@ -69,12 +69,12 @@ public final class TypeParser {
         
     while (source.hasNext()) {
       Token current = source.next();
-      if (expected.noContainsThrow(current, "TypeAnnotation")) {
+      if (expected.noContainsThrow(current, "TypeAnnotation", fileName)) {
         if (current.getId() == GramPracConstants.OP_PAREN) {
           if (baseType == null) {
             baseType = new TType(fullTypeName);
           }
-          baseType.addGenericArgType(parseType(source));
+          baseType.addGenericArgType(parseType(source, fileName));
           System.out.println("--- RETURNED FOR: "+fullTypeName.get(0));
           expected.replace(GramPracConstants.CL_PAREN, GramPracConstants.COMMA);
           
@@ -113,7 +113,7 @@ public final class TypeParser {
           }
           else {
             source.previous();
-            baseType.addGenericArgType(parseType(source));
+            baseType.addGenericArgType(parseType(source, fileName));
             expected.replace(GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
           }
           
@@ -129,7 +129,7 @@ public final class TypeParser {
       return baseType;
     }
     
-    throw FormationException.createException(source.previous(), expected);  
+    throw FormationException.createException(source.previous(), expected, fileName);  
   }
   
   /**
@@ -144,13 +144,13 @@ public final class TypeParser {
    * @param source
    * @return
    */
-  public static TypeParameter parseTParam(ListIterator<Token> source){   
+  public static TypeParameter parseTParam(ListIterator<Token> source, String fileName){   
     TypeParameter typeParameter = null;
     ExpectedSet expected = new ExpectedSet(GramPracConstants.TPARAM);
     
     while (source.hasNext()) {
       Token current = source.next();
-      if (expected.noContainsThrow(current, "TParam")) {
+      if (expected.noContainsThrow(current, "TParam", fileName)) {
         if (current.getId() == GramPracConstants.TPARAM) {
           if (typeParameter == null) {
             //then this is the initial tparam check
@@ -158,10 +158,10 @@ public final class TypeParser {
           }
           else {
             source.previous(); //roll back iterator
-            TypeParameter nestedTParam = parseTParam(source);
+            TypeParameter nestedTParam = parseTParam(source, fileName);
                         
             if (!typeParameter.addTParam(nestedTParam)) {
-              throw new RepeatedTParamException(nestedTParam.getIdentifier());
+              throw new RepeatedTParamException(nestedTParam.getIdentifier(), fileName);
             }
             
             expected.replace(GramPracConstants.NAME, GramPracConstants.EXTNDS, GramPracConstants.TPARAM);
@@ -180,12 +180,12 @@ public final class TypeParser {
             //this is for function constraints
             source.previous(); //roll back iterator first
             
-            FunctionInfo functionInfo = parseFunctionConstraint(source);
+            FunctionInfo functionInfo = parseFunctionConstraint(source, fileName);
             
             System.out.println("---CURRENT: "+typeParameter.getExpectedFunctions());
             
             if (!typeParameter.addReqFunction(functionInfo)) {
-              throw new RepeatedTParamException(functionInfo.getFunctionName(), typeParameter);
+              throw new RepeatedTParamException(functionInfo.getFunctionName(), typeParameter, fileName);
             }
             expected.replace(GramPracConstants.NAME, 
                              GramPracConstants.TPARAM,
@@ -195,9 +195,9 @@ public final class TypeParser {
         }
         else if (current.getId() == GramPracConstants.EXTNDS) {
           
-          TType extendedType = parseType(source);
+          TType extendedType = parseType(source, fileName);
           if (!typeParameter.addReqClass(extendedType)) {
-            throw new RepeatedTParamException(extendedType, typeParameter);
+            throw new RepeatedTParamException(extendedType, typeParameter, fileName);
           }
           
           ExpectedSet extExpected = new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.SEMICOLON);
@@ -205,15 +205,15 @@ public final class TypeParser {
           
           while (source.hasNext()) {
             Token extCurrent = source.next();
-            if (extExpected.noContainsThrow(extCurrent, "TParam")) {
+            if (extExpected.noContainsThrow(extCurrent, "TParam", fileName)) {
               if (extCurrent.getId() == GramPracConstants.COMMA) {
                 extExpected.replace(GramPracConstants.NAME);
               }
               else if (extCurrent.getId() == GramPracConstants.NAME) {
                 source.previous(); //rollback iterator
-                TType seqType = parseType(source);
+                TType seqType = parseType(source, fileName);
                 if (!typeParameter.addReqClass(seqType)) {
-                  throw new RepeatedTParamException(seqType, typeParameter);
+                  throw new RepeatedTParamException(seqType, typeParameter, fileName);
                 }
                 
                 extExpected.replace(GramPracConstants.SEMICOLON);
@@ -227,7 +227,7 @@ public final class TypeParser {
           
           if (!terminatorFound) {
             throw FormationException.createException("TParam", source.previous(),
-                new ExpectedSet(GramPracConstants.SEMICOLON));
+                new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
           }
           else {
             expected.replace(GramPracConstants.EXTNDS, GramPracConstants.NAME, GramPracConstants.GREAT,
@@ -247,7 +247,7 @@ public final class TypeParser {
     if (expected.isEmpty() || expected.contains(-1)) {
       return typeParameter;
     }
-    throw FormationException.createException("TParam", source.previous(), expected);
+    throw FormationException.createException("TParam", source.previous(), expected, fileName);
   }
   
   /**
@@ -263,7 +263,7 @@ public final class TypeParser {
    * @param iterator - the ListIterator to consume Tokens from
    * @return the FunctionInfo representing the required functions
    */
-  public static FunctionInfo parseFunctionConstraint(ListIterator<Token> iterator){
+  public static FunctionInfo parseFunctionConstraint(ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME);
     
     Token functionName = null;
@@ -274,7 +274,7 @@ public final class TypeParser {
     while (iterator.hasNext()) {
       Token current = iterator.next();
       System.out.println("----> CONSTRAINT: "+current);
-      if (expected.noContainsThrow(current, "FunctionConstraint")) {
+      if (expected.noContainsThrow(current, "FunctionConstraint", fileName)) {
         if (current.getId() == GramPracConstants.NAME) {
           functionName = current;
           expected.replace(GramPracConstants.OP_PAREN);
@@ -295,7 +295,7 @@ public final class TypeParser {
           }
           
           //start parsing required types
-          TType paramType = TypeParser.parseType(iterator);
+          TType paramType = TypeParser.parseType(iterator, fileName);
           parameters.add(paramType);
           
           boolean closingParenFound = false;
@@ -303,7 +303,7 @@ public final class TypeParser {
           while (iterator.hasNext()) {
             Token paramCurrent = iterator.next();
             if (paramCurrent.getId() == GramPracConstants.COMMA) {
-              paramType = TypeParser.parseType(iterator);
+              paramType = TypeParser.parseType(iterator, fileName);
               parameters.add(paramType);
             }
             else if (paramCurrent.getId() == GramPracConstants.CL_PAREN) {
@@ -312,7 +312,7 @@ public final class TypeParser {
             }
             else {
               throw FormationException.createException("FuncConstraints", paramCurrent, 
-                  new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN));
+                  new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN), fileName);
             }
           }
           
@@ -326,7 +326,7 @@ public final class TypeParser {
           expected.replace(GramPracConstants.ARROW);
         }
         else if (current.getId() == GramPracConstants.ARROW) {
-          returnType = parseType(iterator);
+          returnType = parseType(iterator, fileName);
           
           expected.replace(GramPracConstants.SEMICOLON);
         }
@@ -340,7 +340,7 @@ public final class TypeParser {
     if (expected.isEmpty() || expected.contains(-1)) {
       return new FunctionInfo(functionName, returnType, parameters.toArray(new TType[parameters.size()]));
     }
-    throw FormationException.createException("FuncConstraints", iterator.previous(), expected);
+    throw FormationException.createException("FuncConstraints", iterator.previous(), expected, fileName);
   }
   
   public static void main(String [] args) {
@@ -414,7 +414,7 @@ public final class TypeParser {
     System.out.println(infos.add(info2));
     */
     
-    // SIMPLE TYPE PARSE
+    /* SIMPLE TYPE PARSE
     String target = "boolean hello()";
     ListIterator<Token> listIterator = TestUtils.tokenizeString(target).listIterator();
     TestUtils.printTokens(TestUtils.tokenizeString(target));
@@ -422,7 +422,7 @@ public final class TypeParser {
     
     System.out.println(info1.getBaseString());
     System.out.println(listIterator.nextIndex());
-    
+    */
   }
   
   

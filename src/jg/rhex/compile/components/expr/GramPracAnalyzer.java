@@ -310,6 +310,9 @@ public abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.GENERIC:
             enterGeneric((Production) node);
             break;
+        case GramPracConstants.ARRAY_TYPE_NOTATION:
+            enterArrayTypeNotation((Production) node);
+            break;
         case GramPracConstants.TYPE_NAME:
             enterTypeName((Production) node);
             break;
@@ -525,6 +528,8 @@ public abstract class GramPracAnalyzer extends Analyzer {
             return exitInvoke((Production) node);
         case GramPracConstants.GENERIC:
             return exitGeneric((Production) node);
+        case GramPracConstants.ARRAY_TYPE_NOTATION:
+            return exitArrayTypeNotation((Production) node);
         case GramPracConstants.TYPE_NAME:
             return exitTypeName((Production) node);
         case GramPracConstants.CAST:
@@ -593,6 +598,9 @@ public abstract class GramPracAnalyzer extends Analyzer {
             break;
         case GramPracConstants.GENERIC:
             childGeneric(node, child);
+            break;
+        case GramPracConstants.ARRAY_TYPE_NOTATION:
+            childArrayTypeNotation(node, child);
             break;
         case GramPracConstants.TYPE_NAME:
             childTypeName(node, child);
@@ -3085,6 +3093,47 @@ public abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected void childGeneric(Production node, Node child)
+        throws ParseException {
+
+        node.addChild(child);
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterArrayTypeNotation(Production node)
+        throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitArrayTypeNotation(Production node)
+        throws ParseException {
+
+        return node;
+    }
+
+    /**
+     * Called when adding a child to a parse tree node.
+     *
+     * @param node           the parent node
+     * @param child          the child node, or null
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void childArrayTypeNotation(Production node, Node child)
         throws ParseException {
 
         node.addChild(child);

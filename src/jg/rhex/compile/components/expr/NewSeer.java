@@ -507,6 +507,8 @@ public class NewSeer extends GramPracAnalyzer{
    
     
     ArrayList<TIden> base = new ArrayList<>();
+    int arrayDimension = 0;
+    
     while (!latest.isEmpty()) {
       TNode current = latest.pollFirst();
       System.out.println("~ ADD BASE: "+current);
@@ -514,15 +516,26 @@ public class NewSeer extends GramPracAnalyzer{
         latest.addFirst(current);
         break;
       }
+      else if (current instanceof TInt) {
+        arrayDimension = ((TInt) current).getActValue();
+        break;
+      }
       base.add((TIden) current);
     }
     
     TType baseTType = new TType(base);
+    baseTType.setArrayDimensions(arrayDimension);
+    
     while (!latest.isEmpty()) {
       TNode current = latest.pollFirst();
       System.out.println("ADDDING: "+current);
       if (current instanceof TComma) {
         continue;
+      }
+      else if (current instanceof TInt) {
+        arrayDimension = ((TInt) current).getActValue();
+        baseTType.setArrayDimensions(arrayDimension);
+        break;
       }
       baseTType.addGenericArgType((TType) current);
     }

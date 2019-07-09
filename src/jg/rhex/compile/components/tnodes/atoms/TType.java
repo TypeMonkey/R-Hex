@@ -9,10 +9,12 @@ import jg.rhex.compile.components.tnodes.TNode;
 public class TType extends TAtom<List<TType>> {
 
   private List<TIden> rawTypeBody;
+  private int arrayDimensions;
   
   public TType(List<TIden> rawBody) {
     super(new ArrayList<>());
     this.rawTypeBody = rawBody;
+    this.arrayDimensions = 0;
   }
   
   public boolean equals(Object object){
@@ -44,12 +46,20 @@ public class TType extends TAtom<List<TType>> {
     getActValue().addAll(generics);
   }
   
+  public void setArrayDimensions(int arrayDim) {
+    this.arrayDimensions = arrayDim;
+  }
+  
   public void addGenericArgType(TType generic){
     getActValue().add(generic);
   }
   
   public List<TType> getGenericTypeArgs(){
     return getActValue();
+  }
+  
+  public int getArrayDimensions() {
+    return arrayDimensions;
   }
   
   public List<TIden> getBaseType(){

@@ -41,7 +41,7 @@ public final class VarDecParsers {
    * @param terminatingId- the Token ID that this variable declaration stops at
    * @return RVariable that was parsed from the Token source
    */
-  public static RVariable parseVariable(ListIterator<Token> iterator, int terminatingID){
+  public static RVariable parseVariable(ListIterator<Token> iterator, int terminatingID, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME, 
                                            GramPracConstants.STATIC,
                                            GramPracConstants.VOLATILE,
@@ -57,14 +57,14 @@ public final class VarDecParsers {
     
     while (iterator.hasNext()) {
       Token current = iterator.next();
-      if (expected.noContainsThrow(current, "VariableDeclaration")) {
+      if (expected.noContainsThrow(current, "VariableDeclaration", fileName)) {
         if (current.getId() == GramPracConstants.STATIC || 
             current.getId() == GramPracConstants.VOLATILE ||
             current.getId() == GramPracConstants.FINAL) {
           Descriptor descriptor = Descriptor.getEnumEquivalent(current.getId());
           //reports illegal syntax (descriptor duplication)
           if (!variableDescriptors.add(descriptor)) {
-            throw FormationException.createException("VariabelDeclaration", current, expected);
+            throw FormationException.createException("VariabelDeclaration", current, expected, fileName);
           }
 
           expected.replace(GramPracConstants.NAME, 
@@ -82,7 +82,7 @@ public final class VarDecParsers {
           if (varType == null && !varToBeInferred) {
             //then this name is the start of the variable's type
             iterator.previous(); //backtrack iterator
-            varType = TypeParser.parseType(iterator);
+            varType = TypeParser.parseType(iterator, fileName);
             
             System.out.println("---GOT TYPE: "+varType.getBaseType());
             
@@ -128,11 +128,11 @@ public final class VarDecParsers {
           }
           
           if (valueContent.isEmpty()) {
-            throw new EmptyExprException(current, "VariableDeclaration");
+            throw new EmptyExprException(current, "VariableDeclaration", fileName);
           }
           
           if (!semiColonEncountered) {
-            throw FormationException.createException("VariableDeclaration", current, new ExpectedSet(GramPracConstants.SEMICOLON));
+            throw FormationException.createException("VariableDeclaration", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
           }
           else {
             iterator.previous(); //backtrack iterator for callee method
@@ -148,7 +148,7 @@ public final class VarDecParsers {
             expected.clear();
             break;
           } catch (ParserLogException e) {
-            throw new ExpressionParseException(e);
+            throw new ExpressionParseException(e, fileName);
           }
         }
         
@@ -159,7 +159,7 @@ public final class VarDecParsers {
       return new RVariable(varType, new TIden(varName), value, variableDescriptors);
     }
     
-    throw FormationException.createException("VariableDeclaration", iterator.previous(), expected);
+    throw FormationException.createException("VariableDeclaration", iterator.previous(), expected, fileName);
   }
   
   /*

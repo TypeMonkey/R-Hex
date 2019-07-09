@@ -9,9 +9,9 @@ import java.util.Set;
 import java.util.Stack;
 
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.expr.GramPracConstants;
+import jg.rhex.test.TestUtils;
 import net.percederberg.grammatica.parser.Token;
 
 /**
@@ -75,7 +75,7 @@ public class Escapist {
    * @param source - the ListIterator to consume Tokens from
    * @return the 
    */
-  public List<Token> consume(ListIterator<Token> source){
+  public List<Token> consume(ListIterator<Token> source, String fileName){
     ArrayList<Token> tokens = new ArrayList<>();
 
     boolean terminatorFound = false;
@@ -110,38 +110,38 @@ public class Escapist {
 
         if (escapeClosures.contains(EscapeClosure.PARENTHESES)) {
           if (closures.isEmpty()) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN), fileName);
           }
           Token token = closures.pop();
           if (token.getId() != GramPracConstants.OP_PAREN) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN), fileName);
           }
         }
         else if (escapeClosures.contains(EscapeClosure.CURLY_BRACES)) {
           if (closures.isEmpty()) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK), fileName);
           }
           Token token = closures.pop();
           if (token.getId() != GramPracConstants.OP_CU_BRACK) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK), fileName);
           }
         }
         else if (escapeClosures.contains(EscapeClosure.SQUARE_BRACES)) {
           if (closures.isEmpty()) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK), fileName);
           }
           Token token = closures.pop();
           if (token.getId() != GramPracConstants.OP_CU_BRACK) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK), fileName);
           }
         }
         else if (escapeClosures.contains(EscapeClosure.LESS_GREAT)) {
           if (closures.isEmpty()) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.GREAT));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.GREAT), fileName);
           }
           Token token = closures.pop();
           if (token.getId() != GramPracConstants.LESS) {
-            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.GREAT));
+            throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.GREAT), fileName);
           }
         }
       }     
@@ -151,7 +151,7 @@ public class Escapist {
       return tokens;
     }
     
-    throw FormationException.createException(context, source.previous(), terminators);
+    throw FormationException.createException(context, source.previous(), terminators, fileName);
   }
   
   public static void main(String [] args) {
@@ -161,7 +161,7 @@ public class Escapist {
     Escapist escapist = new Escapist(GramPracConstants.COMMA, "Test");
     
     ListIterator<Token> iterator = tokens.listIterator();
-    List<Token> actualTokens = escapist.consume(iterator);
+    List<Token> actualTokens = escapist.consume(iterator, "Test");
     
     System.out.println("---FIRST PARAM: "+iterator.next());
     TestUtils.printTokens(actualTokens);

@@ -6,12 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.expr.GramPracTokenizer;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.WhileBlock;
+import jg.rhex.test.TestUtils;
 import net.percederberg.grammatica.parser.Token;
 import net.percederberg.grammatica.parser.Tokenizer;
 
@@ -50,11 +50,11 @@ public class Tester {
     ListIterator<Token> iterator = tokens.listIterator();
     
     System.out.println("----PARSING WHILE HEADER-----");
-    WhileBlock block = (WhileBlock) StatementParser.parseBlockHeader(iterator);
+    WhileBlock block = (WhileBlock) StatementParser.parseBlockHeader(iterator, "Test");
     System.out.println(block.getConditional().getStatement());
     
     System.out.println("----PARSING BLOCK----");
-    StatementParser.parseBlock(block, iterator);
+    StatementParser.parseBlock(block, iterator, "Test");
     
     System.out.println("**************STATEMENT***************");
     for(RStatement statement : block.getStatements()){

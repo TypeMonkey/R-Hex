@@ -79,7 +79,7 @@ public class FileBuilder {
     }
     
     ListIterator<Token> tokenIterator = tokens.listIterator();
-    scanFileBody(rhexFile, tokenIterator);
+    scanFileBody(rhexFile, tokenIterator, location.getName());
     
     rhexFile.seal();
     
@@ -91,7 +91,7 @@ public class FileBuilder {
    * @param rhexFile - the RhexFile to add constructs to
    * @param iterator - the token iterator to consume tokens from
    */
-  private void scanFileBody(RhexFile rhexFile, ListIterator<Token> iterator) {
+  private void scanFileBody(RhexFile rhexFile, ListIterator<Token> iterator, String fileName) {
     ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, GramPracConstants.TPARAM);
     expected.addAll(ExpectedConstants.VAR_FUNC_DESC);
     expected.addAll(ExpectedConstants.VISIBILITY);
@@ -100,10 +100,10 @@ public class FileBuilder {
     while (iterator.hasNext()) {
       Token current = iterator.next();
       
-      if (expected.noContainsThrow(current, null)) {
+      if (expected.noContainsThrow(current, null, fileName)) {
         if (current.getId() == GramPracConstants.USE) {
           iterator.previous(); //roll back iterator
-          rhexFile.addUseDec(StatementParser.formUseDeclaration(iterator));
+          rhexFile.addUseDec(StatementParser.formUseDeclaration(iterator, fileName));
         }
         else {
           //TODO: make helper methods to distinguish between classes, functions and variables
@@ -121,38 +121,38 @@ public class FileBuilder {
           }
           
           if (!terminatorFound) {
-            throw FormationException.createException("FileComponent", iterator.previous(), expected);
+            throw FormationException.createException("FileComponent", iterator.previous(), expected, fileName);
           }
           
           //now, attempt to parse
           if (unknownComp.get(unknownComp.size()-1).getId() == GramPracConstants.SEMICOLON) {
             //then this is a statement. All external statements (outside functions and classes)
             //must be variable declarations
-            RVariable variable = VarDecParsers.parseVariable(unknownComp.listIterator());
+            RVariable variable = VarDecParsers.parseVariable(unknownComp.listIterator(), GramPracConstants.SEMICOLON, fileName);
             variable.seal();
             if (!rhexFile.addVariable(variable)) {
-              throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable");
+              throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }
           }
           else {
             //then this is either a function declaration or a class declaration
             //first, attempt to parse as a function
             try {
-              RFunc func = FunctionParser.parseFunction(false, iterator);
+              RFunc func = FunctionParser.parseFunction(false, iterator, fileName);
               rhexFile.addFunction(func);
               func.seal();
             } catch (RhexConstructionException e) {
               //if function parsing fails, try to parse the header as a class declaration
               try {
-                RClass rClass = ClassParser.parseClass(unknownComp.listIterator());
+                RClass rClass = ClassParser.parseClass(unknownComp.listIterator(), fileName);
                 if (!rhexFile.addClass(rClass)) {
-                  throw new RepeatedStructureException(rClass.getName(), "Variable");
+                  throw new RepeatedStructureException(rClass.getName(), "Variable", fileName);
                 }
                 rClass.seal();
               } catch (RhexConstructionException e2) {
                 // If an error is thrown this far, then what ever this construct is...
                 //it doesn't belong here.
-                throw new InvalidPlacementException(current);
+                throw new InvalidPlacementException(current, fileName);
               }
             }
           }

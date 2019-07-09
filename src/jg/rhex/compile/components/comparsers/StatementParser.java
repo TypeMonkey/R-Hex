@@ -54,7 +54,7 @@ public class StatementParser {
    * @param iterator - the Iterator to consume Tokens from
    * @return a UseDeclaration 
    */
-  public static UseDeclaration formUseDeclaration(ListIterator<Token> iterator){
+  public static UseDeclaration formUseDeclaration(ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.USE);
     
     HashSet<TIden> importedFunctions = new HashSet<>();
@@ -65,7 +65,7 @@ public class StatementParser {
         
     while (iterator.hasNext()) {
       Token current = iterator.next();
-      if (expected.noContainsThrow(current, "UseStatement")) {
+      if (expected.noContainsThrow(current, "UseStatement", fileName)) {
         if (current.getId() == GramPracConstants.USE) {
           useToken = current;
           expected.replace(GramPracConstants.NAME);
@@ -73,7 +73,7 @@ public class StatementParser {
         else if (current.getId() == GramPracConstants.NAME) {
           if (nameIsForFunction) {
             if (!importedFunctions.add(new TIden(current))) {
-              throw new RepeatedStructureException(current, "UseStatement");
+              throw new RepeatedStructureException(current, "UseStatement", fileName);
             }
             
             expected.replace(GramPracConstants.COMMA, GramPracConstants.FROM);
@@ -95,7 +95,7 @@ public class StatementParser {
                 boolean terminatorFound = false;
                 while (iterator.hasNext()) {
                   Token dotCurrent = iterator.next();
-                  if (dotExpected.noContainsThrow(dotCurrent, "UseStatement")) {
+                  if (dotExpected.noContainsThrow(dotCurrent, "UseStatement", fileName)) {
                     if (dotCurrent.getId() == GramPracConstants.NAME) {
                       baseImport.add(new TIden(dotCurrent));
                       dotExpected.replace(GramPracConstants.DOT, GramPracConstants.SEMICOLON);
@@ -114,13 +114,13 @@ public class StatementParser {
                   expected.replace(GramPracConstants.SEMICOLON);
                 }
                 else {
-                  throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+                  throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
                 }
               }
               else if (next.getId() == GramPracConstants.COMMA) {
                 nameIsForFunction = true;
                 if (!importedFunctions.add(new TIden(current))) {
-                  throw new RepeatedStructureException(current, "UseStatement");
+                  throw new RepeatedStructureException(current, "UseStatement", fileName);
                 }                
                 expected.replace(GramPracConstants.COMMA);
               }
@@ -129,7 +129,7 @@ public class StatementParser {
                 expected.replace(GramPracConstants.SEMICOLON);
               }
               else {
-                throw new InvalidPlacementException(next);
+                throw new InvalidPlacementException(next, fileName);
               }
 
               iterator.previous(); //roll back iterator
@@ -149,7 +149,7 @@ public class StatementParser {
           while (iterator.hasNext()) {
             Token dotCurrent = iterator.next();
             System.out.println("from current: "+dotCurrent);
-            if (dotExpected.noContainsThrow(dotCurrent, "UseStatement")) {
+            if (dotExpected.noContainsThrow(dotCurrent, "UseStatement", fileName)) {
               if (dotCurrent.getId() == GramPracConstants.NAME) {
                 baseImport.add(new TIden(dotCurrent));
                 dotExpected.replace(GramPracConstants.DOT, GramPracConstants.SEMICOLON);
@@ -169,7 +169,7 @@ public class StatementParser {
             iterator.previous();
           }
           else {
-            throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+            throw FormationException.createException("UseStatement", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
           }
         }
         else if (current.getId() == GramPracConstants.SEMICOLON) {
@@ -182,7 +182,7 @@ public class StatementParser {
     if (expected.isEmpty() || expected.contains(-1)) {
       return new UseDeclaration(useToken, new TType(baseImport), importedFunctions);
     }
-    throw FormationException.createException("UseStatement", iterator.previous(), expected);
+    throw FormationException.createException("UseStatement", iterator.previous(), expected, fileName);
   }
 
   
@@ -196,7 +196,7 @@ public class StatementParser {
    * @param iterator - the iterator to consume Tokens from
    * @return an RStatement representing the statement
    */
-  public static RStatement parseStatement(ListIterator<Token> iterator) throws ParserCreationException, ParserLogException{
+  public static RStatement parseStatement(ListIterator<Token> iterator, String fileName) throws ParserLogException{
     ArrayList<Token> tokens = new ArrayList<>();
     
     if (iterator.hasNext()) {
@@ -234,7 +234,7 @@ public class StatementParser {
         //attempt to parse it as a variable declaration
 
         try {
-          RVariable variable = VarDecParsers.parseVariable(tokens.listIterator(), GramPracConstants.SEMICOLON);
+          RVariable variable = VarDecParsers.parseVariable(tokens.listIterator(), GramPracConstants.SEMICOLON, fileName);
           variable.seal();
           return variable;
         } catch (RhexConstructionException e) {
@@ -259,7 +259,7 @@ public class StatementParser {
       }
     }
     else {
-      throw new EmptyExprException(iterator.previous(), "Statment");
+      throw new EmptyExprException(iterator.previous(), "Statement", fileName);
     }
   }
   
@@ -268,14 +268,14 @@ public class StatementParser {
    * @param stateBlock - the RStateBlock representing an already formed header.
    * @param iterator - the Iterator to consume Tokens from
    */
-  public static void parseBlock(RStateBlock stateBlock, ListIterator<Token> iterator){
+  public static void parseBlock(RStateBlock stateBlock, ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_CU_BRACK);
     
     if (!iterator.hasNext()) {
-      throw FormationException.createException("StatementBlock", iterator.previous(), expected);
+      throw FormationException.createException("StatementBlock", iterator.previous(), expected, fileName);
     }
     
-    expected.noContainsThrow(iterator.next(), "StatementBlock");
+    expected.noContainsThrow(iterator.next(), "StatementBlock", fileName);
     
     
     while (iterator.hasNext()) {
@@ -319,23 +319,24 @@ public class StatementParser {
         //if token stream runs out of Tokens before a semicolon or '{' is found, then there's an error
         if (!terminatorFound) {
           throw FormationException.createException("Statement", iterator.previous(), 
-              new ExpectedSet(GramPracConstants.SEMICOLON, GramPracConstants.CL_CU_BRACK));
+              new ExpectedSet(GramPracConstants.SEMICOLON, GramPracConstants.CL_CU_BRACK),
+              fileName);
         }
                 
         System.out.println("CANDITDATE: "+tempStatement);
         if (tempStatement.get(tempStatement.size() - 1).getId() == GramPracConstants.SEMICOLON) {
           try {
-            RStatement statement = parseStatement(tempStatement.listIterator());
+            RStatement statement = parseStatement(tempStatement.listIterator(), fileName);
             stateBlock.addStatement(statement);
-          } catch (ParserCreationException | ParserLogException e) {
+          } catch (ParserLogException e) {
             e.printStackTrace();
           } 
         }
         else {
           //if this is a block header
-          RStateBlock nestedHeader = parseBlockHeader(tempStatement.listIterator());
+          RStateBlock nestedHeader = parseBlockHeader(tempStatement.listIterator(), fileName);
           iterator.previous(); //roll back iterator
-          parseBlock(nestedHeader, iterator);
+          parseBlock(nestedHeader, iterator, fileName);
           
           stateBlock.addStatement(nestedHeader);
         }
@@ -353,7 +354,7 @@ public class StatementParser {
    * @param iterator - source to consume Tokens from
    * @return
    */
-  public static RStateBlock parseBlockHeader(ListIterator<Token> iterator){
+  public static RStateBlock parseBlockHeader(ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_CU_BRACK, 
                                            GramPracConstants.FOR,
                                            GramPracConstants.WHILE,
@@ -361,11 +362,11 @@ public class StatementParser {
                                            GramPracConstants.ELSE);
     
     if (!iterator.hasNext()) {
-      throw FormationException.createException("BlockHeader", iterator.previous(), expected);
+      throw FormationException.createException("BlockHeader", iterator.previous(), expected, fileName);
     }
     
     Token headerDesciptor = iterator.next();
-    expected.noContainsThrow(headerDesciptor, "BlockHeader");
+    expected.noContainsThrow(headerDesciptor, "BlockHeader", fileName);
     
     ArrayList<Token> headerList = new ArrayList<>();
     
@@ -382,20 +383,20 @@ public class StatementParser {
     if (!terminatorFound) {
       throw FormationException.createException("BlockHeader", 
           iterator.previous(), 
-          new ExpectedSet(GramPracConstants.OP_CU_BRACK));
+          new ExpectedSet(GramPracConstants.OP_CU_BRACK), fileName);
     }
     
     iterator.previous(); //roll back
     
     switch (headerDesciptor.getId()) {
     case GramPracConstants.FOR:
-      return parseForHeader(headerDesciptor, headerList.listIterator());
+      return parseForHeader(headerDesciptor, headerList.listIterator(), fileName);
     case GramPracConstants.WHILE:
-      return parseWhileHeader(headerDesciptor, headerList.listIterator(), "WhileLoopBlock");
+      return parseWhileHeader(headerDesciptor, headerList.listIterator(), "WhileLoopBlock", fileName);
     case GramPracConstants.IF:
-      return parseIfHeader(headerDesciptor, headerList.listIterator());
+      return parseIfHeader(headerDesciptor, headerList.listIterator(), fileName);
     case GramPracConstants.ELSE:
-      return parseElseHeader(headerDesciptor, headerList.listIterator());
+      return parseElseHeader(headerDesciptor, headerList.listIterator(), fileName);
     default:
       return new RStateBlock(headerDesciptor, BlockType.GENERAL);
     }   
@@ -405,14 +406,14 @@ public class StatementParser {
    *  returns the token AFTER the block descriptor 
    **/
   
-  public static ForBlock parseForHeader(Token descritor, ListIterator<Token> iterator){
+  public static ForBlock parseForHeader(Token descritor, ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_PAREN);
     
     if (!iterator.hasNext()) {
-      throw FormationException.createException("ForLoopBlock", iterator.previous(), expected);
+      throw FormationException.createException("ForLoopBlock", iterator.previous(), expected, fileName);
     }
     
-    expected.noContainsThrow(iterator.next(), "ForLoopBlock");
+    expected.noContainsThrow(iterator.next(), "ForLoopBlock", fileName);
     
     //Parse the initialization statement
     ArrayList<Token> initState = new ArrayList<>();
@@ -432,15 +433,15 @@ public class StatementParser {
     if (initTermFound) {      
       if (!initState.isEmpty()) {
         try {
-          initStatement = parseStatement(initState.listIterator());
-        } catch (ParserCreationException | ParserLogException e1) {
-          e1.printStackTrace();
+          initStatement = parseStatement(initState.listIterator(), fileName);
+        } catch (ParserLogException e1) {
+          throw new ExpressionParseException(e1, fileName);
         }
       }
       
     }
     else {
-      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
     }
     
     //Parse the condition statement
@@ -458,13 +459,13 @@ public class StatementParser {
     RStatement condStatement = null;
     if (condTermFound) {
       try {
-        condStatement = parseStatement(conditionState.listIterator());
-      } catch (ParserCreationException | ParserLogException e) {
-        e.printStackTrace();
+        condStatement = parseStatement(conditionState.listIterator(), fileName);
+      } catch (ParserLogException e) {
+        throw new ExpressionParseException(e, fileName);
       } 
     }
     else {
-      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
     }
     
     //parse the change statement
@@ -496,12 +497,12 @@ public class StatementParser {
           
         } catch (ParserLogException e1) {
           System.out.println(changeState);
-          throw new ExpressionParseException(e1);
+          throw new ExpressionParseException(e1, fileName);
         }
       }
     }
     else {
-      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+      throw FormationException.createException("ForLoopBlock", iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
     }
     
     ForBlock forBlock = new ForBlock(descritor);
@@ -512,14 +513,14 @@ public class StatementParser {
     return forBlock;
   }
 
-  public static WhileBlock parseWhileHeader(Token headerDesciptor, ListIterator<Token> iterator, String actualContext){
+  public static WhileBlock parseWhileHeader(Token headerDesciptor, ListIterator<Token> iterator, String actualContext, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_PAREN);
 
     if (!iterator.hasNext()) {
-      throw FormationException.createException(actualContext, iterator.previous(), expected);
+      throw FormationException.createException(actualContext, iterator.previous(), expected, fileName);
     }
     
-    expected.noContainsThrow(iterator.next(), actualContext);
+    expected.noContainsThrow(iterator.next(), actualContext, fileName);
     
     ArrayList<Token> conditionState = new ArrayList<>();
     boolean changeTermFound = false;
@@ -549,12 +550,12 @@ public class StatementParser {
           }
           
         } catch (ParserLogException e1) {
-          throw new ExpressionParseException(e1);
+          throw new ExpressionParseException(e1, fileName);
         }
       }
     }
     else {
-      throw FormationException.createException(actualContext, iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON));
+      throw FormationException.createException(actualContext, iterator.previous(), new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
     }
     
     WhileBlock whileBlock = new WhileBlock(headerDesciptor);
@@ -563,37 +564,37 @@ public class StatementParser {
     return whileBlock;
   }
 
-  public static IfBlock parseIfHeader(Token headerDesciptor, ListIterator<Token> iterator){
-    WhileBlock whileBlock = (WhileBlock) parseWhileHeader(headerDesciptor, iterator, "IfBlock");
+  public static IfBlock parseIfHeader(Token headerDesciptor, ListIterator<Token> iterator, String fileName){
+    WhileBlock whileBlock = (WhileBlock) parseWhileHeader(headerDesciptor, iterator, "IfBlock", fileName);
     IfBlock ifBlock = new IfBlock(headerDesciptor, BlockType.IF);
     ifBlock.setConditional(whileBlock.getConditional());
     return ifBlock;
   }
 
-  public static RStateBlock parseElseHeader(Token headerDesciptor, ListIterator<Token> iterator){
+  public static RStateBlock parseElseHeader(Token headerDesciptor, ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_CU_BRACK, GramPracConstants.IF);
 
     if (!iterator.hasNext()) {
-      throw FormationException.createException("ElseBlock", iterator.previous(), expected);
+      throw FormationException.createException("ElseBlock", iterator.previous(), expected, fileName);
     }
     
     Token upcoming = iterator.next();
-    expected.noContainsThrow(upcoming, "ElseBlock");
+    expected.noContainsThrow(upcoming, "ElseBlock", fileName);
     
     iterator.previous(); //roll back parser
     if (upcoming.getId() == GramPracConstants.OP_CU_BRACK) {
       RStateBlock stateBlock = new RStateBlock(upcoming, BlockType.ELSE);
-      parseBlock(stateBlock, iterator);
+      parseBlock(stateBlock, iterator, fileName);
       
       return stateBlock;
     }
     else {
-      IfBlock header = (IfBlock) parseBlockHeader(iterator);
+      IfBlock header = (IfBlock) parseBlockHeader(iterator, fileName);
       RStatement condtion = header.getConditional();
       header = new IfBlock(header.getDescriptorToken(), BlockType.ELSE_IF);
       header.setConditional(condtion);
       
-      parseBlock(header, iterator);
+      parseBlock(header, iterator, fileName);
       
       return header;
     }

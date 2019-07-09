@@ -33,9 +33,9 @@ public final class ClassParser {
    * @param iterator - the ListIterator to consume Tokens from.
    * @return the RClass object representing the class
    */
-  public static RClass parseClass(ListIterator<Token> iterator) {
-    RClass rClass = formClassHeader(iterator);
-    parseClassBody(iterator, rClass);
+  public static RClass parseClass(ListIterator<Token> iterator, String fileName) {
+    RClass rClass = formClassHeader(iterator, fileName);
+    parseClassBody(iterator, rClass, fileName);
     return rClass;
   }
 
@@ -49,7 +49,7 @@ public final class ClassParser {
    * @param iterator - the ListIterator to consume Tokens from.
    * @return the RClass object representing the class header
    */
-  public static RClass formClassHeader(ListIterator<Token> iterator){
+  public static RClass formClassHeader(ListIterator<Token> iterator, String fileName){
     ExpectedSet expected = new ExpectedSet(GramPracConstants.TPARAM, GramPracConstants.CLASS, GramPracConstants.INTER);
     expected.addAll(ExpectedConstants.CLASS_DESC);
         
@@ -63,15 +63,15 @@ public final class ClassParser {
     
     while (iterator.hasNext()) {
       Token current = iterator.next();
-      if (expected.noContainsThrow(current, "ClassHeader")) {
+      if (expected.noContainsThrow(current, "ClassHeader", fileName)) {
         if (current.getId() == GramPracConstants.TPARAM) {
           //first, roll back iterator
           iterator.previous();
           
-          TypeParameter parameter = TypeParser.parseTParam(iterator);
+          TypeParameter parameter = TypeParser.parseTParam(iterator, fileName);
           System.out.println("----TPARAM: "+parameter.getIdentifier().getImage());
           if (!typeParameters.add(parameter)) {
-            throw new RepeatedTParamException(parameter.getIdentifier());
+            throw new RepeatedTParamException(parameter.getIdentifier(), fileName);
           }
           
           expected.replace(GramPracConstants.TPARAM, GramPracConstants.CLASS, GramPracConstants.INTER);
@@ -79,7 +79,7 @@ public final class ClassParser {
         }
         else if (ExpectedConstants.CLASS_DESC.contains(current.getId())) {
           if (!classDescriptors.add(Descriptor.getEnumEquivalent(current.getId()))) {
-            throw FormationException.createException("ClassHeader", current, expected);
+            throw FormationException.createException("ClassHeader", current, expected, fileName);
           }
           expected.replace(GramPracConstants.CLASS, GramPracConstants.INTER);
           expected.addAll(ExpectedConstants.CLASS_DESC);
@@ -101,13 +101,13 @@ public final class ClassParser {
             //this is for type name (for parent classes)
             iterator.previous(); //roll back iterator
             
-            extensions.add(TypeParser.parseType(iterator));
+            extensions.add(TypeParser.parseType(iterator, fileName));
             expected.replace(GramPracConstants.COMMA, GramPracConstants.OP_CU_BRACK);
           }
         }
         else if (current.getId() == GramPracConstants.COLON) {         
           //parse first type name (Assume as super)
-          parent = TypeParser.parseType(iterator);
+          parent = TypeParser.parseType(iterator, fileName);
           
           expected.replace(GramPracConstants.COMMA, GramPracConstants.OP_CU_BRACK);
         }
@@ -127,7 +127,7 @@ public final class ClassParser {
       rClass.setTypeParameters(typeParameters);
       return rClass;
     }
-    throw FormationException.createException("ClassHeader", iterator.previous(), expected);
+    throw FormationException.createException("ClassHeader", iterator.previous(), expected, fileName);
   } 
   
   /**
@@ -140,12 +140,12 @@ public final class ClassParser {
    * @param source - the ListIterator to consume Tokens from
    * @param container - the RClass to add class components to
    */
-  public static void parseClassBody(ListIterator<Token> source, RClass container) {
+  public static void parseClassBody(ListIterator<Token> source, RClass container, String fileName) {
     ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_CU_BRACK);
     
     while (source.hasNext()) {
       Token current = source.next();
-      if (expected.noContainsThrow(current, "ClassBody")) {
+      if (expected.noContainsThrow(current, "ClassBody", fileName)) {
         if (current.getId() == GramPracConstants.OP_CU_BRACK) {
           //initial class opening curly brace
           expected.replace(GramPracConstants.TPARAM, GramPracConstants.CL_CU_BRACK);
@@ -155,7 +155,7 @@ public final class ClassParser {
         else if (current.getId() == GramPracConstants.TPARAM) {
           //Class functions/methods are the only things inside a class that
           //can have type parameter declarations
-          RFunc rFunc = FunctionParser.parseFunction(true, source);
+          RFunc rFunc = FunctionParser.parseFunction(true, source, fileName);
           container.addMethod(rFunc);
         }
         else if (ExpectedConstants.CLASS_DESC.contains(current.getId()) || 
@@ -183,19 +183,20 @@ public final class ClassParser {
           
           if (!terminatorFound) {
             throw FormationException.createException("ClassBody", source.previous(),
-                new ExpectedSet(GramPracConstants.SEMICOLON, GramPracConstants.OP_CU_BRACK));
+                new ExpectedSet(GramPracConstants.SEMICOLON, GramPracConstants.OP_CU_BRACK),
+                fileName);
           }
           
           if (isSemincolonTerm) {
             //parse as variable declaration
-            RVariable variable = VarDecParsers.parseVariable(source, GramPracConstants.SEMICOLON);
+            RVariable variable = VarDecParsers.parseVariable(source, GramPracConstants.SEMICOLON, fileName);
             if (!container.addClassVar(variable)) {
-              throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable");
+              throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }
           }
           else {
             //parse as function
-            RFunc func = FunctionParser.parseFunction(true, source);
+            RFunc func = FunctionParser.parseFunction(true, source, fileName);
             container.addMethod(func);
           }
           
@@ -209,7 +210,7 @@ public final class ClassParser {
     }
     
     if (!(expected.isEmpty() || expected.contains(-1))) {
-      throw FormationException.createException("ClassBody", source.previous(), expected);
+      throw FormationException.createException("ClassBody", source.previous(), expected, fileName);
     }
   }
   

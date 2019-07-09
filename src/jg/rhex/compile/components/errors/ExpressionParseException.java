@@ -6,8 +6,8 @@ public class ExpressionParseException extends RhexConstructionException{
 
   private ParserLogException actualParseException;
   
-  public ExpressionParseException(ParserLogException exception) {
-    super(exception.getMessage());
+  public ExpressionParseException(ParserLogException exception, String fileName) {
+    super(exception.getMessage(), fileName);
   }
   
   public ParserLogException getActualException() {

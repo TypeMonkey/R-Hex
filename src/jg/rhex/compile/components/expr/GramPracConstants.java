@@ -491,20 +491,25 @@ public interface GramPracConstants {
     /**
      * A production node identity constant.
      */
-    public static final int TYPE_NAME = 2016;
+    public static final int ARRAY_TYPE_NOTATION = 2016;
 
     /**
      * A production node identity constant.
      */
-    public static final int CAST = 2017;
+    public static final int TYPE_NAME = 2017;
 
     /**
      * A production node identity constant.
      */
-    public static final int ARRAY_ACC = 2018;
+    public static final int CAST = 2018;
 
     /**
      * A production node identity constant.
      */
-    public static final int UNIT = 2019;
+    public static final int ARRAY_ACC = 2019;
+
+    /**
+     * A production node identity constant.
+     */
+    public static final int UNIT = 2020;
 }

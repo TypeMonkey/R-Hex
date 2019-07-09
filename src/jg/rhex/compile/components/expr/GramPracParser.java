@@ -303,12 +303,21 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         addPattern(pattern);
 
+        pattern = new ProductionPattern(GramPracConstants.ARRAY_TYPE_NOTATION,
+                                        "array_type_notation");
+        alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.OP_SQ_BRACK, 1, 1);
+        alt.addToken(GramPracConstants.CL_SQ_BRACK, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
         pattern = new ProductionPattern(GramPracConstants.TYPE_NAME,
                                         "type_name");
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.NAME, 1, 1);
         alt.addProduction(SUBPRODUCTION_19, 0, -1);
         alt.addProduction(GramPracConstants.GENERIC, 0, 1);
+        alt.addProduction(GramPracConstants.ARRAY_TYPE_NOTATION, 0, -1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 

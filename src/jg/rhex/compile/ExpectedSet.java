@@ -26,15 +26,15 @@ public class ExpectedSet extends HashSet<Integer>{
    * @param errorContext - the String message to include with the error if the Token's ID isn't in this set
    * @return true- if the Token's ID is in this set
    */
-  public boolean noContainsThrow(Token toCheck, String errorContext){
+  public boolean noContainsThrow(Token toCheck, String errorContext, String fileName){
     if (contains(toCheck.getId())) {
       return true;
     }
     else {
       if (errorContext == null || errorContext.isEmpty()) {
-        throw FormationException.createException(toCheck, this);
+        throw FormationException.createException(toCheck, this, fileName);
       }
-      throw FormationException.createException(errorContext, toCheck, this);
+      throw FormationException.createException(errorContext, toCheck, this, fileName);
     }
   }
   

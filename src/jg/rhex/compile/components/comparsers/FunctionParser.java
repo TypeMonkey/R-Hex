@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import jg.rhex.compile.ExpectedSet;
-import jg.rhex.compile.components.TestUtils;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.expr.GramPracConstants;
@@ -17,6 +16,7 @@ import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.test.TestUtils;
 import net.percederberg.grammatica.parser.Token;
 
 public final class FunctionParser {
@@ -27,9 +27,9 @@ public final class FunctionParser {
    * @param iterator - the ListIterator to consume Tokens from
    * @return the RFunc Object representing the parsed function
    */
-  public static RFunc parseFunction(boolean isClassFunc, ListIterator<Token> iterator) {
-    RFunc rFunc = parseFunctionHeader(isClassFunc, iterator);
-    StatementParser.parseBlock(rFunc.getBody(), iterator);
+  public static RFunc parseFunction(boolean isClassFunc, ListIterator<Token> iterator, String fileName) {
+    RFunc rFunc = parseFunctionHeader(isClassFunc, iterator, fileName);
+    StatementParser.parseBlock(rFunc.getBody(), iterator, fileName);
     rFunc.seal();
     return rFunc;
   }
@@ -43,7 +43,7 @@ public final class FunctionParser {
    * @param iterator - the ListIterator to consume Tokens from
    * @return the RFunc object representing the header of the function
    */
-  public static RFunc parseFunctionHeader(boolean isClassFunc, ListIterator<Token> iterator){ 
+  public static RFunc parseFunctionHeader(boolean isClassFunc, ListIterator<Token> iterator, String fileName){ 
     ExpectedSet expected = new ExpectedSet(GramPracConstants.TPARAM, 
                                            GramPracConstants.PUBL,
                                            GramPracConstants.PRIV,
@@ -60,11 +60,11 @@ public final class FunctionParser {
     while (iterator.hasNext()) {
       Token current = iterator.next();
       System.out.println("--FUNCTION CURRENT: "+current);
-      if (expected.noContainsThrow(current, "Function")) {
+      if (expected.noContainsThrow(current, "Function", fileName)) {
         if (current.getId() == GramPracConstants.TPARAM) {
-          TypeParameter parameter = TypeParser.parseTParam(iterator);
+          TypeParameter parameter = TypeParser.parseTParam(iterator, fileName);
           if (!function.addTypeParameter(parameter)) {
-            throw new RepeatedTParamException(parameter.getIdentifier());
+            throw new RepeatedTParamException(parameter.getIdentifier(), fileName);
           }
           
           expected.replace(GramPracConstants.TPARAM, 
@@ -77,14 +77,14 @@ public final class FunctionParser {
         }
         else if (current.getId() == GramPracConstants.PUBL || current.getId() == GramPracConstants.PRIV) {
           if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
-            throw FormationException.createException("Function", current, expected);
+            throw FormationException.createException("Function", current, expected, fileName);
           }
           expected.replace(GramPracConstants.VOID, GramPracConstants.NAME);
         }
         else if (current.getId() == GramPracConstants.ABSTRACT || current.getId() == GramPracConstants.FINAL) {
           //should only be valid for class function
           if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
-            throw FormationException.createException("Function", current, expected);
+            throw FormationException.createException("Function", current, expected, fileName);
           }
           expected.replace(GramPracConstants.VOID, GramPracConstants.NAME);
         }
@@ -100,7 +100,7 @@ public final class FunctionParser {
             //then this is the return type
             System.out.println("* FUNCTION RETURN: "+current);
             iterator.previous(); //roll back iterator
-            TType returnType = TypeParser.parseType(iterator);
+            TType returnType = TypeParser.parseType(iterator, fileName);
             function.setReturnType(returnType);
             expected.replace(GramPracConstants.NAME);
             System.out.println("NEXT INDER: "+iterator.nextIndex());
@@ -126,10 +126,10 @@ public final class FunctionParser {
               Escapist escapist = new Escapist(new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN), 
                                                 "FunctionParameter");
               
-              List<Token> paramTokens = escapist.consume(iterator);
+              List<Token> paramTokens = escapist.consume(iterator, fileName);
               iterator.previous(); //roll back parser
               
-              RVariable param = VarDecParsers.parseVariable(paramTokens.listIterator(), GramPracConstants.COMMA); //parse first parameter
+              RVariable param = VarDecParsers.parseVariable(paramTokens.listIterator(), GramPracConstants.COMMA, fileName); //parse first parameter
               int paramAmnt = 1;
               function.addStatement(param);
               
@@ -138,8 +138,8 @@ public final class FunctionParser {
               while (iterator.hasNext()) {
                 Token pCurrent = iterator.next();
                 if (pCurrent.getId() == GramPracConstants.COMMA) {
-                  paramTokens = escapist.consume(iterator);
-                  RVariable variable = VarDecParsers.parseVariable(paramTokens.listIterator(), iterator.previous().getId());
+                  paramTokens = escapist.consume(iterator, fileName);
+                  RVariable variable = VarDecParsers.parseVariable(paramTokens.listIterator(), iterator.previous().getId(), fileName);
                   
                   function.addStatement(variable);
                   
@@ -157,7 +157,7 @@ public final class FunctionParser {
                 expected.replace(GramPracConstants.CL_PAREN);
                 continue;
               }
-              throw FormationException.createException("Function", iterator.previous(), new ExpectedSet(GramPracConstants.CL_PAREN));
+              throw FormationException.createException("Function", iterator.previous(), new ExpectedSet(GramPracConstants.CL_PAREN), fileName);
             }
           }
           
@@ -171,7 +171,7 @@ public final class FunctionParser {
           break;
         }
         else if (current.getId() == GramPracConstants.THROWS) {
-          TType firstException = TypeParser.parseType(iterator);
+          TType firstException = TypeParser.parseType(iterator, fileName);
           function.addDeclaredException(firstException);
           
           ExpectedSet throwExpected = new ExpectedSet(GramPracConstants.COMMA, 
@@ -179,7 +179,7 @@ public final class FunctionParser {
           
           while (iterator.hasNext()) {
             Token nextToken = iterator.next();
-            throwExpected.noContainsThrow(nextToken, "Function");
+            throwExpected.noContainsThrow(nextToken, "Function", fileName);
 
             if (nextToken.getId() == GramPracConstants.OP_CU_BRACK) {
               iterator.previous();  //rollback iterator
@@ -187,7 +187,7 @@ public final class FunctionParser {
               break; 
             }
             else if (nextToken.getId() == GramPracConstants.COMMA) {
-              TType exception = TypeParser.parseType(iterator);
+              TType exception = TypeParser.parseType(iterator, fileName);
               function.addDeclaredException(exception);
             }
           }
@@ -196,7 +196,7 @@ public final class FunctionParser {
             expected.replace(GramPracConstants.OP_CU_BRACK);
             continue;
           }
-          throw FormationException.createException("Function", current, throwExpected);
+          throw FormationException.createException("Function", current, throwExpected, fileName);
        
         }
       }
@@ -204,7 +204,7 @@ public final class FunctionParser {
     
     //want to make sure that all expected tokens are met
     if (!(expected.isEmpty() || expected.contains(-1))) {
-      throw FormationException.createException("Function", iterator.previous(), expected);
+      throw FormationException.createException("Function", iterator.previous(), expected, fileName);
     }
     
     //at this point, the very next token from iterator should be an opening curly brace   
@@ -219,7 +219,7 @@ public final class FunctionParser {
     List<Token> tokens = TestUtils.tokenizeString(target);
     TestUtils.printTokens(tokens);
     
-    RFunc rFunc = parseFunction(false, tokens.listIterator());
+    RFunc rFunc = parseFunction(false, tokens.listIterator(), "Test");
     
     System.out.println("--------------------------");
     System.out.println(rFunc.getReturnType());
