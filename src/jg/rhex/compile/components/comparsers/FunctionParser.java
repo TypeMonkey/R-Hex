@@ -37,8 +37,8 @@ public final class FunctionParser {
   /**
    * Parses the header of an RHex function (pure functions, static methods, instance methods)
    * 
-   * Function headers should be terminated by a closing ')' prior to '{'.
-   * This method only consumes tokens upto ')'
+   * Function headers should be terminated by a '{'.
+   * This method only consumes tokens upto '{'
    * 
    * @param iterator - the ListIterator to consume Tokens from
    * @return the RFunc object representing the header of the function
@@ -123,40 +123,52 @@ public final class FunctionParser {
             }
             else {
               //function has parameters
-                            
-              RVariable param = VarDecParsers.parseVariable(iterator, GramPracConstants.COMMA); //parse first parameter
+              Escapist escapist = new Escapist(new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN), 
+                                                "FunctionParameter");
+              
+              List<Token> paramTokens = escapist.consume(iterator);
+              iterator.previous(); //roll back parser
+              
+              RVariable param = VarDecParsers.parseVariable(paramTokens.listIterator(), GramPracConstants.COMMA); //parse first parameter
               int paramAmnt = 1;
               function.addStatement(param);
               
-              ExpectedSet paramExpected = new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
+              boolean terminatorFound = false;
+              
               while (iterator.hasNext()) {
-                Token curGeneric = iterator.next();
-                if (paramExpected.noContainsThrow(curGeneric, "Function")) {
-                  if (curGeneric.getId() == GramPracConstants.CL_PAREN) {
-                    paramExpected.clear();
-                    expected.replace(GramPracConstants.CL_PAREN);
-                    iterator.previous();
-                    break;
-                  }
-                  else if (curGeneric.getId() == GramPracConstants.COMMA) {
-                    function.addStatement(VarDecParsers.parseVariable(iterator));
-                    paramAmnt++;
-                    paramExpected.replace(GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
-                  }
+                Token pCurrent = iterator.next();
+                if (pCurrent.getId() == GramPracConstants.COMMA) {
+                  paramTokens = escapist.consume(iterator);
+                  RVariable variable = VarDecParsers.parseVariable(paramTokens.listIterator(), iterator.previous().getId());
+                  
+                  function.addStatement(variable);
+                  
+                  paramAmnt++;
+                }
+                else if (pCurrent.getId() == GramPracConstants.CL_PAREN) {
+                  terminatorFound = true;
+                  iterator.previous(); //roll back iterator so main loop can get cl_paren
+                  break;
                 }
               }
               
-              if (paramExpected.isEmpty() || paramExpected.contains(-1)) {
+              if (terminatorFound) {
                 function.setParamAmnt(paramAmnt);
+                expected.replace(GramPracConstants.CL_PAREN);
                 continue;
               }
-              throw FormationException.createException("Function", iterator.previous(), paramExpected);
+              throw FormationException.createException("Function", iterator.previous(), new ExpectedSet(GramPracConstants.CL_PAREN));
             }
           }
           
         }
         else if (current.getId() == GramPracConstants.CL_PAREN) {
-          expected.replace(GramPracConstants.THROWS, -1);
+          expected.replace(GramPracConstants.THROWS, GramPracConstants.OP_CU_BRACK);
+        }
+        else if (current.getId() == GramPracConstants.OP_CU_BRACK) {
+          iterator.previous();
+          expected.clear();
+          break;
         }
         else if (current.getId() == GramPracConstants.THROWS) {
           TType firstException = TypeParser.parseType(iterator);
@@ -181,7 +193,7 @@ public final class FunctionParser {
           }
           
           if (throwExpected.isEmpty() || throwExpected.contains(-1)) {
-            expected.clear();
+            expected.replace(GramPracConstants.OP_CU_BRACK);
             continue;
           }
           throw FormationException.createException("Function", current, throwExpected);
@@ -200,7 +212,7 @@ public final class FunctionParser {
   }
   
   public static void main(String [] args) {
-    String target = "List!(String) hello(int val = 10, String x) {"+
+    String target = "List!(String) hello(int val = 10, String x) throws java.lang.What, List!(What){"+
                     "    what();      "+
                     "    if(i < 10){ bye();}                "+
                     "                }";
@@ -214,6 +226,11 @@ public final class FunctionParser {
     
     System.out.println("-----PARAMS: "+rFunc.getParameterAmount());
     
+    System.out.println("---EXCEPTIONS---");
+    for (TType exception : rFunc.getDeclaredExceptions()) {
+      System.out.println(exception.getBaseString());
+    }
+    System.out.println("---EXCEPTIONS DONE---");
     
     for(RStatement statement : rFunc.getBody().getStatements()) {
       System.out.println(statement);
