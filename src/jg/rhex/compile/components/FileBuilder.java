@@ -18,6 +18,7 @@ import org.apache.commons.io.FilenameUtils;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.comparsers.StatementParser;
 import jg.rhex.compile.components.comparsers.ClassParser;
+import jg.rhex.compile.components.comparsers.Escapist;
 import jg.rhex.compile.components.comparsers.FunctionParser;
 import jg.rhex.compile.components.comparsers.TypeParser;
 import jg.rhex.compile.components.comparsers.VarDecParsers;
@@ -92,7 +93,11 @@ public class FileBuilder {
    * @param iterator - the token iterator to consume tokens from
    */
   private void scanFileBody(RhexFile rhexFile, ListIterator<Token> iterator, String fileName) {
-    ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, GramPracConstants.TPARAM);
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, 
+        GramPracConstants.TPARAM, 
+        GramPracConstants.CLASS, 
+        GramPracConstants.NAME, 
+        GramPracConstants.VOID);
     expected.addAll(ExpectedConstants.VAR_FUNC_DESC);
     expected.addAll(ExpectedConstants.VISIBILITY);
     expected.addAll(ExpectedConstants.CLASS_DESC);
@@ -108,21 +113,11 @@ public class FileBuilder {
         else {
           //TODO: make helper methods to distinguish between classes, functions and variables
           //Gather Tokens until a ';' or '{'
-          ArrayList<Token> unknownComp = new ArrayList<>();
+          Escapist escapist = new Escapist("FileComponent", GramPracConstants.SEMICOLON, GramPracConstants.OP_CU_BRACK);
+          List<Token> unknownComp = escapist.consume(iterator, fileName);
+          unknownComp.add(0, current);
           
-          boolean terminatorFound = false;
-          while (iterator.hasNext()) {
-            Token cur = iterator.next();
-            unknownComp.add(cur);
-            if (cur.getId() == GramPracConstants.SEMICOLON || cur.getId() == GramPracConstants.OP_CU_BRACK) {
-              terminatorFound = true;
-              break;
-            }
-          }
-          
-          if (!terminatorFound) {
-            throw FormationException.createException("FileComponent", iterator.previous(), expected, fileName);
-          }
+          System.out.println("ATTEMPT: "+unknownComp);
           
           //now, attempt to parse
           if (unknownComp.get(unknownComp.size()-1).getId() == GramPracConstants.SEMICOLON) {
@@ -137,14 +132,17 @@ public class FileBuilder {
           else {
             //then this is either a function declaration or a class declaration
             //first, attempt to parse as a function
+            iterator.previous();
             try {
-              RFunc func = FunctionParser.parseFunction(false, iterator, fileName);
+              RFunc func = FunctionParser.parseFunctionHeader(false, unknownComp.listIterator(), fileName);
+              StatementParser.parseBlock(func.getBody(), iterator, fileName);
               rhexFile.addFunction(func);
               func.seal();
             } catch (RhexConstructionException e) {
               //if function parsing fails, try to parse the header as a class declaration
               try {
-                RClass rClass = ClassParser.parseClass(unknownComp.listIterator(), fileName);
+                RClass rClass = ClassParser.formClassHeader(unknownComp.listIterator(), fileName);
+                ClassParser.parseClassBody(iterator, rClass, fileName);
                 if (!rhexFile.addClass(rClass)) {
                   throw new RepeatedStructureException(rClass.getName(), "Variable", fileName);
                 }
@@ -152,6 +150,7 @@ public class FileBuilder {
               } catch (RhexConstructionException e2) {
                 // If an error is thrown this far, then what ever this construct is...
                 //it doesn't belong here.
+                e2.printStackTrace();
                 throw new InvalidPlacementException(current, fileName);
               }
             }

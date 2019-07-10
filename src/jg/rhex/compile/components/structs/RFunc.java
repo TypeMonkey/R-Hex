@@ -34,6 +34,7 @@ public class RFunc extends Parametric implements Sealable{
   private int parameterAmount;
   
   private boolean isSealed;
+  private boolean isConstructor;
  
   public RFunc(){
     declaredExceptions = new ArrayList<>();
@@ -41,6 +42,13 @@ public class RFunc extends Parametric implements Sealable{
     typeParameters = new LinkedHashSet<>();
     
     this.body = new RStateBlock(null, BlockType.GENERAL);  
+  }
+  
+  public void setAsConstructor(boolean construc) {
+    if (isSealed) {
+      throw new IllegalStateException("This structure has been sealed!");
+    }
+    isConstructor = construc;
   }
   
   public void setParamAmnt(int paramAmnt) {
@@ -114,6 +122,10 @@ public class RFunc extends Parametric implements Sealable{
 
   public int getParameterAmount() {
     return parameterAmount;
+  }
+  
+  public boolean isConstructor() {
+    return isConstructor;
   }
 
   @Override

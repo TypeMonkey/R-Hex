@@ -31,8 +31,10 @@ public final class TypeParser {
    * Parses a type declaration/annotation.
    * 
    * R-Hex type annotations have the following grammar: 
-   *  typeAnno = Identifier (. Identifier)* [ Generic ] [ArrayDimensions]
+   *  typeAnno = "void" | (Identifier (. Identifier)* [ Generic ] [ArrayDimensions])
    *  Generic = '!(' typeAnno (, typeAnno)* ')'
+   *  
+   * 
    *  
    * Note: The next call to next() on the iterator should be an Identifier Token
    * 
@@ -60,17 +62,24 @@ public final class TypeParser {
    * @return the TType parsed from this iterator
    */
   public static TType parseType(ListIterator<Token> source, String fileName){
-    ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME);
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.NAME, GramPracConstants.VOID);
     
     ArrayList<TIden> fullTypeName = new ArrayList<>();
     TType baseType = null;
+    int arrayDimensions = 0;
            
     //Stack<Integer> lastingGreats = new Stack<Integer>(); //for keeping track of '< >' pairs for generics
         
     while (source.hasNext()) {
       Token current = source.next();
+      System.out.println("--T->CURRENT: "+current);
       if (expected.noContainsThrow(current, "TypeAnnotation", fileName)) {
-        if (current.getId() == GramPracConstants.OP_PAREN) {
+        if (current.getId() == GramPracConstants.VOID) {
+          fullTypeName.add(new TIden(current));
+          expected.clear();
+          break;
+        }
+        else if (current.getId() == GramPracConstants.OP_PAREN) {
           if (baseType == null) {
             baseType = new TType(fullTypeName);
           }
@@ -86,7 +95,18 @@ public final class TypeParser {
         }
         else if (current.getId() == GramPracConstants.CL_PAREN) {
           System.out.println("CL PAREN! Context: "+fullTypeName.get(0));
-          expected.replace(-1);
+          
+          if (source.hasNext()) {
+            System.out.println("---CHECKING ARR BOUND");
+            Token next = source.next();
+            source.previous();  //roll back iterator
+            if (next.getId() == GramPracConstants.OP_SQ_BRACK) {
+              expected.replace(GramPracConstants.OP_SQ_BRACK);
+              continue;
+            }
+          }
+          
+          expected.clear();
           break;
         }
         else if (current.getId() == GramPracConstants.COMMA) {
@@ -97,19 +117,40 @@ public final class TypeParser {
         else if (current.getId() == GramPracConstants.BANG) {
           expected.replace(GramPracConstants.OP_PAREN);
         }
+        else if (current.getId() == GramPracConstants.OP_SQ_BRACK) {
+          expected.replace(GramPracConstants.CL_SQ_BRACK);
+        }
+        else if (current.getId() == GramPracConstants.CL_SQ_BRACK) {
+          arrayDimensions++;
+          
+          if (source.hasNext()) {
+            System.out.println("---CHECKING ARR SEQ BOUND");
+            Token next = source.next();
+            source.previous();  //roll back iterator
+            if (next.getId() == GramPracConstants.OP_SQ_BRACK) {
+              expected.replace(GramPracConstants.OP_SQ_BRACK);
+              continue;
+            }
+          }
+          
+          expected.clear();
+          break;          
+        }
         else if (current.getId() == GramPracConstants.NAME) {
           if (baseType == null) {
             fullTypeName.add(new TIden(current));
             if (source.hasNext()) {
               Token potential = source.next();
               source.previous(); //roll back iterator
-              if (potential.getId() != GramPracConstants.BANG && potential.getId() != GramPracConstants.DOT) {
+              if (potential.getId() != GramPracConstants.BANG && 
+                  potential.getId() != GramPracConstants.DOT && 
+                  potential.getId() != GramPracConstants.OP_SQ_BRACK) {
                 expected.clear();
                 break;
               }
               
             }
-            expected.replace(GramPracConstants.DOT, GramPracConstants.BANG, -1);
+            expected.replace(GramPracConstants.DOT, GramPracConstants.BANG, GramPracConstants.OP_SQ_BRACK, -1);
           }
           else {
             source.previous();
@@ -124,8 +165,9 @@ public final class TypeParser {
     
     if (expected.isEmpty() || expected.contains(-1)) {
       if (baseType == null) {
-        return new TType(fullTypeName);
+        baseType = new TType(fullTypeName);
       }
+      baseType.setArrayDimensions(arrayDimensions);
       return baseType;
     }
     
@@ -137,7 +179,7 @@ public final class TypeParser {
    *
    * Syntax for tparam is:
    * 
-   * tparam '<' TypeHandle ':' (function_constraint | ('extends' className (',' className)*) | tparam)+ '>'
+   * tparam '<' TypeHandle ':' (function_constraint | ('extends' className (',' className)*) | tparam)* '>'
    * 
    * The terminating '>' is consumed by this method
    * 
@@ -239,7 +281,7 @@ public final class TypeParser {
           break;
         }
         else if (current.getId() == GramPracConstants.COLON) {
-          expected.replace(GramPracConstants.NAME, GramPracConstants.EXTNDS, GramPracConstants.TPARAM);
+          expected.replace(GramPracConstants.NAME, GramPracConstants.EXTNDS, GramPracConstants.TPARAM, GramPracConstants.GREAT);
         }
       }
     }
@@ -343,7 +385,8 @@ public final class TypeParser {
     throw FormationException.createException("FuncConstraints", iterator.previous(), expected, fileName);
   }
   
-  public static void main(String [] args) {
+  
+  //public static void main(String [] args) {
     /*FUNCTION CONSTRAINT TESTER
     List<Token> tokens = TestUtils.tokenizeString("funcName(String  , Map!(Int, String)) -> String; -");
     
@@ -423,7 +466,6 @@ public final class TypeParser {
     System.out.println(info1.getBaseString());
     System.out.println(listIterator.nextIndex());
     */
-  }
-  
+  //}
   
 }

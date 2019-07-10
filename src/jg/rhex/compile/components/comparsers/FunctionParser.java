@@ -62,6 +62,7 @@ public final class FunctionParser {
       System.out.println("--FUNCTION CURRENT: "+current);
       if (expected.noContainsThrow(current, "Function", fileName)) {
         if (current.getId() == GramPracConstants.TPARAM) {
+          iterator.previous(); //roll back iterator
           TypeParameter parameter = TypeParser.parseTParam(iterator, fileName);
           if (!function.addTypeParameter(parameter)) {
             throw new RepeatedTParamException(parameter.getIdentifier(), fileName);
@@ -76,7 +77,7 @@ public final class FunctionParser {
                            GramPracConstants.FINAL);
         }
         else if (current.getId() == GramPracConstants.PUBL || current.getId() == GramPracConstants.PRIV) {
-          if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
+          if (!function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
             throw FormationException.createException("Function", current, expected, fileName);
           }
           expected.replace(GramPracConstants.VOID, GramPracConstants.NAME);
@@ -97,6 +98,21 @@ public final class FunctionParser {
         }
         else if (current.getId() == GramPracConstants.NAME) {
           if (function.getReturnType() == null) {
+            if (isClassFunc) {
+              //this Function can be a constructor. Do a lookahead
+              
+              if (iterator.hasNext()) {
+                Token next = iterator.next();
+                iterator.previous(); //rollback parser
+                if (next.getId() == GramPracConstants.OP_PAREN) {
+                  //this is a constructor...
+                  function.setName(current);
+                  function.setAsConstructor(true);
+                  expected.replace(GramPracConstants.OP_PAREN);
+                  continue;
+                }
+              }
+            }
             //then this is the return type
             System.out.println("* FUNCTION RETURN: "+current);
             iterator.previous(); //roll back iterator
@@ -113,6 +129,7 @@ public final class FunctionParser {
         }
         else if (current.getId() == GramPracConstants.OP_PAREN) {
           //function parameters begin
+          
           if (iterator.hasNext()) {
             Token next = iterator.next();
             iterator.previous();
@@ -123,8 +140,7 @@ public final class FunctionParser {
             }
             else {
               //function has parameters
-              Escapist escapist = new Escapist(new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.CL_PAREN), 
-                                                "FunctionParameter");
+              Escapist escapist = new Escapist("FunctionParameter", GramPracConstants.COMMA, GramPracConstants.CL_PAREN);
               
               List<Token> paramTokens = escapist.consume(iterator, fileName);
               iterator.previous(); //roll back parser

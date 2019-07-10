@@ -145,10 +145,12 @@ public final class ClassParser {
     
     while (source.hasNext()) {
       Token current = source.next();
+      System.out.println("CURRENT: "+current);
       if (expected.noContainsThrow(current, "ClassBody", fileName)) {
         if (current.getId() == GramPracConstants.OP_CU_BRACK) {
           //initial class opening curly brace
           expected.replace(GramPracConstants.TPARAM, GramPracConstants.CL_CU_BRACK);
+          expected.add(GramPracConstants.NAME);
           expected.addAll(ExpectedConstants.VAR_FUNC_DESC);
           expected.addAll(ExpectedConstants.CLASS_DESC);
         }
@@ -159,10 +161,13 @@ public final class ClassParser {
           container.addMethod(rFunc);
         }
         else if (ExpectedConstants.CLASS_DESC.contains(current.getId()) || 
-                 ExpectedConstants.VAR_FUNC_DESC.contains(current.getId())) {
+                 ExpectedConstants.VAR_FUNC_DESC.contains(current.getId()) || 
+                 current.getId() == GramPracConstants.NAME) {
+          
           //decide if this is a function or variable
           
           ArrayList<Token> unknownSequence = new ArrayList<>();
+          unknownSequence.add(current);
           
           boolean terminatorFound = false;
           boolean isSemincolonTerm = false;
@@ -189,14 +194,17 @@ public final class ClassParser {
           
           if (isSemincolonTerm) {
             //parse as variable declaration
-            RVariable variable = VarDecParsers.parseVariable(source, GramPracConstants.SEMICOLON, fileName);
+            System.out.println("---VAR: "+unknownSequence);
+            RVariable variable = VarDecParsers.parseVariable(unknownSequence.listIterator(), GramPracConstants.SEMICOLON, fileName);
             if (!container.addClassVar(variable)) {
               throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }
           }
           else {
             //parse as function
-            RFunc func = FunctionParser.parseFunction(true, source, fileName);
+            RFunc func = FunctionParser.parseFunctionHeader(true, unknownSequence.listIterator(), fileName);
+            source.previous(); //roll back main source for body parsing
+            StatementParser.parseBlock(func.getBody(), source, fileName);
             container.addMethod(func);
           }
           

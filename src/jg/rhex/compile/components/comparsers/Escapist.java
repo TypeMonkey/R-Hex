@@ -41,11 +41,13 @@ public class Escapist {
   private Set<Integer> terminators;
   private String context;
   
-  public Escapist(Set<Integer> terminators, String context) {
+  public Escapist(String context, Integer ... terminators) {
     this(new HashSet<>(Arrays.asList(EscapeClosure.PARENTHESES, 
                                      EscapeClosure.CURLY_BRACES, 
                                      EscapeClosure.SQUARE_BRACES, 
-                                     EscapeClosure.LESS_GREAT)), terminators, context);
+                                     EscapeClosure.LESS_GREAT)), 
+                         new HashSet<>(Arrays.asList(terminators))  , 
+                                                            context);
   }
   
   public Escapist(int terminatorID, String context) {
@@ -102,12 +104,7 @@ public class Escapist {
           closures.push(current);
         }
       }  
-      else if (current.getId() == GramPracConstants.CL_PAREN || 
-          current.getId() == GramPracConstants.CL_CU_BRACK ||
-          current.getId() == GramPracConstants.CL_SQ_BRACK ||
-          current.getId() == GramPracConstants.GREAT) {
-        //check for symbols needing escape
-
+      else if (current.getId() == GramPracConstants.CL_PAREN) {
         if (escapeClosures.contains(EscapeClosure.PARENTHESES)) {
           if (closures.isEmpty()) {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN), fileName);
@@ -117,7 +114,9 @@ public class Escapist {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_PAREN), fileName);
           }
         }
-        else if (escapeClosures.contains(EscapeClosure.CURLY_BRACES)) {
+      }
+      else if (current.getId() == GramPracConstants.CL_CU_BRACK) {
+        if (escapeClosures.contains(EscapeClosure.CURLY_BRACES)) {
           if (closures.isEmpty()) {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK), fileName);
           }
@@ -126,16 +125,21 @@ public class Escapist {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_CU_BRACK), fileName);
           }
         }
-        else if (escapeClosures.contains(EscapeClosure.SQUARE_BRACES)) {
+      }
+      else if (current.getId() == GramPracConstants.CL_SQ_BRACK) {
+        if (escapeClosures.contains(EscapeClosure.SQUARE_BRACES)) {
           if (closures.isEmpty()) {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK), fileName);
           }
           Token token = closures.pop();
-          if (token.getId() != GramPracConstants.OP_CU_BRACK) {
+          if (token.getId() != GramPracConstants.OP_SQ_BRACK) {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.CL_SQ_BRACK), fileName);
           }
         }
-        else if (escapeClosures.contains(EscapeClosure.LESS_GREAT)) {
+      }
+      else if (current.getId() == GramPracConstants.GREAT) {
+        //check for symbols needing escape
+        if (escapeClosures.contains(EscapeClosure.LESS_GREAT)) {
           if (closures.isEmpty()) {
             throw FormationException.createException(context, current, new ExpectedSet(GramPracConstants.GREAT), fileName);
           }

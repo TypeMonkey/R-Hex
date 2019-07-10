@@ -10,7 +10,7 @@ public class RhexFile implements Sealable{
 
   private String fileName;
   
-  private Set<UseDeclaration> useDeclarations;
+  private List<UseDeclaration> useDeclarations;
   
   private Set<RVariable> variables;
   private List<RFunc> functions;
@@ -21,7 +21,7 @@ public class RhexFile implements Sealable{
   public RhexFile(String fileName){
     this.fileName = fileName;
     
-    useDeclarations = new HashSet<UseDeclaration>();
+    useDeclarations = new ArrayList<UseDeclaration>();
     variables = new LinkedHashSet<>();
     functions = new ArrayList<RFunc>();
     classes = new LinkedHashSet<>();
@@ -71,7 +71,7 @@ public class RhexFile implements Sealable{
     return fileName;
   }
 
-  public Set<UseDeclaration> getUseDeclarations() {
+  public List<UseDeclaration> getUseDeclarations() {
     return useDeclarations;
   }
 
