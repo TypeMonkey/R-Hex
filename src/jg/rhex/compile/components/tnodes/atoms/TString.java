@@ -1,8 +1,10 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
-public class TString extends TAtom<String>{
+import net.percederberg.grammatica.parser.Token;
 
-  public TString(String value) {
+public class TString extends TAtom<Token>{
+
+  public TString(Token value) {
     super(value);
   }
 
@@ -11,4 +13,10 @@ public class TString extends TAtom<String>{
     return "STR ~ "+getActValue();
   }
 
+  public String getUnquotedString(){
+    String init = getActValue().getImage();
+    init = init.substring(1);
+    init = init.substring(0, init.length());
+    return init;
+  }
 }

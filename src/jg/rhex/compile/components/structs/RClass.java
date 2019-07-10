@@ -8,7 +8,7 @@ import java.util.Set;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
-public class RClass extends Parametric implements Sealable{
+public class RClass extends Parametric{
   
   private boolean isAnInterface;
   private boolean isSealed;
@@ -99,14 +99,4 @@ public class RClass extends Parametric implements Sealable{
     return methods;
   }
 
-  @Override
-  public void seal() {
-    isSealed = true;
-  }
-
-  @Override
-  public boolean isSealed() {
-    return isSealed;
-  } 
-  
 }

@@ -60,9 +60,7 @@ public class Tester {
     for(RStatement statement : block.getStatements()){
       printStatement(statement); 
     }
-    
-    block.seal();
-    
+        
     System.out.println(" -----> LAST "+(iterator.hasNext() ? iterator.next().toString() : "NONE"));
     
     //System.out.println(block.getBlockType());

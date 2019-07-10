@@ -21,7 +21,7 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class RFunc extends Parametric implements Sealable{
+public class RFunc extends Parametric{
   
   private Token name;
   private TType returnType;
@@ -127,16 +127,5 @@ public class RFunc extends Parametric implements Sealable{
   public boolean isConstructor() {
     return isConstructor;
   }
-
-  @Override
-  public void seal() {
-    isSealed = true;
-    body.seal();
-  }
-
-  @Override
-  public boolean isSealed() {
-    return isSealed;
-  }
-  
+ 
 }

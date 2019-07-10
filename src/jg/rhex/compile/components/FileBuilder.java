@@ -1,9 +1,11 @@
 package jg.rhex.compile.components;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -66,7 +68,9 @@ public class FileBuilder {
     RhexFile rhexFile = new RhexFile(FilenameUtils.getBaseName(location.getAbsolutePath()));
     
     try {
+      System.out.println("--------------------------------------------------------------------------");
       absorbTokens();
+      System.out.println("--------------------------------------------------------------------------");
     } catch (IOException e) {
       throw new RuntimeException("Error encountered reading '"+rhexFile.getFileName()+".rhex'");
     } catch (ParseException e) {
@@ -81,9 +85,7 @@ public class FileBuilder {
     
     ListIterator<Token> tokenIterator = tokens.listIterator();
     scanFileBody(rhexFile, tokenIterator, location.getName());
-    
-    rhexFile.seal();
-    
+        
     return rhexFile;
   }
   
@@ -124,7 +126,6 @@ public class FileBuilder {
             //then this is a statement. All external statements (outside functions and classes)
             //must be variable declarations
             RVariable variable = VarDecParsers.parseVariable(unknownComp.listIterator(), GramPracConstants.SEMICOLON, fileName);
-            variable.seal();
             if (!rhexFile.addVariable(variable)) {
               throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }
@@ -137,7 +138,6 @@ public class FileBuilder {
               RFunc func = FunctionParser.parseFunctionHeader(false, unknownComp.listIterator(), fileName);
               StatementParser.parseBlock(func.getBody(), iterator, fileName);
               rhexFile.addFunction(func);
-              func.seal();
             } catch (RhexConstructionException e) {
               //if function parsing fails, try to parse the header as a class declaration
               try {
@@ -146,7 +146,6 @@ public class FileBuilder {
                 if (!rhexFile.addClass(rClass)) {
                   throw new RepeatedStructureException(rClass.getName(), "Variable", fileName);
                 }
-                rClass.seal();
               } catch (RhexConstructionException e2) {
                 // If an error is thrown this far, then what ever this construct is...
                 //it doesn't belong here.
@@ -162,15 +161,30 @@ public class FileBuilder {
   
   
   /**
-   * Reads and tokenizes the contents of this source file
+   * Reads and tokenizes the contents of this source file.
+   * 
+   * Note: This method will filter lines that are commented (starts with "//") 
+   * from tokenization and therefore, will not be part of the compilation process
+   * 
    * @throws IOException
    * @throws ParseException
    * @throws ParserCreationException
    */
   private void absorbTokens() throws IOException, ParseException, ParserCreationException{
-    FileReader fileReader = new FileReader(location);
+    BufferedReader fileReader = new BufferedReader(new FileReader(location));
+    
+    String wholeFile = "";
+    String temp = null;
+    while ((temp = fileReader.readLine()) != null) {
+      if (!temp.trim().startsWith("//")) {
+        System.out.println(" ADDING LINE: "+temp);
+        wholeFile += temp;
+      }
+    }
+    
+    fileReader.close();
 
-    Tokenizer tokenizer = new GramPracTokenizer(fileReader);
+    Tokenizer tokenizer = new GramPracTokenizer(new StringReader(wholeFile));
     Token current = null;
 
     while ((current = tokenizer.next()) != null) {
@@ -180,25 +194,5 @@ public class FileBuilder {
 
     fileReader.close();
   }
-
-  /*
-  public static void main(String [] args) {
-    List<Token> tokens = TestUtils.tokenizeString("use hello, bye, what, hello from org;");
-    
-    System.out.println("--TOKENS--");
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
-    System.out.println("--END TOKENS--");
-    
-    UseDeclaration declaration = formUseDeclaration(tokens.listIterator());
-        
-    System.out.println("-----INFOS:");
-    System.out.println("--BASE: "+declaration.getBaseImport().getBaseString());
-    for (TIden funcName : declaration.getImportedFuncs()) {
-      System.out.println(funcName.getToken().getImage());
-    }
-  }
-  */
   
 }

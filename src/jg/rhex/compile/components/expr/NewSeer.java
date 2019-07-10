@@ -46,14 +46,14 @@ public class NewSeer extends GramPracAnalyzer{
   protected Node exitInteger(Token node)  throws ParseException{
     //System.out.println("INT: "+node.getImage()+" | children: "+getChildValues(node));
     //node.addValue(Double.parseDouble(node.getImage().toString()));
-    actualNodes.add(new TInt(Integer.parseInt(node.getImage())));
+    actualNodes.add(new TInt(node));
     return node;
   } 
   
   protected Node exitDouble(Token node)  throws ParseException{
     //System.out.println("DOUBLE: "+node.getImage()+" | children: "+getChildValues(node));
     //node.addValue(Double.parseDouble(node.getImage().toString()));
-    actualNodes.add(new TDouble(Double.parseDouble(node.getImage())));
+    actualNodes.add(new TDouble(node));
     return node;
   } 
   
@@ -64,7 +64,7 @@ public class NewSeer extends GramPracAnalyzer{
     
     //We cutout the last character because explicitly declared floats numerals have an
     //upper or lower case "f" at the end
-    actualNodes.add(new TFloat(Float.parseFloat(rawFloat.substring(0, rawFloat.length() - 1))));
+    actualNodes.add(new TFloat(node));
     return node;
   } 
   
@@ -75,7 +75,7 @@ public class NewSeer extends GramPracAnalyzer{
     
     //We cutout the last character because explicitly declared Long numerals have an
     //upper or lower case "l" at the end
-    actualNodes.add(new TLong(Long.parseLong(rawLong.substring(0, rawLong.length() - 1))));
+    actualNodes.add(new TLong(node));
     return node;
   } 
   
@@ -97,34 +97,30 @@ public class NewSeer extends GramPracAnalyzer{
   }
   
   protected Node exitString(Token node){
-    actualNodes.add(new TString(node.getImage()));
+    actualNodes.add(new TString(node));
     return node;
   }
   
   protected Node exitChar(Token node){
-    
-    String actualChar = node.getImage().substring(1);
-    actualChar = actualChar.substring(0, actualChar.length());
-    
-    actualNodes.add(new TChar(actualChar.charAt(0)));
+    actualNodes.add(new TChar(node));
     return node;
   }
   
   protected Node exitOpParen(Token node) throws ParseException {
     //node.addValue("(");
-    actualNodes.add(new TOParen());
+    actualNodes.add(new TOParen(node));
     return node;
   }
 
   protected Node exitClParen(Token node) throws ParseException {
     //node.addValue(")");
-    actualNodes.add(new TCParen());
+    actualNodes.add(new TCParen(node));
     return node;
   }
   
   protected Node exitNew(Token node) {
     System.out.println("------EXITED NEW!!!!");
-    actualNodes.add(new TOp("new"));
+    actualNodes.add(new TOp(node));
     return node;
   }
   
@@ -142,7 +138,7 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > PLUS: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("+"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
@@ -150,7 +146,7 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > MINUS: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("-"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
@@ -158,7 +154,7 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > MULT: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("*"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
@@ -166,7 +162,7 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > DIV: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("/"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
@@ -174,7 +170,7 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > MOD: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("%"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
@@ -182,77 +178,77 @@ public class NewSeer extends GramPracAnalyzer{
     //System.out.println("  > MOD: "+token.getAllValues() +" | OPERANDS: "+currentStack);
     
     //token.addValue("+");
-    actualNodes.push(new TOp("!"));
+    actualNodes.push(new TOp(token));
     return (token);   
   }
   
   protected Node exitEqual(Token token) throws ParseException{
-    actualNodes.push(new TOp("="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitEqMult(Token token) throws ParseException{
-    actualNodes.push(new TOp("*="));
+    actualNodes.push(new TOp(token));
     return token;
   }
 
   protected Node exitEqAdd(Token token) throws ParseException{
-    actualNodes.push(new TOp("+="));
+    actualNodes.push(new TOp(token));
     return token;
   }
 
   protected Node exitEqDiv(Token token) throws ParseException{
-    actualNodes.push(new TOp("/="));
+    actualNodes.push(new TOp(token));
     return token;
   }
 
   protected Node exitEqMin(Token token) throws ParseException{
-    actualNodes.push(new TOp("-="));
+    actualNodes.push(new TOp(token));
     return token;
   }
 
   protected Node exitEqMod(Token token) throws ParseException{
-    actualNodes.push(new TOp("%="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitGreat(Token token) throws ParseException{
-    actualNodes.push(new TOp(">"));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitLess(Token token) throws ParseException{
-    actualNodes.push(new TOp("<"));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitLsEq(Token token) throws ParseException{
-    actualNodes.push(new TOp("<="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitGrEq(Token token) throws ParseException{
-    actualNodes.push(new TOp(">="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitNotEq(Token token) throws ParseException{
-    actualNodes.push(new TOp("!="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitEqEq(Token token) throws ParseException{
-    actualNodes.push(new TOp("=="));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitBoolAnd(Token token) throws ParseException{
-    actualNodes.push(new TOp("&&"));
+    actualNodes.push(new TOp(token));
     return token;
   }
   
   protected Node exitBoolOr(Token token) throws ParseException{
-    actualNodes.push(new TOp("||"));
+    actualNodes.push(new TOp(token));
     return token;
   }
 
@@ -334,6 +330,20 @@ public class NewSeer extends GramPracAnalyzer{
     TNew constructorCall = new TNew(binaryName, funcCall);
     actualNodes.add(constructorCall);
     
+    return production;
+  }
+  
+  protected Node exitArrayTypeNotation(Production production) {
+    System.out.println("-----> EXIT ARR TYPE NOTA: "+actualNodes);
+    if (actualNodes.peek() instanceof TInt) {
+     TInt currentCount = (TInt) actualNodes.pop();
+     
+     actualNodes.push(new TInt(currentCount.getNumber()+1));
+    }
+    else {
+      TInt currentCount = new TInt(1);
+      actualNodes.push(currentCount);
+    }
     return production;
   }
   
@@ -517,7 +527,7 @@ public class NewSeer extends GramPracAnalyzer{
         break;
       }
       else if (current instanceof TInt) {
-        arrayDimension = ((TInt) current).getActValue();
+        arrayDimension = ((TInt) current).getNumber();
         break;
       }
       base.add((TIden) current);
@@ -533,7 +543,7 @@ public class NewSeer extends GramPracAnalyzer{
         continue;
       }
       else if (current instanceof TInt) {
-        arrayDimension = ((TInt) current).getActValue();
+        arrayDimension = ((TInt) current).getNumber();
         baseTType.setArrayDimensions(arrayDimension);
         break;
       }

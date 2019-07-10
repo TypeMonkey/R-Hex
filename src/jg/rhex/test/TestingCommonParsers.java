@@ -114,6 +114,7 @@ public class TestingCommonParsers {
     
     assert tType.getBaseString().equals("org.hello.what");
     assert tType.getGenericTypeArgs().size() == 2;
+    assert tType.getArrayDimensions() == 0;
     assert tType.getGenericTypeArgs().get(0).getBaseString().equals("GenericArg");
     assert tType.getGenericTypeArgs().get(1).getBaseString().equals("Bye");
     assert tType.getGenericTypeArgs().get(1).getGenericTypeArgs().size() == 1;
@@ -122,8 +123,7 @@ public class TestingCommonParsers {
     
     
     type = "What!()";
-    tokens = TestUtils.tokenizeString(type);
-    
+    tokens = TestUtils.tokenizeString(type);    
     try {
       tType = TypeParser.parseType(tokens, FILE_NAME);
       TestUtils.fail("----! FAILED TYPE 1");
@@ -131,6 +131,21 @@ public class TestingCommonParsers {
       assert true;
     }
     TestUtils.succ("---->PASSED TYPE 2");
+    
+    
+    type = "java.util.List!(String)[][][]";
+    tokens = TestUtils.tokenizeString(type);    
+    try {
+      tType = TypeParser.parseType(tokens, FILE_NAME);
+      
+      assert tType.getBaseString().equals("java.util.List");
+      assert tType.getGenericTypeArgs().size() == 1;
+      assert tType.getGenericTypeArgs().get(0).getBaseString().equals("String");
+      assert tType.getArrayDimensions() == 3;
+    } catch (RhexConstructionException e) {
+      e.printStackTrace();
+      assert false;
+    }
   }
   
   /**

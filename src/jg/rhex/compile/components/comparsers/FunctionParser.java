@@ -30,7 +30,6 @@ public final class FunctionParser {
   public static RFunc parseFunction(boolean isClassFunc, ListIterator<Token> iterator, String fileName) {
     RFunc rFunc = parseFunctionHeader(isClassFunc, iterator, fileName);
     StatementParser.parseBlock(rFunc.getBody(), iterator, fileName);
-    rFunc.seal();
     return rFunc;
   }
 

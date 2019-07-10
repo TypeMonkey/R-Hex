@@ -11,7 +11,7 @@ import jg.rhex.compile.components.tnodes.atoms.TType;
  * @author Jose
  *
  */
-public class RVariable extends RStatement implements Sealable{
+public class RVariable extends RStatement{
   
   private TIden identifier;  //variable name
   
@@ -47,6 +47,10 @@ public class RVariable extends RStatement implements Sealable{
     this.descriptors = descriptors;
   }
   
+  public void setType(TType type){
+    this.providedType = type;
+  }
+  
   public boolean equals(Object object){
     if (object instanceof RVariable) {
       RVariable variable = (RVariable) object;
@@ -78,7 +82,7 @@ public class RVariable extends RStatement implements Sealable{
   public String toString() {
     return "VAR: '"+identifier.getActValue().getImage()+"' |  VAL:  "+getValue()+" | Type: "+providedType;
   }
-
+  
   /**
    * Returns true if the type of this variable is to be inferred
    * false if the type is given
@@ -88,15 +92,5 @@ public class RVariable extends RStatement implements Sealable{
    */
   public boolean toBeInferred() {
     return providedType == null;
-  }
-
-  @Override
-  public void seal() {
-    //RVariables should be complete in information at construction
-  }
-
-  @Override
-  public boolean isSealed() {
-    return true;
   }
 }

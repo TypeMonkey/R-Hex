@@ -6,7 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class RhexFile implements Sealable{
+public class RhexFile{
 
   private String fileName;
   
@@ -85,15 +85,5 @@ public class RhexFile implements Sealable{
 
   public Set<RClass> getClasses() {
     return classes;
-  }
-
-  @Override
-  public void seal() {
-    isSealed = true;
-  }
-
-  @Override
-  public boolean isSealed() {
-    return isSealed;
   }
 }

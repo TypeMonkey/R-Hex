@@ -16,7 +16,7 @@ public class MainCompile {
     
     System.out.println("*** COMPILING....");
     RhexCompiler compiler = new RhexCompiler();
-    compiler.formSourceFiles(arg);
+    //compiler.formSourceFiles(arg);
   }
   
 }

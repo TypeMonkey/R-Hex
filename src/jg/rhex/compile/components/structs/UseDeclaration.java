@@ -7,7 +7,7 @@ import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
-public class UseDeclaration implements Sealable{
+public class UseDeclaration{
   
   private Token useToken;
   private TType baseImport;
@@ -33,15 +33,5 @@ public class UseDeclaration implements Sealable{
 
   public Set<TIden> getImportedFuncs(){
     return funcsToImport;
-  }
-  
-  @Override
-  public void seal() {
-    //Use statements shoudl be complete in information at construction
-  }
-
-  @Override
-  public boolean isSealed() {
-    return true;
   }
 }

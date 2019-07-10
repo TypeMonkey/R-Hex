@@ -1,9 +1,12 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
-public abstract class TNumber<T extends Number> extends TAtom<T>{
+import net.percederberg.grammatica.parser.Token;
 
-  public TNumber(T value) {
-    super(value);
+public abstract class TNumber<T extends Number> extends TAtom<Token>{
+
+  public TNumber(Token token) {
+    super(token);
   }
 
+  public abstract T getNumber();
 }

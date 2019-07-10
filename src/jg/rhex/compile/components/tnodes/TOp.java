@@ -1,6 +1,7 @@
 package jg.rhex.compile.components.tnodes;
 
 import jg.rhex.compile.components.tnodes.atoms.TAtom;
+import net.percederberg.grammatica.parser.Token;
 
 /**
  * Represents a binary, arithmetic operator (ex: + , - , * , / , %, =, new )
@@ -8,19 +9,19 @@ import jg.rhex.compile.components.tnodes.atoms.TAtom;
  * @author Jose
  *
  */
-public class TOp extends TAtom<String> {
+public class TOp extends TAtom<Token> {
 
-  public TOp(String op) {
+  public TOp(Token op) {
     super(op);
   }
 
   public String getOpString() {
-    return value.toString();
+    return getActValue().getImage();
   }
 
   @Override
   public String toString() {
-    return "OP ~ " + getActValue();
+    return "OP ~ " + getActValue().getImage();
   }
 
 }

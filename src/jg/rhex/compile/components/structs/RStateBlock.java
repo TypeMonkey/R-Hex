@@ -71,20 +71,6 @@ public class RStateBlock extends RStatement {
     return blockType;
   }  
   
-  public void seal() {
-    //TODO: Decide whether RStateBlock should recursively seal component statements
-    //      If so, we may incur runtime speed costs, but at the benefit of immutability
-    isSealed = true;
-    
-    for (RStatement rStatement : statements) {
-      rStatement.seal();
-    }
-  }
-  
-  public boolean isSealed() {
-    return isSealed;
-  }
-  
   public String toString() {
     return "BLOCK ~ "+getBlockType()+" | STATEMENT COUNT: "+statements.size();
   }

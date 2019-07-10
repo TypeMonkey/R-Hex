@@ -235,7 +235,6 @@ public class StatementParser {
 
         try {
           RVariable variable = VarDecParsers.parseVariable(tokens.listIterator(), GramPracConstants.SEMICOLON, fileName);
-          variable.seal();
           return variable;
         } catch (RhexConstructionException e) {
           //if not variable declaration, continue on and parse as regular statement
@@ -249,12 +248,10 @@ public class StatementParser {
 
       if (exprNodes.size() == 1) {
         RStatement statement = new RStatement(descriptor, firstToken, exprNodes.get(0));
-        statement.seal();
         return statement;
       }
       else {
         RStatement statement = new RStatement(descriptor, firstToken, new TExpr(exprNodes));
-        statement.seal();
         return statement;
       }
     }
