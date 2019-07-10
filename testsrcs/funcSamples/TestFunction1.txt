@@ -1,0 +1,3 @@
+void main(String arg = "hello" , int size){
+	print(size);
+}

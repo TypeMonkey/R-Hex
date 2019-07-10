@@ -1,0 +1,9 @@
+tparam< T: 
+    add(int[], int[]) -> int;
+    sub(int[], int[]) -> int;
+    asList(String []) -> java.util.List; >
+tparam< Q: 
+     print(String) -> void; >
+public java.util.List!(T) mystery(Q arg1){
+
+}

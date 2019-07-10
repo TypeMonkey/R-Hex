@@ -1,0 +1,9 @@
+java.util.List!(String) filter(java.util.List!(String) lst, java.lang.String filter){
+    ArrayList!(String) actual = new ArrayList!(String)();
+	for(int i = 0; i <  lst.size(); i = i + 1){
+		if(!lst.get(i).equals(filter)){
+			actual.add(lst.get(i));
+		}
+	}
+	return actual;
+}

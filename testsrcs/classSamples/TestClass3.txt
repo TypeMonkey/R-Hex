@@ -1,0 +1,9 @@
+tparam <T: >
+tparam <Q: >
+class Map{
+	Entries !(T, Q) entries;
+	
+	public boolean contains(T key){
+		return entries.contains(key);
+	}
+}

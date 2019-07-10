@@ -1,0 +1,36 @@
+use java.lang.Object;
+
+tparam< T: 
+    add(int[], int[]) -> int;
+    sub(int[], int[]) -> int;
+    tparam< K:
+    	what(double) -> double;
+    >
+    asList(K []) -> java.util.List; >
+tparam< Q: 
+     print(String) -> void; >
+class Ayy{
+
+}
+
+tparam< T: 
+    add(int[], int[]) -> int;
+    sub(int[], int[]) -> int;
+    asList(String []) -> java.util.List; >
+tparam< Q: 
+     print(String) -> void; >
+class Bee{
+
+}
+
+String imAVar = "hello";
+
+tparam< T: 
+    add(int[], int[]) -> int;
+    sub(int[], int[]) -> int;
+    asList(String []) -> java.util.List; >
+tparam< Q: 
+     print(String) -> void; >
+void hello(T arg1, Q arg2){
+
+}
