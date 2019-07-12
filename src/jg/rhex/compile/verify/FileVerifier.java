@@ -1,6 +1,8 @@
 package jg.rhex.compile.verify;
 
-import jg.rhex.compile.components.structs.RhexFile;
+import java.util.Map;
+
+import jg.rhex.compile.components.structs.RFile;
 
 /**
  * Verifies the structure and type correctness of a source file
@@ -12,9 +14,10 @@ import jg.rhex.compile.components.structs.RhexFile;
  */
 public class FileVerifier {
 
-  private final RhexFile rhexFile;
+  private final RFile rhexFile;
   
-  public FileVerifier(RhexFile rhexFile){
+  
+  public FileVerifier(RFile rhexFile){
     this.rhexFile = rhexFile;
   }
   

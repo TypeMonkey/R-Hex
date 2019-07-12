@@ -37,11 +37,12 @@ import jg.rhex.compile.components.structs.RFunc;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
 import jg.rhex.compile.components.structs.RVariable;
-import jg.rhex.compile.components.structs.RhexFile;
+import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.runtime.comps.RhexFile;
 import net.percederberg.grammatica.parser.ParseException;
 import net.percederberg.grammatica.parser.ParserCreationException;
 import net.percederberg.grammatica.parser.Token;
@@ -64,8 +65,8 @@ public class FileBuilder {
     tokens = new ArrayList<Token>();
   }
   
-  public RhexFile constructFile(){
-    RhexFile rhexFile = new RhexFile(FilenameUtils.getBaseName(location.getAbsolutePath()));
+  public RFile constructFile(){
+    RFile rhexFile = new RFile(FilenameUtils.getBaseName(location.getAbsolutePath()));
     
     try {
       System.out.println("--------------------------------------------------------------------------");
@@ -94,7 +95,19 @@ public class FileBuilder {
    * @param rhexFile - the RhexFile to add constructs to
    * @param iterator - the token iterator to consume tokens from
    */
-  private void scanFileBody(RhexFile rhexFile, ListIterator<Token> iterator, String fileName) {
+  private void scanFileBody(RFile rhexFile, ListIterator<Token> iterator, String fileName) {
+    
+    /*
+     * Peek the first token and check if it's a package designation. 
+     */
+    if (iterator.hasNext()) {
+      Token next = iterator.next();
+      iterator.previous();
+      if (next.getId() == GramPracConstants.PACK) {
+        parsePackDesignation(rhexFile, iterator, fileName);
+      }
+    }
+    
     ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, 
         GramPracConstants.TPARAM, 
         GramPracConstants.CLASS, 
@@ -129,6 +142,11 @@ public class FileBuilder {
             if (!rhexFile.addVariable(variable)) {
               throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }
+            
+            if (variable.getProvidedType().getBaseString().equals("infer")) {
+              String mess = "Only local variables can be inferred! at <ln:"+variable.getIdentifier().getToken().getStartLine()+">";
+              throw new RhexConstructionException(mess, fileName);
+            }
           }
           else {
             //then this is either a function declaration or a class declaration
@@ -156,6 +174,39 @@ public class FileBuilder {
           }
         }
       }
+    }
+  }
+  
+  
+  private void parsePackDesignation(RFile rhexFile, ListIterator<Token> iterator, String fileName) {
+    ArrayList<TIden> packDesignation = new ArrayList<>();
+    
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.PACK);
+    
+    while (iterator.hasNext()) {
+      Token current = iterator.next();
+      if (expected.noContainsThrow(current, "Package", fileName)) {
+        if (current.getId() == GramPracConstants.PACK) {
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.NAME) {
+          packDesignation.add(new TIden(current));
+          expected.replace(GramPracConstants.DOT, GramPracConstants.SEMICOLON);
+        }
+        else if (current.getId() == GramPracConstants.DOT) {
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.SEMICOLON) {
+          expected.clear();
+          break;
+        }
+      }
+    }
+    
+    rhexFile.setPackDesignation(packDesignation);
+    
+    if (! (expected.isEmpty() || expected.contains(-1))) {
+      throw FormationException.createException("Package", iterator.previous(), expected, fileName);
     }
   }
   

@@ -1,17 +1,25 @@
 package jg.rhex.compile;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import jg.rhex.compile.components.FileBuilder;
-import jg.rhex.compile.components.structs.RhexFile;
+import jg.rhex.compile.components.structs.RFile;
 
 /**
  * Represents the front-end of the core Rhex compiler
@@ -51,18 +59,70 @@ public class RhexCompiler {
     GENERATION;
   }
   
-  private Map<String, RhexFile> rhexFiles;
+  private Map<String, Class<?>> javaStandardFullName;
+  private Map<String, Class<?>> javaStandardSimpleName;
+
+  private Map<String, RFile> rhexFiles;
   private Status currentStatus;
   private String [] providedFiles;
+  
+  private boolean initialized;
   
   /**
    * Constructs a RhexCompiler
    * @param files - the locations of the .rhex files to compile
    */
   public RhexCompiler(String ... files){
-    rhexFiles = new HashMap<String, RhexFile>();
+    rhexFiles = new HashMap<>();
+    javaStandardFullName = new HashMap<>();
+    javaStandardSimpleName = new HashMap<>();
     currentStatus = Status.NONE;
     providedFiles = files;
+  }
+  
+  /**
+   * Initializes the compiler. 
+   * 
+   * A main operation during initialization is the loading of standard java classes (java.lang)
+   */
+  public void initialize() throws IOException{
+    if (!initialized) {
+      URL url = Object.class.getResource("Object.class");
+
+      JarURLConnection jarURLConnection = (JarURLConnection) url.openConnection();
+
+      url = jarURLConnection.getJarFileURL();
+
+      //System.out.println(url.getFile());
+
+      String actual = url.getFile().replace("%20", " ");
+
+      //System.out.println("NEW:  "+actual);
+
+      JarFile jarFile = new JarFile(new File(actual));
+
+      Enumeration<JarEntry> jarEntries = jarFile.entries();
+      while (jarEntries.hasMoreElements()) {
+        JarEntry jarEntry = jarEntries.nextElement();
+        String name = jarEntry.getName();
+        if (name.trim().startsWith("java/lang/")) {
+          String binaryName = name.replace("/", ".");
+          binaryName = binaryName.substring(0, binaryName.length() - 6);
+          
+          try {
+            Class<?> loadedClass = getClass().getClassLoader().loadClass(binaryName);
+            javaStandardFullName.put(loadedClass.getName(), loadedClass);
+            javaStandardSimpleName.put(loadedClass.getSimpleName(), loadedClass);
+          } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+          }        
+        }
+      }
+      
+      jarFile.close();
+      
+      initialized = true;
+    }
   }
   
   /**
@@ -81,7 +141,7 @@ public class RhexCompiler {
         }
         
         FileBuilder fileBuilder = new FileBuilder(sourceFile);
-        RhexFile rhexFile = fileBuilder.constructFile();
+        RFile rhexFile = fileBuilder.constructFile();
                
         rhexFiles.put(FilenameUtils.getBaseName(currentPath), rhexFile);
       }
@@ -96,7 +156,7 @@ public class RhexCompiler {
    * Verifies and checks the source files
    */
   public void verifySources(){
-    for (RhexFile sourceFile : rhexFiles.values()) {
+    for (RFile sourceFile : rhexFiles.values()) {
       
     }
   }
@@ -106,15 +166,24 @@ public class RhexCompiler {
    * @param fileName - the name of the RhexFile to retrieve
    * @return the corresponding RhexFile, or null if no such file exist
    */
-  public RhexFile retrieveFile(String fileName){
+  public RFile retrieveFile(String fileName){
     return rhexFiles.get(fileName);
   }
   
-  public Map<String, RhexFile> getSources(){
+  public Class<?> findClass(String className){
+    Class<?> ret = javaStandardFullName.get(className);
+    if (ret == null) {
+      ret = javaStandardSimpleName.get(className);
+    }
+    return ret;
+  }
+  
+  public Map<String, RFile> getSources(){
     return rhexFiles;
   }
   
   public Status getCurrentStatus() {
     return currentStatus;
   } 
+  
 }

@@ -23,7 +23,7 @@ import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFunc;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RVariable;
-import jg.rhex.compile.components.structs.RhexFile;
+import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
@@ -369,16 +369,27 @@ public class TestingCommonParsers {
   
   private static void testSourceParsing() {
     // TODO Auto-generated method stub
-    RhexFile rhexFile = null;
+    RFile rhexFile = null;
     try {
       File file = new File("testsrcs/sourceSamples/Source1.rhex");
       FileBuilder fileBuilder = new FileBuilder(file);
       rhexFile = fileBuilder.constructFile();
             
+      //check component amounts
       assert rhexFile.getClasses().size() == 2;
       assert rhexFile.getUseDeclarations().size() == 1;
       assert rhexFile.getFunctions().size() == 1;
       assert rhexFile.getVariables().size() == 1;
+      
+      //check package declaration
+      assert rhexFile.getPackDesignation() != null;
+      
+      String p = "";
+      for (TIden iden : rhexFile.getPackDesignation()) {
+        p += iden.getActValue().getImage();
+      }
+      
+      assert p.equals("my.pack.okay".replace(".", ""));
       
       //check the use declarations
       assert rhexFile.getUseDeclarations().get(0).getBaseImport().getBaseString().equals("java.lang.Object");

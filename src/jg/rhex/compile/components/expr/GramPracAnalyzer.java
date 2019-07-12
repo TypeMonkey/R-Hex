@@ -157,6 +157,9 @@ public abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.THROW:
             enterThrow((Token) node);
             break;
+        case GramPracConstants.PACK:
+            enterPack((Token) node);
+            break;
         case GramPracConstants.NAME:
             enterName((Token) node);
             break;
@@ -426,6 +429,8 @@ public abstract class GramPracAnalyzer extends Analyzer {
             return exitFrom((Token) node);
         case GramPracConstants.THROW:
             return exitThrow((Token) node);
+        case GramPracConstants.PACK:
+            return exitPack((Token) node);
         case GramPracConstants.NAME:
             return exitName((Token) node);
         case GramPracConstants.ARROW:
@@ -1646,6 +1651,30 @@ public abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected Node exitThrow(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterPack(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitPack(Token node) throws ParseException {
         return node;
     }
 

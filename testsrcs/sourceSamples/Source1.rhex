@@ -1,3 +1,5 @@
+package my.pack.okay;
+
 use java.lang.Object;
 
 tparam< T: 

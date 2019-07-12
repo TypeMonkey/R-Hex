@@ -308,6 +308,12 @@ public class GramPracTokenizer extends Tokenizer {
                                    "throw");
         addPattern(pattern);
 
+        pattern = new TokenPattern(GramPracConstants.PACK,
+                                   "PACK",
+                                   TokenPattern.STRING_TYPE,
+                                   "package");
+        addPattern(pattern);
+
         pattern = new TokenPattern(GramPracConstants.NAME,
                                    "NAME",
                                    TokenPattern.REGEXP_TYPE,

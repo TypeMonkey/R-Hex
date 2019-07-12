@@ -6,8 +6,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class RhexFile{
+import jg.rhex.compile.components.tnodes.atoms.TIden;
 
+public class RFile{
+
+  private List<TIden> packageDesignation;
   private String fileName;
   
   private List<UseDeclaration> useDeclarations;
@@ -15,10 +18,8 @@ public class RhexFile{
   private Set<RVariable> variables;
   private List<RFunc> functions;
   private Set<RClass> classes;
-  
-  private boolean isSealed;
-  
-  public RhexFile(String fileName){
+    
+  public RFile(String fileName){
     this.fileName = fileName;
     
     useDeclarations = new ArrayList<UseDeclaration>();
@@ -28,9 +29,6 @@ public class RhexFile{
   }
   
   public void addUseDec(UseDeclaration useDeclaration){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     useDeclarations.add(useDeclaration);
   }
   
@@ -41,10 +39,11 @@ public class RhexFile{
    *         false if else
    */
   public boolean addVariable(RVariable variable){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     return variables.add(variable);
+  }
+  
+  public void setPackDesignation(List<TIden> designation) {
+    this.packageDesignation = designation;
   }
   
   /**
@@ -54,17 +53,15 @@ public class RhexFile{
    *         false if else
    */
   public boolean addClass(RClass rClass){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     return classes.add(rClass);
   }
   
   public void addFunction(RFunc func){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     functions.add(func);
+  }
+  
+  public List<TIden> getPackDesignation() {
+    return packageDesignation;
   }
 
   public String getFileName() {
