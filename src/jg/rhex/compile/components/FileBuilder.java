@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
+import com.google.common.io.Files;
 
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.comparsers.StatementParser;
@@ -66,7 +65,7 @@ public class FileBuilder {
   }
   
   public RFile constructFile(){
-    RFile rhexFile = new RFile(FilenameUtils.getBaseName(location.getAbsolutePath()));
+    RFile rhexFile = new RFile(location);
     
     try {
       System.out.println("--------------------------------------------------------------------------");

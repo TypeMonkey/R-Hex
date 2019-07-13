@@ -2,21 +2,14 @@ package jg.rhex.compile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.Files;
 
 import jg.rhex.compile.components.FileBuilder;
 import jg.rhex.compile.components.structs.RFile;
@@ -59,10 +52,11 @@ public class RhexCompiler {
     GENERATION;
   }
   
-  private Map<String, Class<?>> javaStandardFullName;
-  private Map<String, Class<?>> javaStandardSimpleName;
+  //private Map<String, Class<?>> javaStandard; //the String keys are full binary names of the classes
 
   private Map<String, RFile> rhexFiles;
+  private Map<String, Set<RFile>> packages;
+  
   private Status currentStatus;
   private String [] providedFiles;
   
@@ -74,8 +68,7 @@ public class RhexCompiler {
    */
   public RhexCompiler(String ... files){
     rhexFiles = new HashMap<>();
-    javaStandardFullName = new HashMap<>();
-    javaStandardSimpleName = new HashMap<>();
+    packages = new HashMap<>();
     currentStatus = Status.NONE;
     providedFiles = files;
   }
@@ -87,6 +80,7 @@ public class RhexCompiler {
    */
   public void initialize() throws IOException{
     if (!initialized) {
+      /*
       URL url = Object.class.getResource("Object.class");
 
       JarURLConnection jarURLConnection = (JarURLConnection) url.openConnection();
@@ -105,22 +99,26 @@ public class RhexCompiler {
       while (jarEntries.hasMoreElements()) {
         JarEntry jarEntry = jarEntries.nextElement();
         String name = jarEntry.getName();
-        if (name.trim().startsWith("java/lang/")) {
+        if (name.trim().startsWith("java/lang/")) {         
           String binaryName = name.replace("/", ".");
+          //the minus 6 is to remove the ".class" extension
           binaryName = binaryName.substring(0, binaryName.length() - 6);
-          
-          try {
-            Class<?> loadedClass = getClass().getClassLoader().loadClass(binaryName);
-            javaStandardFullName.put(loadedClass.getName(), loadedClass);
-            javaStandardSimpleName.put(loadedClass.getSimpleName(), loadedClass);
-          } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-          }        
+          String [] split = binaryName.split("\\.");
+          if (split.length == 3 && !binaryName.contains("$")) {
+            System.out.println(binaryName);
+
+            try {
+              Class<?> loadedClass = getClass().getClassLoader().loadClass(binaryName);
+              javaStandard.put(loadedClass.getName(), loadedClass);
+            } catch (ClassNotFoundException e) {
+              e.printStackTrace();
+            }      
+          }  
         }
       }
       
       jarFile.close();
-      
+      */
       initialized = true;
     }
   }
@@ -130,20 +128,37 @@ public class RhexCompiler {
    */
   public void formSourceFiles(){
     for(String currentPath : providedFiles){
-      if (FilenameUtils.getExtension(currentPath).equals("rhex")) {
+      if (Files.getFileExtension(currentPath).equals("rhex")) {
         File sourceFile = new File(currentPath);
         if (!sourceFile.exists()) {
           throw new IllegalArgumentException("The file '"+currentPath+"' doesn't exist!");
         }
         
-        if (rhexFiles.containsKey(FilenameUtils.getBaseName(currentPath))) {
+        if (rhexFiles.containsKey(Files.getNameWithoutExtension(currentPath))) {
           throw new IllegalArgumentException("The file '"+currentPath+"' is already in use!");
         }
         
         FileBuilder fileBuilder = new FileBuilder(sourceFile);
         RFile rhexFile = fileBuilder.constructFile();
-               
-        rhexFiles.put(FilenameUtils.getBaseName(currentPath), rhexFile);
+        String binaryName = rhexFile.getPackDesignation()+"."+Files.getNameWithoutExtension(currentPath);
+        
+        RFile current = rhexFiles.put(binaryName, rhexFile);
+        if (current != null) {
+          String mess = "File conflict! In the package '"+rhexFile.getPackDesignation()+"': "+System.lineSeparator()
+                        +"       "+rhexFile.getFilePath().getPath()+"  and "+System.lineSeparator()
+                        +"       "+current.getFilePath().getPath()+" are declared in the package.";
+          
+          throw new IllegalArgumentException(mess);
+        }
+        
+        Set<RFile> packContents = packages.get(rhexFile.getPackDesignation());
+        if (packContents == null) {
+          packContents = new HashSet<>();       
+          packages.put(rhexFile.getPackDesignation(), packContents);
+        }
+        else {
+          packContents.add(rhexFile);
+        }
       }
       else {
         throw new IllegalArgumentException("The path '"+currentPath+"' doesn't direct to a .rhex file!");
@@ -170,12 +185,8 @@ public class RhexCompiler {
     return rhexFiles.get(fileName);
   }
   
-  public Class<?> findClass(String className){
-    Class<?> ret = javaStandardFullName.get(className);
-    if (ret == null) {
-      ret = javaStandardSimpleName.get(className);
-    }
-    return ret;
+  public Set<RFile> getPackageFiles(String packName){
+    return packages.get(packName);
   }
   
   public Map<String, RFile> getSources(){

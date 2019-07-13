@@ -384,12 +384,8 @@ public class TestingCommonParsers {
       //check package declaration
       assert rhexFile.getPackDesignation() != null;
       
-      String p = "";
-      for (TIden iden : rhexFile.getPackDesignation()) {
-        p += iden.getActValue().getImage();
-      }
       
-      assert p.equals("my.pack.okay".replace(".", ""));
+      assert rhexFile.getPackDesignation().equals("my.pack.okay");
       
       //check the use declarations
       assert rhexFile.getUseDeclarations().get(0).getBaseImport().getBaseString().equals("java.lang.Object");

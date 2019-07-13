@@ -1,33 +1,23 @@
 package jg.rhex.compile.verify;
 
-import java.util.HashMap;
-import java.util.Map;
 
+import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.UseDeclaration;
 
 public class TypeStore {
-    
-  private Map<String, UseableType> importedTypesSimple;  
-  private Map<String, UseableType> importedTypesFull;
 
+  private final RhexCompiler compiler;
   
-  private Map<String, UseableType> inFileClasses;
   
-  public TypeStore(RFile rhexFile){
-    importedTypesFull = new HashMap<>();
-    importedTypesSimple = new HashMap<>();
-    
-    inFileClasses = new HashMap<>();
-    
+  public TypeStore(RFile rhexFile, RhexCompiler compiler){
+    this.compiler = compiler;    
     loadAllClasses(rhexFile);
   }
 
   private void loadAllClasses(RFile rhexFile) {
     for (UseDeclaration use : rhexFile.getUseDeclarations()) {
-      if () {
-        
-      }
+      
     }
   }
   

@@ -1,17 +1,21 @@
 package jg.rhex.compile.components.structs;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.io.Files;
+
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 
 public class RFile{
 
-  private List<TIden> packageDesignation;
+  private String packageDesignation;
   private String fileName;
+  private File file;
   
   private List<UseDeclaration> useDeclarations;
   
@@ -19,13 +23,26 @@ public class RFile{
   private List<RFunc> functions;
   private Set<RClass> classes;
     
-  public RFile(String fileName){
-    this.fileName = fileName;
+  public RFile(File file){
+    this.file = file;
+    fileName = Files.getNameWithoutExtension(file.getAbsolutePath());
     
     useDeclarations = new ArrayList<UseDeclaration>();
     variables = new LinkedHashSet<>();
     functions = new ArrayList<RFunc>();
     classes = new LinkedHashSet<>();
+  }
+  
+  public boolean equals(Object object) {
+    if (object instanceof RFile) {
+      RFile other = (RFile) object;
+      return other.getFileName().equals(getFileName());
+    }
+    return false;
+  }
+  
+  public int hashCode() {
+    return fileName.hashCode();
   }
   
   public void addUseDec(UseDeclaration useDeclaration){
@@ -43,7 +60,15 @@ public class RFile{
   }
   
   public void setPackDesignation(List<TIden> designation) {
-    this.packageDesignation = designation;
+    packageDesignation = "";
+    for(int i = 0; i < designation.size(); i++){
+      if (i == designation.size() - 1) {
+        packageDesignation += designation.get(i).getToken().getImage();
+      }
+      else {
+        packageDesignation += designation.get(i).getToken().getImage()+".";
+      }
+    }
   }
   
   /**
@@ -60,12 +85,16 @@ public class RFile{
     functions.add(func);
   }
   
-  public List<TIden> getPackDesignation() {
+  public String getPackDesignation() {
     return packageDesignation;
   }
 
   public String getFileName() {
     return fileName;
+  }
+  
+  public File getFilePath(){
+    return file;
   }
 
   public List<UseDeclaration> getUseDeclarations() {
