@@ -104,12 +104,6 @@ public class GramPracTokenizer extends Tokenizer {
                                    "null");
         addPattern(pattern);
 
-        pattern = new TokenPattern(GramPracConstants.THIS,
-                                   "THIS",
-                                   TokenPattern.STRING_TYPE,
-                                   "this");
-        addPattern(pattern);
-
         pattern = new TokenPattern(GramPracConstants.VOID,
                                    "VOID",
                                    TokenPattern.STRING_TYPE,

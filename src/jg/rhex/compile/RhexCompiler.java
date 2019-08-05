@@ -12,7 +12,10 @@ import java.util.Set;
 import com.google.common.io.Files;
 
 import jg.rhex.compile.components.FileBuilder;
+import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
+import jg.rhex.compile.verify.FileVerifier;
+import jg.rhex.compile.verify.UseableType;
 
 /**
  * Represents the front-end of the core Rhex compiler
@@ -55,6 +58,7 @@ public class RhexCompiler {
   //private Map<String, Class<?>> javaStandard; //the String keys are full binary names of the classes
 
   private Map<String, RFile> rhexFiles;
+  private Map<String, UseableType> compiledTypes;
   private Map<String, Set<RFile>> packages;
   
   private Status currentStatus;
@@ -69,6 +73,7 @@ public class RhexCompiler {
   public RhexCompiler(String ... files){
     rhexFiles = new HashMap<>();
     packages = new HashMap<>();
+    compiledTypes = new HashMap<>();
     currentStatus = Status.NONE;
     providedFiles = files;
   }
@@ -140,7 +145,7 @@ public class RhexCompiler {
         
         FileBuilder fileBuilder = new FileBuilder(sourceFile);
         RFile rhexFile = fileBuilder.constructFile();
-        String binaryName = rhexFile.getPackDesignation()+"."+Files.getNameWithoutExtension(currentPath);
+        String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName();
         
         RFile current = rhexFiles.put(binaryName, rhexFile);
         if (current != null) {
@@ -159,6 +164,38 @@ public class RhexCompiler {
         else {
           packContents.add(rhexFile);
         }
+            
+        Set<RClass> rClasses = rhexFile.getClasses();
+        for (RClass rClass : rClasses) {
+          String classBinName = binaryName+"."+rClass.getName().getImage();
+          //all classes should be nominally (in name) be unique
+          //across all compiled files. This is because of how binary names are formed for classes
+          //and the files that contain them:
+          // <PACKAGE NAME>.<FILE NAME>.<CLASS NAME>
+          // During formation phase, class name uniqueness is enforced file-local (so each class in a file
+          // has a unique name). 
+          // And the code above enforces file name uniqueness package-local (no two files in a package
+          // has the same name).
+          
+          compiledTypes.put(classBinName, new UseableType(rClass, rhexFile));
+          if (rhexFiles.containsKey(classBinName)) {
+            /*
+             * What about class name and file name conflict (binary names)?
+             * 
+             * org.what.hello.contFile.Class1 <--- Class name (package: org.what.hello, File: contFile, class: Class1)
+             * org.what.hello.contFile.Class1 <--- File name (package: org.what.hello.contFile , File: Class1)
+             * 
+             * Yes, that would a be a terrible name to a file (by calling it "Class1"?!), but not all
+             * programmers are fully aware. And so, safeguards must be built in.
+             * 
+             * If there is such a conflict, throw an error.
+             */
+            String mess = "Name Conflict! The class '"+classBinName+"' located at "+sourceFile+System.lineSeparator()+
+                          "               has the same name as the file '"+classBinName+"' located at "+
+                         rhexFiles.get(classBinName).getFilePath().getPath();
+            throw new IllegalArgumentException(mess);            
+          }
+        }
       }
       else {
         throw new IllegalArgumentException("The path '"+currentPath+"' doesn't direct to a .rhex file!");
@@ -172,25 +209,75 @@ public class RhexCompiler {
    */
   public void verifySources(){
     for (RFile sourceFile : rhexFiles.values()) {
-      
+      FileVerifier verifier = new FileVerifier(sourceFile, this);
+      verifier.verify();
     }
+    
+    currentStatus = Status.VERIFICATION;
   }
   
   /**
    * Retrieves the RhexFile with the given name
-   * @param fileName - the name of the RhexFile to retrieve
+   * @param fileName - the binary name of the RhexFile to retrieve
    * @return the corresponding RhexFile, or null if no such file exist
    */
   public RFile retrieveFile(String fileName){
     return rhexFiles.get(fileName);
   }
   
+  /**
+   * Retrieves the RClass with the given name
+   * @param clasSName - the binary name of the RClass to retrieve
+   * @return the corresponding RClass, or null if no such RClass exist
+   */
+  public UseableType retrieveClass(String className){
+    return compiledTypes.get(className);
+  }
+  
+  /**
+   * Retrieves all RFiles grouped in the same package
+   * @param packName - the package name (full binary name)
+   * @return a Set of RFiles in the same package
+   */
   public Set<RFile> getPackageFiles(String packName){
     return packages.get(packName);
   }
   
+  public UseableType findJavaClass(String fullJavaName){
+    try {
+      Class<?> cl = Class.forName(fullJavaName);
+      return new UseableType(cl);
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
+  }
+  
+  /**
+   * Retrieves all the RClasses in the same package
+   * @return a Map mapping each class' full binary name to the class
+   */
+  public Map<String, RClass> getPackageClasses(String packName) {
+    Set<RFile> rFiles = getPackageFiles(packName);
+    if (rFiles == null) {
+      return null;
+    }
+    
+    HashMap<String, RClass> map = new HashMap<>();
+    for (RFile rFile : rFiles) {
+      for (RClass rClass : rFile.getClasses()) {
+        map.put(packName+"."+rFile.getFileName()+"."+rClass.getName().getImage(), rClass);
+      }
+    }
+    
+    return map;
+  }
+  
   public Map<String, RFile> getSources(){
     return rhexFiles;
+  }
+  
+  public Map<String, UseableType> getRhexTypes(){
+    return compiledTypes;
   }
   
   public Status getCurrentStatus() {

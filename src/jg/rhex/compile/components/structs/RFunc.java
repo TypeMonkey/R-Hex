@@ -6,7 +6,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
@@ -33,70 +32,45 @@ public class RFunc extends Parametric{
   private RStateBlock body;
   private int parameterAmount;
   
-  private boolean isSealed;
   private boolean isConstructor;
  
   public RFunc(){
     declaredExceptions = new ArrayList<>();
     descriptors = new HashSet<>();
-    typeParameters = new LinkedHashSet<>();
     
     this.body = new RStateBlock(null, BlockType.GENERAL);  
   }
   
+  
   public void setAsConstructor(boolean construc) {
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     isConstructor = construc;
   }
   
   public void setParamAmnt(int paramAmnt) {
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     this.parameterAmount = paramAmnt;
   }
   
   public void setName(Token name){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     this.name = name;
   }
   
   public void setReturnType(TType tType){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     this.returnType = tType;
   }
   
   public void addDeclaredException(TType exception){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     declaredExceptions.add(exception);
   }
   
   public void addStatement(RStatement statement) {
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     body.addStatement(statement);
   }
   
   public void addStatements(List<RStatement> statements) {
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     body.addStatements(statements);
   }
   
   public boolean addDescriptor(Descriptor descriptor){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     return descriptors.add(descriptor);
   }
   

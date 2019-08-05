@@ -55,9 +55,6 @@ public abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.NULL:
             enterNull((Token) node);
             break;
-        case GramPracConstants.THIS:
-            enterThis((Token) node);
-            break;
         case GramPracConstants.VOID:
             enterVoid((Token) node);
             break;
@@ -361,8 +358,6 @@ public abstract class GramPracAnalyzer extends Analyzer {
             return exitFalse((Token) node);
         case GramPracConstants.NULL:
             return exitNull((Token) node);
-        case GramPracConstants.THIS:
-            return exitThis((Token) node);
         case GramPracConstants.VOID:
             return exitVoid((Token) node);
         case GramPracConstants.TYPE:
@@ -835,30 +830,6 @@ public abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected Node exitNull(Token node) throws ParseException {
-        return node;
-    }
-
-    /**
-     * Called when entering a parse tree node.
-     *
-     * @param node           the node being entered
-     *
-     * @throws ParseException if the node analysis discovered errors
-     */
-    protected void enterThis(Token node) throws ParseException {
-    }
-
-    /**
-     * Called when exiting a parse tree node.
-     *
-     * @param node           the node being exited
-     *
-     * @return the node to add to the parse tree, or
-     *         null if no parse tree should be created
-     *
-     * @throws ParseException if the node analysis discovered errors
-     */
-    protected Node exitThis(Token node) throws ParseException {
         return node;
     }
 

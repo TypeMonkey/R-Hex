@@ -1,10 +1,11 @@
 package jg.rhex.compile.components.structs;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
-import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
@@ -16,14 +17,14 @@ public class TypeParameter {
   //Constraints
   private Set<TType> extendedClasses;
   private Set<FunctionInfo> expectedFunctions;
-  private Set<TypeParameter> tParamsInScope;
+  private Map<String, TypeParameter> tParamsInScope;
   
   public TypeParameter(Token identifier){
     this.identifier = identifier;
     
     extendedClasses = new HashSet<>();
     expectedFunctions = new HashSet<>();
-    tParamsInScope = new LinkedHashSet<>();
+    tParamsInScope = new LinkedHashMap<>();
   }
   
   public boolean equals(Object object){
@@ -46,7 +47,7 @@ public class TypeParameter {
    *         false if else
    */
   public boolean addTParam(TypeParameter tparam){
-    return tParamsInScope.add(tparam);
+    return tParamsInScope.put(tparam.getIdentifier().getImage(), tparam) == null;
   }
   
   /**
@@ -67,6 +68,10 @@ public class TypeParameter {
    */
   public boolean addReqClass(TType className){
     return extendedClasses.add(className);
+  }
+  
+  public Map<String, TypeParameter> getNestedTParams(){
+    return tParamsInScope;
   }
   
   public Set<FunctionInfo> getExpectedFunctions() {

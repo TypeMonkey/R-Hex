@@ -16,6 +16,10 @@ public class MainCompile {
    */
   public static void main(String [] arg) throws IOException {
     
+    String [] actArgs = {"samplesrcs/Source1.rhex",
+                         "samplesrcs/Source2.rhex"};
+    arg = actArgs;
+    
     System.out.println("--------------- R-HEX COMPILER 1.0 ---------------");
     System.out.println("* TARGETS: ");
     for(String f:arg){
@@ -23,10 +27,17 @@ public class MainCompile {
     }
 
     System.out.println("*** COMPILING....");
-    RhexCompiler compiler = new RhexCompiler();
+    RhexCompiler compiler = new RhexCompiler(actArgs);
     compiler.initialize();
+    compiler.formSourceFiles();
+    System.out.println("---------");
     
+    for (String string : compiler.getRhexTypes().keySet()) {
+      System.out.println("  NAME? "+string);
+    }
     
+    System.out.println("-------VERIFYING--------");
+    compiler.verifySources();
   }
   
 }

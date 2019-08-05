@@ -1,6 +1,8 @@
 package jg.rhex.compile.components.structs;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -12,13 +14,13 @@ import java.util.Set;
  */
 public abstract class Parametric {
 
-  protected Set<TypeParameter> typeParameters;
+  protected Map<String, TypeParameter> typeParameters;
   
   /**
    * Constructs a Parametric structure
    */
   public Parametric() {
-    typeParameters = new LinkedHashSet<>();
+    typeParameters = new LinkedHashMap<>();
   }
   
   /**
@@ -28,14 +30,35 @@ public abstract class Parametric {
    *         false if else
    */
   public boolean addTypeParameter(TypeParameter parameter){
-    return typeParameters.add(parameter);
+    return typeParameters.put(parameter.getIdentifier().getImage(), parameter) == null;
+  }
+ 
+  /**
+   * Clears the current type parameter map and adds all the typeparamters
+   * in the provided set
+   * @param setParameters - the new type parameters to add to the paramter map
+   */
+  public void setTypeParameters(Set<TypeParameter> setParameters){
+    typeParameters.clear();
+    for (TypeParameter typeParameter : setParameters) {
+      this.typeParameters.put(typeParameter.getIdentifier().getImage(), typeParameter);
+    }
+  }
+  
+  /**
+   * Retrieves the type parameter with the provided handle
+   * @param handle - the handle name of the strign parameter
+   * @return the TypeParameter
+   */
+  public TypeParameter getTypeParameter(String handle){
+    return typeParameters.get(handle);
   }
   
   /**
    * Returns all type parameters declared with this structure
    * @return the Set of TypeParameters
    */
-  public Set<TypeParameter> getTypeParameters(){
+  public Map<String, TypeParameter> getTypeParameters(){
     return typeParameters;
   }
   

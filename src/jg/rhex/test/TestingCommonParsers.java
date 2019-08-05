@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -273,10 +274,7 @@ public class TestingCommonParsers {
       assert ((RVariable) funcBody.getStatements().get(0)).getIdentifier().getActValue().getImage().equals("arg1");
       assert ((RVariable) funcBody.getStatements().get(0)).getProvidedType().getBaseString().equals("Q");
       
-      HashMap<String, TypeParameter> quickMap = new HashMap<>();
-      for(TypeParameter parameter : func.getTypeParameters()) {
-        assert quickMap.put(parameter.getIdentifier().getImage(), parameter) == null;
-      }
+      Map<String, TypeParameter> quickMap = func.getTypeParameters();
       
       TypeParameter tParam = quickMap.get("T");      
       assert tParam != null;

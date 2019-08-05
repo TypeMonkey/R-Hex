@@ -11,7 +11,6 @@ import net.percederberg.grammatica.parser.Token;
 public class RClass extends Parametric{
   
   private boolean isAnInterface;
-  private boolean isSealed;
   
   private Token name;
   private Set<Descriptor> descriptors;
@@ -45,9 +44,6 @@ public class RClass extends Parametric{
   }
   
   public void addMethod(RFunc func){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     methods.add(func);
   }
   
@@ -58,18 +54,8 @@ public class RClass extends Parametric{
    *         false if else
    */
   public boolean addClassVar(RVariable variable){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     return classVariables.add(variable);
   } 
-  
-  public void setTypeParameters(Set<TypeParameter> typeParameters){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
-    this.typeParameters = new LinkedHashSet<>(typeParameters);
-  }
   
   public boolean isAnInterface() {
     return isAnInterface;

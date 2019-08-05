@@ -7,12 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 
-import jg.rhex.common.FunctionInfo;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.expr.GramPracTokenizer;
+import jg.rhex.compile.components.structs.FunctionInfo;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TIden;

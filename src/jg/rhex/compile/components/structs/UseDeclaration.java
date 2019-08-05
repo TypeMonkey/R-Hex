@@ -1,6 +1,5 @@
 package jg.rhex.compile.components.structs;
 
-import java.util.Objects;
 import java.util.Set;
 
 import jg.rhex.compile.components.tnodes.atoms.TIden;
@@ -22,6 +21,18 @@ public class UseDeclaration{
     this.baseImport = baseImport;
     this.funcsToImport = funcsToImport;
   }
+  
+  public boolean equals(Object object){
+    if (object instanceof UseDeclaration) {
+      UseDeclaration declaration = (UseDeclaration) object;
+      return declaration.getBaseImport().getBaseString().equals(baseImport.getBaseString());
+    }
+    return false;
+  }
+  
+  public int hashCode(){
+    return baseImport.getBaseString().hashCode();
+  }
 
   public Token getUseToken() {
     return useToken;
@@ -33,5 +44,9 @@ public class UseDeclaration{
 
   public Set<TIden> getImportedFuncs(){
     return funcsToImport;
+  }
+  
+  public String toString(){
+    return "USE ~ "+baseImport.getBaseString();
   }
 }

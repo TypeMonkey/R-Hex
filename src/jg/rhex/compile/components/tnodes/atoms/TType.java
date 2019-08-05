@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
 
 public class TType extends TAtom<List<TType>> {
 
+  private TypeParameter heldParameter;
   private List<TIden> rawTypeBody;
   private int arrayDimensions;
   
@@ -28,7 +30,7 @@ public class TType extends TAtom<List<TType>> {
           }
         }
         
-        return other.getBaseString().equals(getBaseString());
+        return other.getBaseString().equals(getBaseString()) && arrayDimensions == other.arrayDimensions;
       }
       else {
         return false;
@@ -41,6 +43,10 @@ public class TType extends TAtom<List<TType>> {
     return Objects.hash(getBaseString(), getActValue());
   }
 
+  public void attachTypeParameter(TypeParameter attachee){
+    heldParameter = attachee;
+  }
+  
   public void setGenericArgTypes(List<TType> generics){
     getActValue().clear();
     getActValue().addAll(generics);
@@ -52,6 +58,10 @@ public class TType extends TAtom<List<TType>> {
   
   public void addGenericArgType(TType generic){
     getActValue().add(generic);
+  }
+  
+  public TypeParameter getAttachedTypeParameter(){
+    return heldParameter;
   }
   
   public List<TType> getGenericTypeArgs(){
