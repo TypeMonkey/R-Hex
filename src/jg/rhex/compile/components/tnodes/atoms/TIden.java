@@ -24,7 +24,7 @@ public class TIden extends TAtom<Token>{
   }
   
   public int hashCode() {
-    return Objects.hash(getActValue().getImage());
+    return  getActValue().getImage().hashCode();
   }
 
   @Override

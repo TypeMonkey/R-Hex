@@ -2,24 +2,24 @@ package jg.rhex.common;
 
 import java.util.Objects;
 
+/**
+ * Represents a date type in a purely nominal (by name) form.
+ * 
+ * Types are distinguished by their full, binary name. (ex: "java.lang.Object")
+ * Types can also be referred by their simple name. (ex: "Object")
+ * 
+ * 
+ * @author Jose Guaro
+ *
+ */
 public class Type {
 
   private final String simpleName;
   private final String fullName;
-  private final TypeRequirements typeRequirements;
-  
-  public Type(String parameterName, TypeRequirements requirements) {
-    this(parameterName, parameterName, requirements);
-  }
   
   public Type(String simpleName, String fullName){
-    this(simpleName, fullName, null);
-  }
-  
-  private Type(String simpleName, String fullName, TypeRequirements typeRequirements){
     this.simpleName = simpleName;
     this.fullName = fullName;
-    this.typeRequirements = typeRequirements;
   }
   
   public boolean equals(Object object){
@@ -42,9 +42,5 @@ public class Type {
 
   public String getFullName() {
     return fullName;
-  }
-  
-  public boolean isParameterizedType(){
-    return typeRequirements != null;
   }
 }

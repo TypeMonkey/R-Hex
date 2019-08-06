@@ -10,14 +10,8 @@ public class RepeatedTParamException extends RhexConstructionException{
     super("Repeated type parameter '"+paramName.getImage()+"' at <ln:"+paramName.getStartLine()+">", fileName);
   }
   
-  public RepeatedTParamException(Token funcName, TypeParameter target, String fileName){
-    super("Repeated function constraint '"+funcName+"' for tparam '"+
-              target.getIdentifier().getImage()+"' at <ln:"+funcName.getStartLine()+">", fileName);
-  }
-  
-  public RepeatedTParamException(TType redundantType, TypeParameter target, String fileName){
-    super("Repeated class extension '"+redundantType.getBaseString()+"' for tparam '"+
-             target.getIdentifier().getImage()+"' at <ln:"+
+  public RepeatedTParamException(TType redundantType, String fileName){
+    super("Repeated class extension '"+redundantType.getBaseString()+"' for tparam at <ln:"+
                     redundantType.getBaseType().get(0).getToken().getStartLine()+">", fileName);
   }
 }
