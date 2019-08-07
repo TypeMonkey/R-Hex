@@ -7,6 +7,7 @@ import java.util.Objects;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
+import net.percederberg.grammatica.parser.Token;
 
 public class TType extends TAtom<List<TType>> {
 
@@ -17,11 +18,18 @@ public class TType extends TAtom<List<TType>> {
   
   private List<TIden> rawTypeBody;
   private int arrayDimensions;
+  
+  private Token inferType;
     
   public TType(List<TIden> rawBody) {
     super(new ArrayList<>());
     this.rawTypeBody = rawBody;
     this.arrayDimensions = 0;
+  }
+  
+  public TType(Token inferredType) {
+    super(new ArrayList<>());
+    this.inferType = inferredType;
   }
   
   public boolean equals(Object object){
@@ -52,6 +60,10 @@ public class TType extends TAtom<List<TType>> {
     placeHolder = parameter;
   }
   
+  public void attachType(Type type) {
+    concreteType = type;
+  }
+  
   public void setGenericArgTypes(List<TType> generics){
     getActValue().clear();
     getActValue().addAll(generics);
@@ -69,6 +81,10 @@ public class TType extends TAtom<List<TType>> {
     return placeHolder;
   }
   
+  public Type getAttachedType() {
+    return concreteType;
+  }
+  
   public List<TType> getGenericTypeArgs(){
     return getActValue();
   }
@@ -79,6 +95,14 @@ public class TType extends TAtom<List<TType>> {
   
   public List<TIden> getBaseType(){
     return rawTypeBody;
+  }
+  
+  public Token getInferToken() {
+    return inferType;
+  }
+  
+  public boolean isInferredType() {
+    return inferType != null;
   }
   
   public String getBaseString(){

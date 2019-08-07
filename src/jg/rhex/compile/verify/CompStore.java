@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jg.rhex.common.Type;
 import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
@@ -26,7 +27,6 @@ public class CompStore {
   private final Map<String, Set<String>> packageTypes; //types in the same package.
   //The value in this map is a string as a simple name can be used by several classes in the same package
 
-
   public CompStore(RFile rhexFile, RhexCompiler compiler){
     this.compiler = compiler;    
     localTypes = new HashMap<>();
@@ -39,9 +39,7 @@ public class CompStore {
   /**
    * Retrieves possible full binary names of types from the corresponding simple name
    * @param simpleName - the type's simple name
-   * @return an array of possible corresponding binary names. The array will always
-   *         have at least 1 possible string. If the first element is null, then that means
-   *         no corresponding binary names were found.
+   * @return the fulle name of the Type, or null if none were found
    */
   public String getFullName(String simpleName){
     String potential = queryLocalTypes(simpleName);
@@ -132,6 +130,11 @@ public class CompStore {
         potentials.add(binaryName);
       }
     }
+  }
+  
+  public boolean confirmExistanceOfType(Type type) {
+    return compiler.retrieveClass(type.getFullName()) != null || 
+        compiler.findJavaClass(type.getFullName()) != null;
   }
 
   public Map<String, String> getLocalTypes() {

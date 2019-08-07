@@ -75,7 +75,7 @@ public final class VarDecParsers {
         }
         else if (current.getId() == GramPracConstants.INFER) {
           varToBeInferred = true;
-          
+          varType = new TType(current);
           expected.replace(GramPracConstants.NAME);
         }
         else if (current.getId() == GramPracConstants.NAME) {

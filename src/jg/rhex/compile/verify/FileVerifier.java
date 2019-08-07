@@ -5,11 +5,20 @@ import java.util.HashSet;
 import java.util.Map;
 
 import jg.rhex.common.FunctionSignature;
+import jg.rhex.common.Type;
 import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.RFunc;
+import jg.rhex.compile.components.structs.RStatement;
+import jg.rhex.compile.components.structs.RStatement.RStateDescriptor;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.TypeParameter;
+import jg.rhex.compile.components.tnodes.TCast;
+import jg.rhex.compile.components.tnodes.TExpr;
+import jg.rhex.compile.components.tnodes.TFuncCall;
+import jg.rhex.compile.components.tnodes.TNode;
+import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.verify.errors.UnfoundTypeException;
 
 /**
  * Verifies the structure and type correctness of a source file
@@ -50,30 +59,10 @@ public class FileVerifier {
     System.out.println("------STORE: "+rhexFile.getFileName());
     System.out.println(typeStore);
     System.out.println("------STORE DONE");
-    attachTParams();
     verifyConstruction();
   }
   
-  private void attachTParams() {
-    //first attach tparams on fil functions
-    for(RFunc rFunc : rhexFile.getFunctions()){
-      if (rFunc.getTypeParameters().size() > 0) {
-        
-        //scan parameters for their types
-        for(int i = 0; i < rFunc.getParameterAmount(); i++){
-          RVariable parameter = (RVariable) rFunc.getBody().getStatements().get(i);
-          TypeParameter potentialTP = rFunc.getTypeParameter(parameter.getProvidedType().getBaseString());
-          if (potentialTP != null) {
-            parameter.getProvidedType().associateTypeParameter(potentialTP);
-          }
-        }
-        
-        //scan local variables for their types
-        
-      }
-    }
-  }
-
+  
   /**
    * Checks for identical function signatures
    */
@@ -81,7 +70,9 @@ public class FileVerifier {
     HashSet<FunctionSignature> funcSignatures = new HashSet<>();
     
     //check for identical file functions
-    
+    for (FunctionSignature functionSignature : funcSignatures) {
+      
+    }
     
     //check for identical functions within each class
     

@@ -8,6 +8,7 @@ import java.util.ListIterator;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
+import jg.rhex.compile.components.errors.RhexConstructionException;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RFunc;
@@ -146,7 +147,13 @@ public final class FunctionParser {
               
               RVariable param = VarDecParsers.parseVariable(paramTokens.listIterator(), GramPracConstants.COMMA, fileName); //parse first parameter
               int paramAmnt = 1;
+              if (param.toBeInferred()) {
+                throw new RhexConstructionException("The parameter '"+
+                                    param.getIdentifier().getToken().getImage()+
+                                    "' cannot be inferred, at <ln:"+param.getIdentifier().getToken().getStartLine()+">", fileName);
+              }
               function.addStatement(param);
+              
               
               boolean terminatorFound = false;
               
