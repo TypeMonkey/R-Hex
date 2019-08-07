@@ -8,6 +8,10 @@ public class ArrayType extends Type{
     super(baseType.getSimpleName(), baseType.getFullName());
     this.dimensions = dimensions;
   }
+  
+  public String toString() {
+    return super.toString()+"[DIM:"+dimensions+"]";
+  }
 
   public int getDimensions() {
     return dimensions;

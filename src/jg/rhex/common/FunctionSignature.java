@@ -33,6 +33,21 @@ public class FunctionSignature {
     return Objects.hash(name, Arrays.hashCode(paramTypes));
   }
 
+  public String toString() {
+    String strFormat = name+"( ";
+    
+    for(int i = 0 ; i < paramTypes.length; i++) {
+      if (i < paramTypes.length - 1) {
+        strFormat += paramTypes[i] +" , ";
+      }
+      else {
+        strFormat += paramTypes[i];
+      }
+    }
+    
+    return strFormat+" )";
+  }
+  
   public String getName() {
     return name;
   }

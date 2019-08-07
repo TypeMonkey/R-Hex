@@ -22,6 +22,10 @@ public class FunctionIdentity{
   public int hashCode(){
     return Objects.hash(funcSig, returnType);
   }
+  
+  public String toString() {
+    return returnType+" "+funcSig;
+  }
 
   public FunctionSignature getFuncSig() {
     return funcSig;

@@ -35,6 +35,10 @@ public class Type {
   public int hashCode() {
     return Objects.hash(simpleName, fullName);
   }
+  
+  public String toString() {
+    return fullName;
+  }
 
   public String getSimpleName() {
     return simpleName;
