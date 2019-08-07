@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.tnodes.TNode;
 
 public class TType extends TAtom<List<TType>> {
 
-  private TypeParameter heldParameter;
+  //These are for the verification stage
+  private TypeParameter placeHolder;
+  private Type concreteType;
+  //--end
+  
   private List<TIden> rawTypeBody;
   private int arrayDimensions;
-  
+    
   public TType(List<TIden> rawBody) {
     super(new ArrayList<>());
     this.rawTypeBody = rawBody;
@@ -42,9 +47,9 @@ public class TType extends TAtom<List<TType>> {
   public int hashCode(){
     return Objects.hash(getBaseString(), getActValue());
   }
-
-  public void attachTypeParameter(TypeParameter attachee){
-    heldParameter = attachee;
+  
+  public void associateTypeParameter(TypeParameter parameter){
+    placeHolder = parameter;
   }
   
   public void setGenericArgTypes(List<TType> generics){
@@ -60,8 +65,8 @@ public class TType extends TAtom<List<TType>> {
     getActValue().add(generic);
   }
   
-  public TypeParameter getAttachedTypeParameter(){
-    return heldParameter;
+  public TypeParameter getAssocTypeParameter(){
+    return placeHolder;
   }
   
   public List<TType> getGenericTypeArgs(){
