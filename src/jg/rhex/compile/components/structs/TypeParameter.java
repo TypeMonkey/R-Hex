@@ -13,13 +13,13 @@ import net.percederberg.grammatica.parser.Token;
 public class TypeParameter {
 
   //The name to refer to the parameterized type
-  private Set<TIden> handles;
+  private TIden handle;
   
   //Constraints
   private Set<TType> extendedClasses;
   
-  public TypeParameter(Set<TIden> handles){
-    this.handles = handles;
+  public TypeParameter(TIden handle){
+    this.handle = handle;
     
     extendedClasses = new HashSet<>();
   }
@@ -37,8 +37,8 @@ public class TypeParameter {
     return extendedClasses;
   }
   
-  public Set<TIden> getHandles(){
-    return handles;
+  public TIden getHandle(){
+    return handle;
   }
   
 }

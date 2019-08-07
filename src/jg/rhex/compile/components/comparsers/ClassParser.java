@@ -69,9 +69,9 @@ public final class ClassParser {
           iterator.previous();
           
           TypeParameter parameter = TypeParser.parseTParam(iterator, fileName);
-          System.out.println("----TPARAM: "+parameter.getIdentifier().getImage());
+          System.out.println("----TPARAM: "+parameter.getHandle().getActValue().getImage());
           if (!typeParameters.add(parameter)) {
-            throw new RepeatedTParamException(parameter.getIdentifier(), fileName);
+            throw new RepeatedTParamException(parameter.getHandle().getActValue(), fileName);
           }
           
           expected.replace(GramPracConstants.TPARAM, GramPracConstants.CLASS, GramPracConstants.INTER);

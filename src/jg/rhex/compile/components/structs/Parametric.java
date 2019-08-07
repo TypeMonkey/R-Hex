@@ -30,7 +30,7 @@ public abstract class Parametric {
    *         false if else
    */
   public boolean addTypeParameter(TypeParameter parameter){
-    return typeParameters.put(parameter.getIdentifier().getImage(), parameter) == null;
+    return typeParameters.put(parameter.getHandle().getActValue().getImage(), parameter) == null;
   }
  
   /**
@@ -41,7 +41,7 @@ public abstract class Parametric {
   public void setTypeParameters(Set<TypeParameter> setParameters){
     typeParameters.clear();
     for (TypeParameter typeParameter : setParameters) {
-      this.typeParameters.put(typeParameter.getIdentifier().getImage(), typeParameter);
+      this.typeParameters.put(typeParameter.getHandle().getActValue().getImage(), typeParameter);
     }
   }
   

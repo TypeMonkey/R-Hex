@@ -36,7 +36,7 @@ public class FileVerifier {
   
   public void verify(){
     
-  //Order of finding types:
+   //Order of finding types:
     /*
      * 1.) T-Param
      * 2.) File Local Types

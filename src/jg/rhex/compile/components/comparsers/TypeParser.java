@@ -49,11 +49,11 @@ public final class TypeParser {
    *           After parseType(), a call to next() should return "varName" as it's the Token
    *           after "Type1" - the latest Identifier
    *           
-   *           Provided Token sequence in ListIterator: "Type1<String>"
+   *           Provided Token sequence in ListIterator: "Type1!(String)"
    *           After parseType(), a call to next() should throw a "NoSuchElementException" as there's no token
-   *           after ">" - the outermost generic argument bound
+   *           after ")" - the outermost generic argument bound
    *           
-   *           Provided Token sequence in ListIterator: "Type1<List<Integer>, Set<Tears>, Map<Integher, String>> varName"
+   *           Provided Token sequence in ListIterator: "Type1!(List!(Integer), Set!(Tears), Map!(Integher, String)) varName"
    *           After parseType(), a call to next() should return "varName" as it's the Token
    *           after ">" - the outermost generic argument bound
    * 
@@ -179,7 +179,7 @@ public final class TypeParser {
    *
    * Syntax for tparam is:
    * 
-   * tparam '<' TypeHandle ("," TypeHandle)* ':' [typeName] ("," typeName)*  '>'
+   * tparam '<' TypeHandle ':' [typeName] ("," typeName)*  '>'
    * 
    * The terminating '>' is consumed by this method
    * 
@@ -189,9 +189,7 @@ public final class TypeParser {
   public static TypeParameter parseTParam(ListIterator<Token> source, String fileName){   
     TypeParameter typeParameter = null;
     ExpectedSet expected = new ExpectedSet(GramPracConstants.TPARAM);
-    
-    HashSet<TIden> handles = new HashSet<>();
-    
+        
     while (source.hasNext()) {
       Token current = source.next();
       if (expected.noContainsThrow(current, "TParam", fileName)) {
@@ -207,9 +205,7 @@ public final class TypeParser {
         else if (current.getId() == GramPracConstants.NAME) {
           if (typeParameter == null) {
             //this means that the name is the type parameter's variable handle
-            if(!handles.add(new TIden(current))){
-              throw new RepeatedTParamException(current, fileName);
-            }
+            typeParameter = new TypeParameter(new TIden(current));
             expected.replace(GramPracConstants.COLON);
           }
           else {
@@ -223,51 +219,7 @@ public final class TypeParser {
             if (!typeParameter.addReqClass(reqExtended)) {
               throw new RepeatedTParamException(reqExtended, fileName);
             }
-            expected.replace(GramPracConstants.NAME, 
-                GramPracConstants.TPARAM,
-                GramPracConstants.COMMA,
-                GramPracConstants.GREAT);
-          }
-        }
-        else if (current.getId() == GramPracConstants.EXTNDS) {
-          
-          TType extendedType = parseType(source, fileName);
-          if (!typeParameter.addReqClass(extendedType)) {
-            throw new RepeatedTParamException(extendedType, fileName);
-          }
-          
-          ExpectedSet extExpected = new ExpectedSet(GramPracConstants.COMMA, GramPracConstants.SEMICOLON);
-          boolean terminatorFound = false;
-          
-          while (source.hasNext()) {
-            Token extCurrent = source.next();
-            if (extExpected.noContainsThrow(extCurrent, "TParam", fileName)) {
-              if (extCurrent.getId() == GramPracConstants.COMMA) {
-                extExpected.replace(GramPracConstants.NAME);
-              }
-              else if (extCurrent.getId() == GramPracConstants.NAME) {
-                source.previous(); //rollback iterator
-                TType seqType = parseType(source, fileName);
-                if (!typeParameter.addReqClass(seqType)) {
-                  throw new RepeatedTParamException(seqType, fileName);
-                }
-                
-                extExpected.replace(GramPracConstants.SEMICOLON);
-              }
-              else if (extCurrent.getId() == GramPracConstants.SEMICOLON) {
-                terminatorFound = true;
-                break;
-              }
-            }
-          }
-          
-          if (!terminatorFound) {
-            throw FormationException.createException("TParam", source.previous(),
-                new ExpectedSet(GramPracConstants.SEMICOLON), fileName);
-          }
-          else {
-            expected.replace(GramPracConstants.EXTNDS, GramPracConstants.NAME, GramPracConstants.GREAT,
-                             GramPracConstants.TPARAM);
+            expected.replace( GramPracConstants.COMMA, GramPracConstants.GREAT);
           }
         }
         else if (current.getId() == GramPracConstants.GREAT) {
@@ -278,7 +230,6 @@ public final class TypeParser {
           expected.replace(GramPracConstants.NAME);
         }
         else if (current.getId() == GramPracConstants.COLON) {
-          typeParameter = new TypeParameter(handles);
           expected.replace(GramPracConstants.NAME, GramPracConstants.EXTNDS, GramPracConstants.TPARAM, GramPracConstants.GREAT);
         }
       }
@@ -386,7 +337,7 @@ public final class TypeParser {
   }
   */
   
-  //public static void main(String [] args) {
+  public static void main(String [] args) {
     /*FUNCTION CONSTRAINT TESTER
     List<Token> tokens = TestUtils.tokenizeString("funcName(String  , Map!(Int, String)) -> String; -");
     
@@ -411,41 +362,15 @@ public final class TypeParser {
     System.out.println("---LATEEST: "+iterator.next());
     */
     
-    /* TPARAM TESTER
-    List<Token> tokens = TestUtils.tokenizeString("tparam<T:"
-        + " hello(java.lang.String  , Map!(Int, String)) -> String; "
-        + "bye(java.lang.String  , Map!(Int, String)) -> String; "
-        + "extends java.lang.Object;"
-        + "  tparam<Q: what()->Object; >"
-        + "   yo(List!(Q)) -> Double;"
-        + ">  class");
+    String target = "tparam<T: > tparam";
+    List<Token> tokens = TestUtils.tokenizeString(target);
+    ListIterator<Token> listIterator = tokens.listIterator();
     
-    System.out.println("-----TOKENS-----");
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
-    System.out.println("-----END TOKENS-----");
-
-    ListIterator<Token> iterator = tokens.listIterator();
-    TypeParameter functionInfo = parseTParam(iterator);
+    TypeParameter parameter = parseTParam(listIterator, "TEST");
     
-    System.out.println("TypeParameter FUN INFOS:");
-    System.out.println("NAME: "+functionInfo.getIdentifier().getImage());
-    
-    System.out.println("---EXPECTED FUNCTIONS: ");
-    for (FunctionInfo info : functionInfo.getExpectedFunctions()) {
-      System.out.println("--- "+info.getFunctionName().getImage()+"() :");
-      System.out.println("        -> "+Arrays.toString(info.getParameterTypes()));
-      System.out.println("        -> RETURN: "+info.getReturnType());
-    }
-    
-    for(TType ext : functionInfo.getRequiredClasses()){
-      System.out.println(" --- MANDATED: "+ext.getBaseString());
-    }
-    
-    
-    System.out.println("---LATEST: "+iterator.next());
-    */
+    System.out.println("---LATEST: "+listIterator.next());
+    System.out.println(parameter.getHandle());
+    System.out.println(parameter.getRequiredClasses());
     
     /* FUNCTION CONSTRAINT EQUALITY TESTER
     String target = "hello(java.lang.String  , Map!(Int, String)) -> String;";
@@ -466,6 +391,6 @@ public final class TypeParser {
     System.out.println(info1.getBaseString());
     System.out.println(listIterator.nextIndex());
     */
-  //}
+  }
   
 }

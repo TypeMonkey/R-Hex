@@ -64,7 +64,7 @@ public final class FunctionParser {
           iterator.previous(); //roll back iterator
           TypeParameter parameter = TypeParser.parseTParam(iterator, fileName);
           if (!function.addTypeParameter(parameter)) {
-            throw new RepeatedTParamException(parameter.getIdentifier(), fileName);
+            throw new RepeatedTParamException(parameter.getHandle().getActValue(), fileName);
           }
           
           expected.replace(GramPracConstants.TPARAM, 
