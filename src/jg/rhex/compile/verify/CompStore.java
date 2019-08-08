@@ -39,16 +39,20 @@ public class CompStore {
   /**
    * Retrieves possible full binary names of types from the corresponding simple name
    * @param simpleName - the type's simple name
-   * @return the fulle name of the Type, or null if none were found
+   * @return the full name of the Type, or null if none were found
    */
-  public String getFullName(String simpleName){
+  public String getFullName(String simpleName){    
     String potential = queryLocalTypes(simpleName);
     if (potential == null) {
       String [] potentials = queryUseTypes(simpleName);
       if (potentials == null || potentials.length != 1) {
         potentials = queryPackageTypes(simpleName);
         if (potentials == null || potentials.length != 1) {
-          return null;
+          String anotherPotential = queryJavaLang(simpleName);
+          if (anotherPotential == null) {
+            return null;
+          }
+          return anotherPotential;
         }
         return potentials[0];
       }
@@ -57,6 +61,14 @@ public class CompStore {
     return potential;
   }
 
+  public String queryJavaLang(String simpleName){
+    final String JAVA_LANG_PREFIX = "java.lang.";
+    if (compiler.findJavaClass(JAVA_LANG_PREFIX+simpleName) != null) {
+      return JAVA_LANG_PREFIX+simpleName;
+    }
+    return null;
+  }
+  
   public String queryLocalTypes(String simpleName) {
     return localTypes.get(simpleName);
   }
@@ -119,7 +131,7 @@ public class CompStore {
     Map<String, RClass> map = compiler.getPackageClasses(rhexFile.getPackDesignation());
     for (RClass rClass : map.values()) {
       String simpleName = rClass.getName().getImage();
-      String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+simpleName;
+      String binaryName = rhexFile.getPackDesignation()+"."+rClass.getHostFile().getFileName()+"."+simpleName;
       Set<String> potentials = packageTypes.get(simpleName);
       if (potentials == null) {
         potentials = new HashSet<>();

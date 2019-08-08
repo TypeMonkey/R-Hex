@@ -8,6 +8,7 @@ import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.errors.RepeatedStructureException;
 import jg.rhex.compile.components.structs.RClass;
@@ -54,19 +55,52 @@ public class FileVerifier {
     
    //Order of finding types:
     /*
-     * 1.) T-Param
-     * 2.) File Local Types
-     * 3.) Imported Types
-     * 4.) Package Local Types
-     * 5.) JVM Classes (either in the java.lang.* or in jars included in the classpath)
+     * 1.) T-Param  (WILL WORK ON AFTER VERS. 1.0)
+     * 
+     * 
+     * 1.) File Local Types
+     * 2.) Imported Types
+     * 3.) Package Local Types
+     * 5.) Custom classpath jars
+     * 4.) JVM Classes ( in the java.lang.* package)
      */
     
     System.out.println("------STORE: "+rhexFile.getFileName());
     System.out.println(typeStore);
     System.out.println("------STORE DONE");
     verifyConstruction();
+    verifyIdentifierReferences();
+    inferTypesAndCasts();
   }
-  
+
+  private void inferTypesAndCasts() {
+    // Let's scan type casts first
+    // Check variable values first (file variables, class variables)
+    // Check function statements next
+    
+    for(RVariable variable : rhexFile.getVariables()){
+      
+    }
+  }
+
+  private void verifyIdentifierReferences() {
+    //Makes sure that references to variable names and functions are references to visible such functions and variables
+    
+    //check file variables first
+    HashMap<String, RVariable> scope = new HashMap<>();
+    for(RVariable variable : rhexFile.getVariables()){
+      TNode valueNode = variable.getValue();
+      
+      if (valueNode instanceof TExpr) {
+        
+      }
+      else if (condition) {
+        
+      }
+      
+      scope.put(variable.getIdentifier().getToken().getImage(), variable);
+    }
+  }
   
   /**
    * Checks for identical function signatures
@@ -78,15 +112,22 @@ public class FileVerifier {
       if (funcMap.put(identity.getFuncSig(), new FunctionTuple(identity, rFunc)) != null) {
         throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
       }
+      
+      System.out.println("**IDENTITY - FILE: "+identity);
     }
     
     //check for identical functions within each class
     for(RClass rClass : rhexFile.getClasses()) {
+      System.out.println("----VERIFYING CLASS: "+rClass.getName().getImage());
       HashSet<FunctionSignature> signatures = new HashSet<>();
       for(RFunc rFunc : rClass.getMethods()) {
-        FunctionIdentity identity = formIdentity(rFunc);
-        if (signatures.add(identity.getFuncSig()) == false) {
-          throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
+        if (!rFunc.isConstructor()) {
+          FunctionIdentity identity = formIdentity(rFunc);
+          if (signatures.add(identity.getFuncSig()) == false) {
+            throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
+          }
+          
+          System.out.println("**IDENTITY - CLASS "+rClass.getName().getImage()+" : "+identity);
         }
       }
     }
@@ -96,25 +137,35 @@ public class FileVerifier {
     //resolve the return type first
     TType returnType = rFunc.getReturnType();
     Type actualType = null;
-    if (returnType.getBaseString().contains(".")) {
+    
+    System.out.println("----FUNC: "+rFunc.getName().getImage());
+    
+    if (TypeUtils.isPrimitive(returnType.getBaseString())) {
+      actualType = TypeUtils.PRIMITIVE_TYPES.get(returnType.getBaseString());
+    }
+    else if (returnType.getBaseString().equals("void")) {
+      actualType = Type.VOID_TYPE;
+    }
+    else if (returnType.getBaseString().contains(".")) {
       //full type name provided
       String [] split = returnType.getBaseString().split("\\.");
       actualType = new Type(split[split.length - 1], returnType.getBaseString());
 
       if (!typeStore.confirmExistanceOfType(actualType)) {
-        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString());
+        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString(), rhexFile.getFileName());
       }
     }
     else {
       //only simple name provided
       String potential = typeStore.getFullName(returnType.getBaseString());
       if (potential == null) {
-        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString());
+        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString(), rhexFile.getFileName());
       }
       
       actualType = new Type(returnType.getBaseString(), potential);
+      System.out.println("-----> EXISTS? "+actualType);
       if (!typeStore.confirmExistanceOfType(actualType)) {
-        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString());
+        throw new UnfoundTypeException(returnType.getBaseType().get(0).getToken(), returnType.getBaseString(), rhexFile.getFileName());
       }
     }
     
@@ -131,25 +182,28 @@ public class FileVerifier {
       TType proType = variable.getProvidedType();
       Type concreteType = null;
       
-      if (proType.getBaseString().contains(".")) {
+      if (TypeUtils.isPrimitive(proType.getBaseString())) {
+        concreteType = TypeUtils.PRIMITIVE_TYPES.get(proType.getBaseString());
+      }
+      else if (proType.getBaseString().contains(".")) {
         //full type name provided
         String [] split = proType.getBaseString().split("\\.");
         concreteType = new Type(split[split.length - 1], proType.getBaseString());
 
         if (!typeStore.confirmExistanceOfType(concreteType)) {
-          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString());
+          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
         }
       }
       else {
         //only simple name provided
         String potential = typeStore.getFullName(proType.getBaseString());
         if (potential == null) {
-          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString());
+          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
         }
         
         concreteType = new Type(proType.getBaseString(), potential);
         if (!typeStore.confirmExistanceOfType(concreteType)) {
-          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString());
+          throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
         }
       }
       

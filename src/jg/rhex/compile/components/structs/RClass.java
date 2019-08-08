@@ -20,6 +20,8 @@ public class RClass extends Parametric{
   private Set<RVariable> classVariables;
   private List<RFunc> methods;
   
+  private RFile hostFile;
+  
   public RClass(Token name, Set<Descriptor> descriptors, TType parent, List<TType> extensions, boolean isAnInterface){
     this.name = name;
     this.descriptors = descriptors;
@@ -57,8 +59,16 @@ public class RClass extends Parametric{
     return classVariables.add(variable);
   } 
   
+  public void setHostFile(RFile hostFile){
+    this.hostFile = hostFile;
+  }
+  
   public boolean isAnInterface() {
     return isAnInterface;
+  }
+  
+  public RFile getHostFile(){
+    return hostFile;
   }
   
   public Token getName() {

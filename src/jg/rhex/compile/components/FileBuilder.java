@@ -23,6 +23,7 @@ import jg.rhex.compile.components.comparsers.Escapist;
 import jg.rhex.compile.components.comparsers.FunctionParser;
 import jg.rhex.compile.components.comparsers.TypeParser;
 import jg.rhex.compile.components.comparsers.VarDecParsers;
+import jg.rhex.compile.components.errors.EmptyExprException;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.InvalidPlacementException;
 import jg.rhex.compile.components.errors.RepeatedStructureException;
@@ -138,6 +139,11 @@ public class FileBuilder {
             //then this is a statement. All external statements (outside functions and classes)
             //must be variable declarations
             RVariable variable = VarDecParsers.parseVariable(unknownComp.listIterator(), GramPracConstants.SEMICOLON, fileName);
+            if(variable.getValue() == null){
+              //File variables must be initialized
+              throw new EmptyExprException(variable.getDescriptorToken(), "FileVariable", fileName);
+            }
+            
             if (!rhexFile.addVariable(variable)) {
               throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
             }

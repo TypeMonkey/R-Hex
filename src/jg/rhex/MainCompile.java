@@ -30,7 +30,7 @@ public class MainCompile {
     RhexCompiler compiler = new RhexCompiler(actArgs);
     compiler.initialize();
     compiler.formSourceFiles();
-    System.out.println("---------");
+    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     
     for (String string : compiler.getRhexTypes().keySet()) {
       System.out.println("  NAME? "+string);

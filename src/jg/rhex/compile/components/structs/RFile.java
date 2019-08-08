@@ -78,6 +78,7 @@ public class RFile{
    *         false if else
    */
   public boolean addClass(RClass rClass){
+    rClass.setHostFile(this);
     return classes.add(rClass);
   }
   

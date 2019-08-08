@@ -13,6 +13,17 @@ import java.util.Objects;
  *
  */
 public class Type {
+  
+  public static final Type VOID_TYPE = new Type("void", "void");
+  
+  public static final Type INT = new Type("int", "int");
+  public static final Type LONG = new Type("long", "long");
+  public static final Type CHAR = new Type("char", "char");
+  public static final Type BYTE = new Type("byte", "byte");
+  public static final Type SHORT = new Type("short", "short");
+  public static final Type DOUBLE = new Type("double", "double");
+  public static final Type FLOAT = new Type("float", "float");
+  
 
   private final String simpleName;
   private final String fullName;

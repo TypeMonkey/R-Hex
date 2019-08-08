@@ -14,15 +14,17 @@ import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 
 public class TParamAttacher {
-  private void attachTypes() {
+  //private void attachTypes() {
     //first attach tparams on fil functions
-    for(RFunc rFunc : rhexFile.getFunctions()){
+ // for(RFunc rFunc : rhexFile.getFunctions()){
       /*
        * Constructs we need to scan:
        * 1.) Variable declarations (including parameters)
        * 2.) Type casts (by the 'as' operator)
        * 3.) Function calls that may have type parameters
        */
+      
+      /*
       for(RStatement statement : rFunc.getBody().getStatements()) {
         if (statement.getDescriptor() == RStateDescriptor.VAR_DEC) {
           //this is a variable declaration. Scan it.
@@ -64,7 +66,9 @@ public class TParamAttacher {
     }
     
   }
+  */
   
+  /*
   private void scanStatements(RStatement statement, RFunc housingFunction) {
     
   }
@@ -83,4 +87,5 @@ public class TParamAttacher {
       
     }
   }
+  */
 }
