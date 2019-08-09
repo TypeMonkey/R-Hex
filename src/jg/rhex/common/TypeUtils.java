@@ -36,4 +36,13 @@ public final class TypeUtils {
   public static boolean isVoid(Type type){
     return Type.VOID_TYPE.equals(type);
   }
+  
+  public static Type formType(Class<?> javaClass){
+    String [] totalName = javaClass.getCanonicalName().split("\\[]",-1);
+    String [] baseTypeSplit = totalName[0].split("\\.");
+    if (totalName.length - 1 >= 1) {
+      return new ArrayType(totalName.length - 1, new Type(baseTypeSplit[baseTypeSplit.length - 1], totalName[0]));
+    }
+    return new Type(javaClass.getSimpleName(), javaClass.getName());
+  }
 }

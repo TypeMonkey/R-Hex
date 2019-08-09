@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.errors.EmptyExprException;
 import jg.rhex.compile.components.errors.ExpressionParseException;
@@ -15,7 +16,6 @@ import jg.rhex.compile.components.expr.ExprParser;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.expr.GramPracParser;
 import jg.rhex.compile.components.expr.NewSeer;
-import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.tnodes.TExpr;
 import jg.rhex.compile.components.tnodes.TNode;

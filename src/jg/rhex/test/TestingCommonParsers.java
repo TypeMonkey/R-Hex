@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.compile.components.FileBuilder;
 import jg.rhex.compile.components.comparsers.ClassParser;
 import jg.rhex.compile.components.comparsers.FunctionParser;
@@ -17,7 +18,6 @@ import jg.rhex.compile.components.comparsers.TypeParser;
 import jg.rhex.compile.components.comparsers.VarDecParsers;
 import jg.rhex.compile.components.errors.RhexConstructionException;
 import jg.rhex.compile.components.expr.GramPracConstants;
-import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.ForBlock;
 import jg.rhex.compile.components.structs.IfBlock;
 import jg.rhex.compile.components.structs.RClass;

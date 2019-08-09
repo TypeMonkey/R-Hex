@@ -2,6 +2,7 @@ package jg.rhex.compile.components.structs;
 
 import java.util.Set;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;

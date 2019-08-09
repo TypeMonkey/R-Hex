@@ -586,6 +586,9 @@ public class GramPracParser extends RecursiveDescentParser {
         alt.addToken(GramPracConstants.FALSE, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
+        alt.addToken(GramPracConstants.NULL, 1, 1);
+        pattern.addAlternative(alt);
+        alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.NAME, 1, 1);
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();

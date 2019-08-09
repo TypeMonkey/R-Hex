@@ -26,6 +26,7 @@ import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TLong;
 import jg.rhex.compile.components.tnodes.atoms.TNew;
+import jg.rhex.compile.components.tnodes.atoms.TNull;
 import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TOParen;
 import jg.rhex.compile.components.tnodes.atoms.TType;
@@ -103,6 +104,11 @@ public class NewSeer extends GramPracAnalyzer{
   
   protected Node exitChar(Token node){
     actualNodes.add(new TChar(node));
+    return node;
+  }
+  
+  protected Node exitNull(Token node){
+    actualNodes.add(new TNull(node));
     return node;
   }
   

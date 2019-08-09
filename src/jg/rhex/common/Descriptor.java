@@ -1,4 +1,4 @@
-package jg.rhex.compile.components.structs;
+package jg.rhex.common;
 
 import jg.rhex.compile.components.expr.GramPracConstants;
 

@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.google.common.collect.HashBiMap;
 
+import jg.rhex.common.ArrayType;
+import jg.rhex.common.Type;
 import jg.rhex.compile.RhexCompiler;
 
 public class MainCompile {
@@ -15,7 +17,7 @@ public class MainCompile {
    * @throws IOException 
    */
   public static void main(String [] arg) throws IOException {
-    
+
     String [] actArgs = {"samplesrcs/Source1.rhex",
                          "samplesrcs/Source2.rhex"};
     arg = actArgs;
@@ -38,6 +40,6 @@ public class MainCompile {
     
     System.out.println("-------VERIFYING--------");
     compiler.verifySources();
+    
   }
-  
 }

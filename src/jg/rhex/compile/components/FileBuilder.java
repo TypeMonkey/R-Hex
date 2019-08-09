@@ -16,6 +16,7 @@ import java.util.Set;
 
 import com.google.common.io.Files;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.comparsers.StatementParser;
 import jg.rhex.compile.components.comparsers.ClassParser;
@@ -31,7 +32,6 @@ import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.errors.RhexConstructionException;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.expr.GramPracTokenizer;
-import jg.rhex.compile.components.structs.Descriptor;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFunc;
 import jg.rhex.compile.components.structs.RStateBlock;
@@ -42,7 +42,7 @@ import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
-import jg.rhex.runtime.comps.RhexFile;
+import jg.rhex.runtime.components.rhexspec.RhexFile;
 import net.percederberg.grammatica.parser.ParseException;
 import net.percederberg.grammatica.parser.ParserCreationException;
 import net.percederberg.grammatica.parser.Token;
@@ -234,7 +234,7 @@ public class FileBuilder {
     while ((temp = fileReader.readLine()) != null) {
       if (!temp.trim().startsWith("//")) {
         System.out.println(" ADDING LINE: "+temp);
-        wholeFile += temp;
+        wholeFile += temp+System.lineSeparator();
       }
     }
     

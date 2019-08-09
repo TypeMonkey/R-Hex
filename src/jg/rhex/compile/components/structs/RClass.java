@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import net.percederberg.grammatica.parser.Token;
 
