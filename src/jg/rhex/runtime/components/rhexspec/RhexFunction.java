@@ -20,4 +20,8 @@ public class RhexFunction extends Function{
     // TODO Auto-generated method stub
     return null;
   }
+  
+  public RFunc getOriginal(){
+    return original;
+  }
 }

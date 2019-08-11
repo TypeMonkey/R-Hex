@@ -20,14 +20,19 @@ import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RStatement.RStateDescriptor;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.TypeParameter;
-import jg.rhex.compile.components.tnodes.TCast;
-import jg.rhex.compile.components.tnodes.TExpr;
-import jg.rhex.compile.components.tnodes.TFuncCall;
 import jg.rhex.compile.components.tnodes.TNode;
+import jg.rhex.compile.components.tnodes.atoms.TCast;
+import jg.rhex.compile.components.tnodes.atoms.TExpr;
+import jg.rhex.compile.components.tnodes.atoms.TFuncCall;
 import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.verify.errors.RedundantExtensionException;
 import jg.rhex.compile.verify.errors.SimilarFunctionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
+import jg.rhex.runtime.components.rhexspec.RhexClass;
+import jg.rhex.runtime.components.rhexspec.RhexConstructor;
 import jg.rhex.runtime.components.rhexspec.RhexFile;
+import jg.rhex.runtime.components.rhexspec.RhexFunction;
+import jg.rhex.runtime.components.rhexspec.RhexVariable;
 
 /**
  * Verifies the structure and type correctness of a source file
@@ -41,11 +46,11 @@ public class FileVerifier {
 
   private final RFile rhexFile;
   private final RhexCompiler compiler;
-  private final CompStore typeStore;
+  private final TypeStore typeStore;
   
   private final RhexFile verifiedFile;
   
-  private final Map<FunctionSignature, FunctionTuple> funcMap;
+  private final Map<FunctionSignature, RhexFunction> funcMap;
   
   public FileVerifier(RFile rhexFile, RhexCompiler compiler){
     this.rhexFile = rhexFile;
@@ -55,12 +60,12 @@ public class FileVerifier {
     
     verifiedFile = new RhexFile(rhexFile);
     
-    typeStore = new CompStore(rhexFile, compiler);
+    typeStore = new TypeStore(rhexFile, compiler);
   }
   
-  public void verify(){
-    
-   //Order of finding types:
+  public RhexFile verify(){
+
+    //Order of finding types:
     /*
      * 1.) T-Param  (WILL WORK ON AFTER VERS. 1.0)
      * 
@@ -72,19 +77,39 @@ public class FileVerifier {
      * 4.) JVM Classes ( in the java.lang.* package)
      */
     
-    System.out.println("------STORE: "+rhexFile.getFileName());
+    //TNodes that need type attachement:
+    /*
+     * TCast
+     * TNew?
+     * TType (of course)
+     * TFuncCall (when tparams are supported)
+     */
+
+    System.out.println("------STORE: "+verifiedFile.getOriginal().getFileName());
     System.out.println(typeStore);
     System.out.println("------STORE DONE");
-    verifyFunctions();
-    verifyVariables();
+    
+    //these methods attach type information to variable declarations
+    //these methods also make sure that function signatures are unique
+    attachFileComponents();    
+    attachClassComponents();
+ 
+    //verifies inheritance 
+    //(all non-abstract classes implement abstract methods from abstract classes and interfaces)
+    //(parent constructors are called)
+    verifyInheritance();
+    
+    return verifiedFile;
   }
   
+  private void verifyInheritance() {
+    
+  }
+
   /**
-   * Verifies the type annotation of variable
-   * 
-   * DOESN'T verify the type of variable assignments
+   * Verifies file functions and variables
    */
-  private void verifyVariables() {
+  private void attachFileComponents(){
     //verify file variables first
     for (RVariable variable : rhexFile.getVariables()) {
       TType provided = variable.getProvidedType();
@@ -95,43 +120,13 @@ public class FileVerifier {
       System.out.println("** VAR-VERIFIED: "+actual+" for "+
           variable.getIdentifier().getToken().getImage()+
           " , "+rhexFile.getFileName()+" <ln:"+variable.getIdentifier().getToken().getStartLine()+">");
-    }
-    
-    //verify class variables next
-    for(RClass rClass : rhexFile.getClasses()){
-      for(RVariable variable : rClass.getClassVariables()){
-        TType provided = variable.getProvidedType();
-        Type actual = retrieveType(provided);
-        
-        provided.attachType(actual);
-        
-        System.out.println("** VAR-VERIFIED: "+actual+" for "+
-            variable.getIdentifier().getToken().getImage()+
-            " , "+rhexFile.getFileName()+" <ln:"+variable.getIdentifier().getToken().getStartLine()+">");
-      }
       
-      //verify local variable in class functions
-      for(RFunc rFunc : rClass.getMethods()){
-        RStateBlock funcBody = rFunc.getBody();
-        for(int i = rFunc.getParameterAmount(); i < funcBody.getStatements().size(); i++){
-          if (funcBody.getStatements().get(i).getDescriptor() == RStateDescriptor.VAR_DEC) {
-            RVariable variable = (RVariable) funcBody.getStatements().get(i);
-            Type actual = retrieveType(variable.getProvidedType());
-            variable.getProvidedType().attachType(actual);
-            
-            System.out.println("** VAR-VERIFIED: "+actual+" for "+
-                                 variable.getIdentifier().getToken().getImage()+
-                                 " , "+rhexFile.getFileName()+" <ln:"+variable.getIdentifier().getToken().getStartLine()+">");
-          }
-          else if(funcBody.getStatements().get(i).getDescriptor() == RStateDescriptor.BLOCK){
-            verifyVariablesHelper(funcBody);
-          }
-        }
-      }
+      //file level variable uniqueness is enforced during the formation stage. No need to check for name conflicts
+      verifiedFile.placeVariable(new RhexVariable(variable));
     }
     
-    //verify local variables next (in file functions)
-    for(RFunc rFunc : rhexFile.getFunctions()){
+    //check for identical file functions
+    for (RFunc rFunc : rhexFile.getFunctions()) {       
       RStateBlock funcBody = rFunc.getBody();
       for(int i = rFunc.getParameterAmount(); i < funcBody.getStatements().size(); i++){
         if (funcBody.getStatements().get(i).getDescriptor() == RStateDescriptor.VAR_DEC) {
@@ -147,8 +142,98 @@ public class FileVerifier {
           verifyVariablesHelper(funcBody);
         }
       }
+      
+      FunctionIdentity identity = formIdentity(rFunc);
+      RhexFunction function = new RhexFunction(identity, rFunc);
+      if (!verifiedFile.placeFunction(function)) {
+        throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
+      }     
+      
+      System.out.println("**IDENTITY - FILE: "+identity);
     }
+ 
+  }
+  
+  /**
+   * Verifies file classes and their functions and variables
+   */
+  private void attachClassComponents(){
+    //verify class declaration and add them to the file's classmap
+    for(RClass rClass : rhexFile.getClasses()){
+      String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+rClass.getName().getImage();
+      Type classTypeInfo = new Type(rClass.getName().getImage(), binaryName);
+      
+      HashSet<Type> superTypes = new HashSet<>();
+      for(TType parent : rClass.getSuperTypes()){
+        Type superType = retrieveType(parent);
+        if(!superTypes.add(superType)){
+          throw new RedundantExtensionException(rClass.getName().getImage(), parent, rhexFile.getFileName());
+        }
+      }
+      
+      //file-local class uniqueness is enforced during the formation phase
+      verifiedFile.placeClass(new RhexClass(classTypeInfo, superTypes, rClass));
+    }    
     
+    //verify class variables next
+    for(RhexClass rhexClass : verifiedFile.getFileClasses().values()){
+      RClass rClass = rhexClass.getOriginal();
+      for(RVariable variable : rClass.getClassVariables()){
+        TType provided = variable.getProvidedType();
+        Type actual = retrieveType(provided);
+        
+        provided.attachType(actual);
+        
+        System.out.println("** VAR-VERIFIED: "+actual+" for "+
+            variable.getIdentifier().getToken().getImage()+
+            " , "+rhexFile.getFileName()+" <ln:"+variable.getIdentifier().getToken().getStartLine()+">");
+        
+        rhexClass.placeVariable(new RhexVariable(variable));
+      }
+      
+      HashSet<FunctionSignature> signatures = new HashSet<>();
+      
+      //verify local variable in class functions
+      for(RFunc rFunc : rClass.getMethods()){
+        RStateBlock funcBody = rFunc.getBody();
+        
+        FunctionIdentity identity = null;
+        if (!rFunc.isConstructor()) {
+          identity = formIdentity(rFunc);
+          if (signatures.add(identity.getFuncSig()) == false) {
+            throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
+          }
+
+          System.out.println("**IDENTITY - CLASS "+rClass.getName().getImage()+" : "+identity);
+        }
+        else {
+          identity = formConstructorIdentity(rFunc, rhexClass.getTypeInfo());
+        }
+        
+        
+        for(int i = rFunc.getParameterAmount(); i < funcBody.getStatements().size(); i++){
+          if (funcBody.getStatements().get(i).getDescriptor() == RStateDescriptor.VAR_DEC) {
+            RVariable variable = (RVariable) funcBody.getStatements().get(i);
+            Type actual = retrieveType(variable.getProvidedType());
+            variable.getProvidedType().attachType(actual);
+            
+            System.out.println("** VAR-VERIFIED: "+actual+" for "+
+                                 variable.getIdentifier().getToken().getImage()+
+                                 " , "+rhexFile.getFileName()+" <ln:"+variable.getIdentifier().getToken().getStartLine()+">");
+          }
+          else if(funcBody.getStatements().get(i).getDescriptor() == RStateDescriptor.BLOCK){
+            verifyVariablesHelper(funcBody);
+          }
+        }
+        
+        if (rFunc.isConstructor()) {
+          rhexClass.placeConstructor(new RhexConstructor(rhexClass, identity.getFuncSig(), rFunc));
+        }
+        else {
+          rhexClass.placeFunction(new RhexFunction(identity, rFunc));
+        }
+      }
+    }
     
   }
   
@@ -170,46 +255,28 @@ public class FileVerifier {
       }
     }
   }
+  
+  private FunctionIdentity formConstructorIdentity(RFunc rFunc, Type hostType){
+    System.out.println("----CONSTRUCTOR: "+rFunc.getName().getImage());
 
-  /**
-   * Checks for identical function signatures
-   */
-  private void verifyFunctions() {    
-    //check for identical file functions
-    for (RFunc rFunc : rhexFile.getFunctions()) {
-      FunctionIdentity identity = formIdentity(rFunc);
-      if (funcMap.put(identity.getFuncSig(), new FunctionTuple(identity, rFunc)) != null) {
-        throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
-      }
-      
-      System.out.println("**IDENTITY - FILE: "+identity);
+    //resolve the types of the parameters
+    Type [] paramTypes = new Type[rFunc.getParameterAmount()];
+
+    for(int i = 0; i < rFunc.getParameterAmount(); i++) {
+      RVariable variable = (RVariable) rFunc.getBody().getStatements().get(i);
+      //we are guaranteed during the parsing stage that no parameter has an inferred type
+      TType proType = variable.getProvidedType();
+      Type concreteType = retrieveType(proType);
+      paramTypes[i] = concreteType;
     }
-    
-    //check for identical functions within each class
-    for(RClass rClass : rhexFile.getClasses()) {
-      System.out.println("----VERIFYING CLASS: "+rClass.getName().getImage());
-      HashSet<FunctionSignature> signatures = new HashSet<>();
-      for(RFunc rFunc : rClass.getMethods()) {
-        if (!rFunc.isConstructor()) {
-          FunctionIdentity identity = formIdentity(rFunc);
-          if (signatures.add(identity.getFuncSig()) == false) {
-            throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
-          }
-          
-          System.out.println("**IDENTITY - CLASS "+rClass.getName().getImage()+" : "+identity);
-        }
-      }
-    }
+
+    return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes), hostType);
   }
   
-  private FunctionIdentity formIdentity(RFunc rFunc) {
-    //resolve the return type first
-    TType returnType = rFunc.getReturnType();
-    Type actualType = retrieveType(returnType);
-    
+  private FunctionIdentity formIdentity(RFunc rFunc) {   
     System.out.println("----FUNC: "+rFunc.getName().getImage());
     
-    //now, resolve the types of the parameters
+    //resolve the types of the parameters
     Type [] paramTypes = new Type[rFunc.getParameterAmount()];
     
     for(int i = 0; i < rFunc.getParameterAmount(); i++) {
@@ -220,7 +287,15 @@ public class FileVerifier {
       paramTypes[i] = concreteType;
     }
     
-    return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes), actualType);
+    //then, resolve the return type first
+    TType returnType = rFunc.getReturnType();
+    if (returnType.getBaseString().equals("void")) {
+      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes));
+    }
+    else {
+      Type actualType = retrieveType(returnType);
+      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes), actualType);
+    }   
   }
   
   private Type retrieveType(TType proType){

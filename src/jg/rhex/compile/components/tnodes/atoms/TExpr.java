@@ -1,9 +1,9 @@
-package jg.rhex.compile.components.tnodes;
+package jg.rhex.compile.components.tnodes.atoms;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import jg.rhex.compile.components.tnodes.atoms.TAtom;
+import jg.rhex.compile.components.tnodes.TNode;
 
 public class TExpr extends TAtom<List<TNode>> {
 

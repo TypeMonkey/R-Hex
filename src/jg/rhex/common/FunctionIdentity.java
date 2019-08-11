@@ -6,6 +6,10 @@ public class FunctionIdentity{
   private final FunctionSignature funcSig;
   private final Type returnType;
   
+  public FunctionIdentity(FunctionSignature funcSig) {
+    this(funcSig, Type.VOID_TYPE);
+  }
+  
   public FunctionIdentity(FunctionSignature funcSig, Type returnType) {
     this.funcSig = funcSig;
     this.returnType = returnType;

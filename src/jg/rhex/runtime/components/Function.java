@@ -3,12 +3,24 @@ package jg.rhex.runtime.components;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 
+/**
+ * Represents callable functions (class, instance, and file functions) along with constructors
+ * @author Jose
+ *
+ */
 public abstract class Function {
 
   private final FunctionIdentity identity;
+  private final boolean isConstructor;
   
   public Function(FunctionIdentity identity) {
     this.identity = identity;
+    isConstructor = false;
+  }
+  
+  public Function(FunctionSignature signature, GenClass hostClass) {
+    this.identity = new FunctionIdentity(signature, hostClass.getTypeInfo());    
+    isConstructor = true;
   }
   
   /**
@@ -32,6 +44,10 @@ public abstract class Function {
   
   public int hashCode(){
     return identity.getFuncSig().hashCode();
+  }
+  
+  public boolean isAConstructor(){
+    return isConstructor;
   }
 
   public String getName(){

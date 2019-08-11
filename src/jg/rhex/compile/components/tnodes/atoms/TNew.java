@@ -2,8 +2,6 @@ package jg.rhex.compile.components.tnodes.atoms;
 
 import java.util.List;
 
-import jg.rhex.compile.components.tnodes.TFuncCall;
-
 public class TNew extends TAtom<TFuncCall>{
 
   private List<TIden> binaryName;

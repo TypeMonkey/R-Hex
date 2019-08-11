@@ -1,6 +1,5 @@
 package jg.rhex.compile.components.tnodes;
 
-import jg.rhex.compile.components.tnodes.atoms.TAtom;
 import net.percederberg.grammatica.parser.Token;
 
 /**
@@ -9,19 +8,23 @@ import net.percederberg.grammatica.parser.Token;
  * @author Jose
  *
  */
-public class TOp extends TAtom<Token> {
-
+public class TOp extends TNode {
+  
   public TOp(Token op) {
     super(op);
   }
+  
+  public Token getOperatorToken(){
+    return (Token) getValue();
+  }
 
   public String getOpString() {
-    return getActValue().getImage();
+    return ((Token) getValue()).getImage();
   }
 
   @Override
   public String toString() {
-    return "OP ~ " + getActValue().getImage();
+    return "OP ~ " + getOpString();
   }
 
 }

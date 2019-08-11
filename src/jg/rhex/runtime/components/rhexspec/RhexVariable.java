@@ -6,13 +6,20 @@ import jg.rhex.runtime.components.Variable;
 
 public class RhexVariable extends Variable{
 
-  private RVariable original;
+  private final RVariable original;
+  
+  private Instance value;
   
   public RhexVariable(RVariable original) {
+    this(original, null);
+  }
+  
+  public RhexVariable(RVariable original, Instance initialValue) {
     super(original.getDescriptors(), 
           original.getProvidedType().getAttachedType(), 
           original.getIdentifier().getToken().getImage());
     this.original = original;
+    this.value = initialValue;
   }
   
   public Variable clone(){
@@ -21,13 +28,16 @@ public class RhexVariable extends Variable{
 
   @Override
   public Instance getValue() {
-    // TODO Auto-generated method stub
-    return null;
+    return value;
   }
 
   @Override
   public void setValue(Instance instance) {
     // TODO Auto-generated method stub
     
+  }
+  
+  public RVariable getOriginal(){
+    return original;
   }
 }

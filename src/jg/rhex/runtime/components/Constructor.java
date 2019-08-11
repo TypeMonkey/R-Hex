@@ -1,13 +1,18 @@
 package jg.rhex.runtime.components;
 
-import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 
 public abstract class Constructor extends Function{
 
+  private final GenClass hostClass;
+  
   public Constructor(GenClass hostClass, FunctionSignature signature) {
-    super(new FunctionIdentity(signature, hostClass.getTypeInfo()));
+    super(signature, hostClass);
+    this.hostClass = hostClass;
   }
 
+  public GenClass getHostClass() {
+    return hostClass;
+  }
   
 }

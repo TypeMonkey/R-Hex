@@ -1,13 +1,11 @@
-package jg.rhex.compile.components.tnodes;
+package jg.rhex.compile.components.tnodes.atoms;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import jg.rhex.compile.components.tnodes.atoms.TAtom;
-import jg.rhex.compile.components.tnodes.atoms.TIden;
-import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.components.tnodes.TNode;
 
 public class TFuncCall extends TAtom<List<TNode>> {  
   

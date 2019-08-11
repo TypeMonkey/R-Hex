@@ -8,6 +8,10 @@ public class FunctionSignature {
   private final String name;
   private final Type [] paramTypes;
   
+  public FunctionSignature(String funcName) {
+    this(funcName, new Type[0]);
+  }
+  
   public FunctionSignature(String funcName, Type [] parameterTypes) {
     this.name = funcName;
     this.paramTypes = parameterTypes;

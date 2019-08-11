@@ -1,7 +1,4 @@
-package jg.rhex.compile.components.tnodes;
-
-import jg.rhex.compile.components.tnodes.atoms.TAtom;
-import jg.rhex.compile.components.tnodes.atoms.TType;
+package jg.rhex.compile.components.tnodes.atoms;
 
 public class TCast extends TAtom<TType> {
 

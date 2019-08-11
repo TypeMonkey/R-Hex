@@ -13,15 +13,20 @@ public abstract class GenClass {
   private final Type typeInfo;
   private final Set<Type> parents;
   
+  protected Map<FunctionSignature, Constructor> constructorMap;
   protected Map<FunctionSignature, Function> functionMap;
   protected Map<String, Variable> variableMap;
   
-  public GenClass(Type typeInfo, Set<Type> parents){
+  public GenClass(Type typeInfo, Set<Type> parents, 
+      Map<FunctionSignature, Function> funMap, 
+      Map<FunctionSignature, Constructor> consMap, 
+      Map<String, Variable> varMap){
     this.typeInfo = typeInfo;
     this.parents = parents;
     
-    functionMap = new HashMap<>();
-    variableMap = new LinkedHashMap<>();
+    functionMap = funMap;
+    constructorMap = consMap;
+    variableMap = varMap;
   }
    
   @Override
@@ -46,6 +51,10 @@ public abstract class GenClass {
   public boolean isAChildOf(Type type){
     return parents.contains(type);
   }
+  
+  public Constructor retrieveConstructor(FunctionSignature signature){
+    return constructorMap.get(signature);
+  } 
 
   public Function retrieveFunction(FunctionSignature signature){
     return functionMap.get(signature);

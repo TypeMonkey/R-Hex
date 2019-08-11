@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import jg.rhex.compile.components.tnodes.TExpr;
-import jg.rhex.compile.components.tnodes.TFuncCall;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.TOp;
 import jg.rhex.compile.components.tnodes.atoms.TAtom;
 import jg.rhex.compile.components.tnodes.atoms.TCParen;
 import jg.rhex.compile.components.tnodes.atoms.TComma;
+import jg.rhex.compile.components.tnodes.atoms.TExpr;
+import jg.rhex.compile.components.tnodes.atoms.TFuncCall;
 import jg.rhex.compile.components.tnodes.atoms.TOParen;
 
 public class ASTBuilder {

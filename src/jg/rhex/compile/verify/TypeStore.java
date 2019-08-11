@@ -14,7 +14,7 @@ import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.UseDeclaration;
 
-public class CompStore {
+public class TypeStore {
 
   private final RhexCompiler compiler;
 
@@ -27,7 +27,7 @@ public class CompStore {
   private final Map<String, Set<String>> packageTypes; //types in the same package.
   //The value in this map is a string as a simple name can be used by several classes in the same package
 
-  public CompStore(RFile rhexFile, RhexCompiler compiler){
+  public TypeStore(RFile rhexFile, RhexCompiler compiler){
     this.compiler = compiler;    
     localTypes = new HashMap<>();
     useTypes = new HashMap<>();
@@ -61,6 +61,12 @@ public class CompStore {
     return potential;
   }
 
+  /**
+   * Queries the java.lang.* package for the existence of a class with
+   * the provided simple name
+   * @param simpleName - the simple name to find
+   * @return the full, binary name or null if it doesn't exist
+   */
   public String queryJavaLang(String simpleName){
     final String JAVA_LANG_PREFIX = "java.lang.";
     if (compiler.findJavaClass(JAVA_LANG_PREFIX+simpleName) != null) {
@@ -69,10 +75,22 @@ public class CompStore {
     return null;
   }
   
+  /**
+   * Queries file-local classes for the existence of a class with
+   * the provided simple name
+   * @param simpleName - the simple name to find
+   * @return the full, binary name or null if it doesn't exist
+   */
   public String queryLocalTypes(String simpleName) {
     return localTypes.get(simpleName);
   }
 
+  /**
+   * Queries the host package the existence of a class with
+   * the provided simple name
+   * @param simpleName - the simple name to find
+   * @return the full, binary name or null if it doesn't exist
+   */
   public String [] queryPackageTypes(String simpleName) {
     Set<String> potentials = packageTypes.get(simpleName);
     if (potentials == null || potentials.size() == 0) {
@@ -81,6 +99,12 @@ public class CompStore {
     return potentials.toArray(new String[potentials.size()]);
   }
 
+  /**
+   * Queries imported types for the existence of a class with
+   * the provided simple name
+   * @param simpleName - the simple name to find
+   * @return the full, binary name or null if it doesn't exist
+   */
   public String[] queryUseTypes(String simpleName) {
     Set<UseDeclaration> useDeclarations = useTypes.get(simpleName);
     if (useDeclarations == null || useDeclarations.size() == 0) {

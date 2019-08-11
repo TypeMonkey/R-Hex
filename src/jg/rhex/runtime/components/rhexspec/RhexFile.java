@@ -26,16 +26,31 @@ public class RhexFile {
     fileVariables = new LinkedHashMap<>();
   }
   
-  public void placeFunction(RhexFunction function){
-    fileFunctions.put(function.getSignature(), function);
+  /**
+   * Places the given RhexFunction into this RhexFile's function map
+   * @param function - the RhexFunction to place
+   * @return true if a function of the same signature hasn't been added
+   */
+  public boolean placeFunction(RhexFunction function){
+    return fileFunctions.put(function.getSignature(), function) == null;
   }
   
-  public void placeClass(RhexClass rhexClass){
-    fileClasses.put(rhexClass.getTypeInfo(), rhexClass);
+  /**
+   * Places the given RhexClass into this RhexFile's class map
+   * @param rhexClass - the class to place
+   * @return true if a class of the same name hasn't been added
+   */
+  public boolean placeClass(RhexClass rhexClass){
+    return fileClasses.put(rhexClass.getTypeInfo(), rhexClass) == null;
   }
   
-  public void placeVariable(RhexVariable variable){
-    fileVariables.put(variable.getName(), variable);
+  /**
+   * Places the given RhexVariable into this RhexFile's file variable map
+   * @param variable - the variable to place
+   * @return true if a variable of the same name hasn't been added yet
+   */
+  public boolean placeVariable(RhexVariable variable){
+    return fileVariables.put(variable.getName(), variable) == null;
   }
   
   public RhexFunction getFunction(FunctionSignature signature){
@@ -48,6 +63,22 @@ public class RhexFile {
   
   public RhexVariable getVariable(String name){
     return fileVariables.get(name);
+  }
+  
+  public Map<FunctionSignature, RhexFunction> getFileFunctions() {
+    return fileFunctions;
+  }
+
+  public Map<Type, RhexClass> getFileClasses() {
+    return fileClasses;
+  }
+
+  public Map<String, RhexVariable> getFileVariables() {
+    return fileVariables;
+  }
+
+  public RFile getOriginal(){
+    return original;
   }
   
   public File getPath(){

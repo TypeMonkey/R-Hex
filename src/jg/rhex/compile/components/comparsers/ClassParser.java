@@ -59,7 +59,6 @@ public final class ClassParser {
     HashSet<Descriptor> classDescriptors = new HashSet<>();
     ArrayList<TType> extensions = new ArrayList<>();
     LinkedHashSet<TypeParameter> typeParameters = new LinkedHashSet<>();
-    TType parent = null;
     
     while (iterator.hasNext()) {
       Token current = iterator.next();
@@ -107,7 +106,8 @@ public final class ClassParser {
         }
         else if (current.getId() == GramPracConstants.COLON) {         
           //parse first type name (Assume as super)
-          parent = TypeParser.parseType(iterator, fileName);
+          iterator.next(); //advance iterator          
+          extensions.add(TypeParser.parseType(iterator, fileName));
           
           expected.replace(GramPracConstants.COMMA, GramPracConstants.OP_CU_BRACK);
         }
@@ -123,7 +123,7 @@ public final class ClassParser {
     }
     
     if (expected.isEmpty() || expected.contains(-1)) {
-      RClass rClass = new RClass(name, classDescriptors, parent, extensions, isInterface);
+      RClass rClass = new RClass(name, classDescriptors, extensions, isInterface);
       rClass.setTypeParameters(typeParameters);
       return rClass;
     }

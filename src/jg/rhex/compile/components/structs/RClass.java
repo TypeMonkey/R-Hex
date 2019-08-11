@@ -15,7 +15,6 @@ public class RClass extends Parametric{
   
   private Token name;
   private Set<Descriptor> descriptors;
-  private TType parent;
   private List<TType> extensions;
     
   private Set<RVariable> classVariables;
@@ -23,11 +22,10 @@ public class RClass extends Parametric{
   
   private RFile hostFile;
   
-  public RClass(Token name, Set<Descriptor> descriptors, TType parent, List<TType> extensions, boolean isAnInterface){
+  public RClass(Token name, Set<Descriptor> descriptors, List<TType> supers, boolean isAnInterface){
     this.name = name;
     this.descriptors = descriptors;
-    this.parent = parent;
-    this.extensions = extensions;
+    this.extensions = supers;
     this.isAnInterface = isAnInterface;
     
     classVariables = new LinkedHashSet<>();
@@ -80,11 +78,7 @@ public class RClass extends Parametric{
     return descriptors;
   }
 
-  public TType getParent() {
-    return parent;
-  }
-
-  public List<TType> getExtentions() {
+  public List<TType> getSuperTypes() {
     return extensions;
   }
 

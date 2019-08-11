@@ -6,10 +6,10 @@ import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RVariable;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.structs.RStatement.RStateDescriptor;
-import jg.rhex.compile.components.tnodes.TCast;
-import jg.rhex.compile.components.tnodes.TExpr;
-import jg.rhex.compile.components.tnodes.TFuncCall;
 import jg.rhex.compile.components.tnodes.TNode;
+import jg.rhex.compile.components.tnodes.atoms.TCast;
+import jg.rhex.compile.components.tnodes.atoms.TExpr;
+import jg.rhex.compile.components.tnodes.atoms.TFuncCall;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 

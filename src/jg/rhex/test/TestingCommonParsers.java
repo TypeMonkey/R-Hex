@@ -28,7 +28,7 @@ import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.TypeParameter;
 import jg.rhex.compile.components.structs.UseDeclaration;
 import jg.rhex.compile.components.structs.RStateBlock.BlockType;
-import jg.rhex.compile.components.tnodes.TExpr;
+import jg.rhex.compile.components.tnodes.atoms.TExpr;
 import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TNew;

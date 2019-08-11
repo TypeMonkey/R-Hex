@@ -1,9 +1,9 @@
-package jg.rhex.compile.components.tnodes;
+package jg.rhex.compile.components.tnodes.atoms;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import jg.rhex.compile.components.tnodes.atoms.TAtom;
+import jg.rhex.compile.components.tnodes.TNode;
 
 /**
  * Represents the "." operator.
@@ -28,26 +28,23 @@ import jg.rhex.compile.components.tnodes.atoms.TAtom;
  * @author Jose
  *
  */
-public class TMemberInvoke extends TAtom<String> {
-
-  private List<TNode> dotSequence;
+public class TMemberInvoke extends TAtom<List<TNode>> {
 
   public TMemberInvoke() {
-    super(".");
-    dotSequence = new ArrayList<TNode>();
+    super(new ArrayList<TNode>());
   }
 
   public void setSequence(List<TNode> sequence) {
-    dotSequence.addAll(sequence);
+    getActValue().addAll(sequence);
   }
 
   public List<TNode> getSequence() {
-    return dotSequence;
+    return getActValue();
   }
 
   @Override
   public String toString() {
-    return "MEM ~ " + dotSequence;
+    return "MEM ~ " + getActValue();
   }
 
 }
