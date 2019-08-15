@@ -10,6 +10,7 @@ import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.TOp;
+import jg.rhex.compile.components.tnodes.atoms.TCast;
 import jg.rhex.compile.components.tnodes.atoms.TChar;
 import jg.rhex.compile.components.tnodes.atoms.TDouble;
 import jg.rhex.compile.components.tnodes.atoms.TExpr;
@@ -22,6 +23,7 @@ import jg.rhex.compile.components.tnodes.atoms.TMemberInvoke;
 import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TString;
 import jg.rhex.compile.verify.errors.UnfoundFunctionException;
+import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.compile.verify.errors.UnfoundVariableException;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
@@ -104,11 +106,24 @@ public class FunctionStructureVerifier {
             }
           }
           else {
-            memType = checkExpression(memType, scope, memberInvoke.getSequence().get(i));
+            memType = checkExpression(scope, memberInvoke.getSequence().get(i));
           }
         }
         
         valueTypes.push(memType);
+      }
+      else if (node instanceof TCast) {
+        TCast cast = (TCast) node;
+        Type type = store.retrieveType(cast.getDesiredType());
+        if (type == null) {
+          throw new UnfoundTypeException(cast.getDesiredType().getBaseType().get(0).getToken(), 
+              cast.getDesiredType().getBaseString(), hostFile.getName());
+        }
+        
+        Type targetType = checkExpression(scope, cast.getTarget());
+      }
+      else if (node instanceof TExpr) {
+        valueTypes.push(checkExpression(scope, (TExpr) node));
       }
       else if (node instanceof TIden) {
         TIden iden = (TIden) node;

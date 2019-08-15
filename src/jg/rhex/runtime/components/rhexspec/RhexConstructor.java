@@ -16,12 +16,17 @@ public class RhexConstructor extends Constructor{
     this.original = original;
   }
 
-  @Override
-  public RhexInstance eval(SymbolTable table, Instance instance, Instance... parameters) {
-    return null;
-  }
+ 
 
   public RFunc getOriginal(){
     return original;
+  }
+
+
+
+  @Override
+  public Instance createInstance(SymbolTable table, Instance... parameters) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

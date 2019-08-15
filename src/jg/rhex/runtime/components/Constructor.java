@@ -10,6 +10,13 @@ public abstract class Constructor extends Function{
     super(signature, hostClass);
     this.hostClass = hostClass;
   }
+  
+  public abstract Instance createInstance(SymbolTable table, Instance ... parameters);
+  
+  @Override
+  public Instance eval(SymbolTable table, Instance instance,  Instance ... parameters) {
+    return createInstance(table, parameters);  
+  }
 
   public GenClass getHostClass() {
     return hostClass;

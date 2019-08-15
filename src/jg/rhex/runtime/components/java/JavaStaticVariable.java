@@ -1,17 +1,24 @@
 package jg.rhex.runtime.components.java;
 
+import java.lang.reflect.Field;
 import java.util.Set;
 
 import jg.rhex.common.Descriptor;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.runtime.components.Instance;
 import jg.rhex.runtime.components.Variable;
 
-public class JavaVariable extends Variable{
+public class JavaStaticVariable extends Variable{
 
-  public JavaVariable(Set<Descriptor> descriptors, Type type, String name) {
-    super(descriptors, type, name);
-    // TODO Auto-generated constructor stub
+  private final Field field;
+  
+  public JavaStaticVariable(Set<Descriptor> descriptors, Field field) {
+    super(descriptors, TypeUtils.formType(field.getType()), field.getName());
+    if (descriptors.contains(Descriptor.STATIC) == false) {
+      throw new IllegalArgumentException("Field must be static.");
+    }
+    this.field = field;
   }
 
   @Override

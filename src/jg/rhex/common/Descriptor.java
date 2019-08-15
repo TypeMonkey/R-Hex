@@ -1,5 +1,9 @@
 package jg.rhex.common;
 
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
+
 import jg.rhex.compile.components.expr.GramPracConstants;
 
 public enum Descriptor {
@@ -35,5 +39,31 @@ public enum Descriptor {
     default:
       return null;
     }
+  }
+  
+  public static Set<Descriptor> translateModifiers(int javaModifiers){
+    HashSet<Descriptor> descriptors = new HashSet<>();
+    if (Modifier.isStatic(javaModifiers)) {
+      descriptors.add(STATIC);
+    }
+    if (Modifier.isAbstract(javaModifiers)) {
+      descriptors.add(ABSTRACT);
+    }
+    if (Modifier.isFinal(javaModifiers)) {
+      descriptors.add(FINAL);
+    }
+    if (Modifier.isPublic(javaModifiers)) {
+      descriptors.add(PUBLIC);
+    }
+    if (Modifier.isPrivate(javaModifiers)) {
+      descriptors.add(PRIVATE);
+    }
+    if (Modifier.isSynchronized(javaModifiers)) {
+      descriptors.add(SYNCH);
+    }
+    if (Modifier.isVolatile(javaModifiers)) {
+      descriptors.add(VOLATILE);
+    }
+    return descriptors;
   }
 }

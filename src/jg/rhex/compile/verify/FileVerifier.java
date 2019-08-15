@@ -299,41 +299,14 @@ public class FileVerifier {
   }
   
   private Type retrieveType(TType proType){
-    Type concreteType = null;
-
-    if (TypeUtils.isPrimitive(proType.getBaseString())) {
-      concreteType = TypeUtils.PRIMITIVE_TYPES.get(proType.getBaseString());
-    }
-    else if (TypeUtils.isVoid(proType.getBaseString())) {
-      concreteType = Type.VOID_TYPE;
-    }
-    else if (proType.getBaseString().contains(".")) {
-      //full type name provided
-      String [] split = proType.getBaseString().split("\\.");
-      concreteType = new Type(split[split.length - 1], proType.getBaseString());
-
-      if (!typeStore.confirmExistanceOfType(concreteType)) {
-        throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
-      }
+    Type concreteType = typeStore.retrieveType(proType);
+    
+    if (concreteType == null) {
+      throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
     }
     else {
-      //only simple name provided
-      String potential = typeStore.getFullName(proType.getBaseString());
-      if (potential == null) {
-        throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
-      }
-      
-      concreteType = new Type(proType.getBaseString(), potential);
-      if (!typeStore.confirmExistanceOfType(concreteType)) {
-        throw new UnfoundTypeException(proType.getBaseType().get(0).getToken(), proType.getBaseString(), rhexFile.getFileName());
-      }
+      return concreteType;
     }
-    
-    if (proType.getArrayDimensions() > 0) {
-      concreteType = new ArrayType(proType.getArrayDimensions(), concreteType);
-    }
-    
-    return concreteType;
   }
   
   private static class FunctionTuple{

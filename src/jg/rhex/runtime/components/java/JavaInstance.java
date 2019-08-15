@@ -8,9 +8,27 @@ import jg.rhex.runtime.components.Variable;
 
 public class JavaInstance extends Instance{
 
-  public JavaInstance(GenClass backingType, Map<String, Variable> variableScope) {
-    super(backingType, variableScope);
-    // TODO Auto-generated constructor stub
+  private final Object object;
+  
+  public JavaInstance(JavaClass backingType, Object object) {
+    super(backingType, null);
+    this.object = object;
   }
 
+  public Object getInstance() {
+    return object;
+  }
+  
+  public static JavaInstance[] allJavaInstances(Instance ... instances) {
+    JavaInstance [] javaInstances = new JavaInstance[instances.length];
+    for (int i = 0; i < javaInstances.length; i++) {
+      if (instances[i] instanceof JavaInstance) {
+        javaInstances[i] = (JavaInstance) instances[i];
+      }
+      else {
+        return null;
+      }
+    }
+    return javaInstances;
+  }
 }

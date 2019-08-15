@@ -8,11 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jg.rhex.common.ArrayType;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.UseDeclaration;
+import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.verify.errors.UnfoundTypeException;
 
 public class TypeStore {
 
@@ -34,6 +38,44 @@ public class TypeStore {
     packageTypes = new HashMap<>();
 
     loadAllClasses(rhexFile);
+  }
+  
+  public Type retrieveType(TType proType){
+    Type concreteType = null;
+
+    if (TypeUtils.isPrimitive(proType.getBaseString())) {
+      concreteType = TypeUtils.PRIMITIVE_TYPES.get(proType.getBaseString());
+    }
+    else if (TypeUtils.isVoid(proType.getBaseString())) {
+      concreteType = Type.VOID_TYPE;
+    }
+    else if (proType.getBaseString().contains(".")) {
+      //full type name provided
+      String [] split = proType.getBaseString().split("\\.");
+      concreteType = new Type(split[split.length - 1], proType.getBaseString());
+
+      if (!confirmExistanceOfType(concreteType)) {
+        return null;
+      }
+    }
+    else {
+      //only simple name provided
+      String potential = getFullName(proType.getBaseString());
+      if (potential == null) {
+        return null;
+      }
+      
+      concreteType = new Type(proType.getBaseString(), potential);
+      if (!confirmExistanceOfType(concreteType)) {
+        return null;
+      }
+    }
+    
+    if (proType.getArrayDimensions() > 0) {
+      concreteType = new ArrayType(proType.getArrayDimensions(), concreteType);
+    }
+    
+    return concreteType;
   }
 
   /**

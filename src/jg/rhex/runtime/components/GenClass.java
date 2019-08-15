@@ -11,18 +11,21 @@ import jg.rhex.common.Type;
 public abstract class GenClass {
 
   private final Type typeInfo;
-  private final Set<Type> parents;
+  private final Set<GenClass> parents;
+  private final boolean isInterface;
   
   protected Map<FunctionSignature, Constructor> constructorMap;
   protected Map<FunctionSignature, Function> functionMap;
   protected Map<String, Variable> variableMap;
   
-  public GenClass(Type typeInfo, Set<Type> parents, 
+  public GenClass(Type typeInfo, Set<GenClass> parents, 
       Map<FunctionSignature, Function> funMap, 
       Map<FunctionSignature, Constructor> consMap, 
-      Map<String, Variable> varMap){
+      Map<String, Variable> varMap,
+      boolean isInterface){
     this.typeInfo = typeInfo;
     this.parents = parents;
+    this.isInterface = isInterface;
     
     functionMap = funMap;
     constructorMap = consMap;
@@ -78,7 +81,11 @@ public abstract class GenClass {
     return variableMap;
   } 
   
-  public Set<Type> getParents(){
+  public boolean isInterface() {
+    return isInterface;
+  }
+  
+  public Set<GenClass> getSuperTypes(){
     return parents;
   }  
 }
