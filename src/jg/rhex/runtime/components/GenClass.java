@@ -11,20 +11,22 @@ import jg.rhex.common.Type;
 public abstract class GenClass {
 
   private final Type typeInfo;
-  private final Set<GenClass> parents;
+  private final GenClass parent;
+  private final Set<? extends GenClass> interfaces;
   private final boolean isInterface;
   
   protected Map<FunctionSignature, Constructor> constructorMap;
   protected Map<FunctionSignature, Function> functionMap;
   protected Map<String, Variable> variableMap;
   
-  public GenClass(Type typeInfo, Set<GenClass> parents, 
+  public GenClass(Type typeInfo, GenClass parent, Set<? extends GenClass> interfaces, 
       Map<FunctionSignature, Function> funMap, 
       Map<FunctionSignature, Constructor> consMap, 
       Map<String, Variable> varMap,
       boolean isInterface){
     this.typeInfo = typeInfo;
-    this.parents = parents;
+    this.parent = parent;
+    this.interfaces = interfaces;
     this.isInterface = isInterface;
     
     functionMap = funMap;
@@ -50,17 +52,22 @@ public abstract class GenClass {
    * Checks if this GenClass is a child of the provided type
    * @param type - the potential parent type
    * @return true if type is a paren of this GenClas, false if else
-   */
+   
   public boolean isAChildOf(Type type){
     return parents.contains(type);
   }
+  */
   
   public Constructor retrieveConstructor(FunctionSignature signature){
     return constructorMap.get(signature);
   } 
 
   public Function retrieveFunction(FunctionSignature signature){
-    return functionMap.get(signature);
+    Function function = functionMap.get(signature);
+    if (function == null && parent != null) {
+      function = parent.retrieveFunction(signature);
+    }
+    return function;
   }
   
   public Variable retrieveVariable(String name){
@@ -85,7 +92,11 @@ public abstract class GenClass {
     return isInterface;
   }
   
-  public Set<GenClass> getSuperTypes(){
-    return parents;
+  public Set<? extends GenClass> getInterfaces(){
+    return interfaces;
+  }
+  
+  public GenClass getParent(){
+    return parent;
   }  
 }

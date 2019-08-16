@@ -3,6 +3,7 @@ package jg.rhex.runtime.components.java;
 import java.lang.reflect.InvocationTargetException;
 
 import jg.rhex.common.FunctionSignature;
+import jg.rhex.common.Type;
 import jg.rhex.runtime.components.Constructor;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Instance;
@@ -12,8 +13,8 @@ public class JavaConstructor extends Constructor{
 
   private final java.lang.reflect.Constructor<?> constructor;
   
-  public JavaConstructor(JavaClass hostClass, FunctionSignature signature, java.lang.reflect.Constructor<?> constructor) {
-    super(hostClass, signature);
+  public JavaConstructor(Type hostType, FunctionSignature signature, java.lang.reflect.Constructor<?> constructor) {
+    super(hostType, signature);
     this.constructor = constructor;
   }
 

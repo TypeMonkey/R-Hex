@@ -16,7 +16,12 @@ public abstract class Instance {
   }
 
   public Variable getVariable(String name){
-    return variableScope.get(name);
+    Variable variable = variableScope.get(name);
+    if (variable == null) {
+      variable = variableScope.get("super");
+      variable = variable.getValue().getVariable(name);
+    }
+    return variable;
   }
   
   public GenClass getBackingClass() {

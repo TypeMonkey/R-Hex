@@ -23,12 +23,12 @@ public class JavaClass extends GenClass{
   
   private static final Map<Class<?>, JavaClass> loadedClasses = new HashMap<>();
 
-  private JavaClass(Type typeInfo, Set<GenClass> parents, 
+  protected JavaClass(Type typeInfo, JavaClass parent, Set<JavaClass> interfaces, 
       Map<FunctionSignature, Function> funcMap, 
       Map<FunctionSignature, Constructor> constructors, 
       Map<String, Variable> varMap,
       boolean isInterface) {
-    super(typeInfo, parents, funcMap, constructors, varMap, isInterface);
+    super(typeInfo, parent,  interfaces, funcMap, constructors, varMap, isInterface);
   }
 
   @Override
@@ -37,12 +37,14 @@ public class JavaClass extends GenClass{
     return null;
   }
 
-  public static JavaClass getJavaClassRep(Class<?> target, RhexCompiler compiler){
+  public static JavaClass getJavaClassRep(Class<?> target){
     if (loadedClasses.containsKey(target)) {
       return loadedClasses.get(loadedClasses);
     }
     else {
-      Type targetType = TypeUtils.formType(target);    
+      Type targetType = TypeUtils.formType(target);   
+      
+      JavaClass parent = null;
       HashSet<Type> parents = new HashSet<>();
       
       HashMap<FunctionSignature, Function> methods = new HashMap<>();

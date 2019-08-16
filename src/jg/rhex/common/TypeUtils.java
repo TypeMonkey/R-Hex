@@ -41,7 +41,13 @@ public final class TypeUtils {
     String [] totalName = javaClass.getCanonicalName().split("\\[]",-1);
     String [] baseTypeSplit = totalName[0].split("\\.");
     if (totalName.length - 1 >= 1) {
-      return new ArrayType(totalName.length - 1, new Type(baseTypeSplit[baseTypeSplit.length - 1], totalName[0]));
+      Type base = PRIMITIVE_TYPES.get(baseTypeSplit[baseTypeSplit.length - 1]);
+      if (base == null) {
+        return new ArrayType(totalName.length - 1, new Type(baseTypeSplit[baseTypeSplit.length - 1], totalName[0]));
+      }
+      else {
+        return new ArrayType(totalName.length - 1, base);
+      }
     }
     return new Type(javaClass.getSimpleName(), javaClass.getName());
   }

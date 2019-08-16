@@ -15,8 +15,8 @@ public class RhexClass extends GenClass{
   
   private final RClass original;
 
-  public RhexClass(Type typeInfo, Set<GenClass> parents, RClass original) {
-    super(typeInfo, parents, new HashMap<>(), new HashMap<>(), new LinkedHashMap<>(), original.isAnInterface());
+  public RhexClass(Type typeInfo, GenClass parent, Set<GenClass> parents, RClass original) {
+    super(typeInfo, parent, parents, new HashMap<>(), new HashMap<>(), new LinkedHashMap<>(), original.isAnInterface());
     this.original = original;
   }
   

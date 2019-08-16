@@ -13,14 +13,9 @@ public abstract class Function {
   private final FunctionIdentity identity;
   private final boolean isConstructor;
   
-  public Function(FunctionIdentity identity) {
+  public Function(FunctionIdentity identity, boolean isConstructor) {
     this.identity = identity;
-    isConstructor = false;
-  }
-  
-  public Function(FunctionSignature signature, GenClass hostClass) {
-    this.identity = new FunctionIdentity(signature, hostClass.getTypeInfo());    
-    isConstructor = true;
+    this.isConstructor = isConstructor;
   }
   
   /**
