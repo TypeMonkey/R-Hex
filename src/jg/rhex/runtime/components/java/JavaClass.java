@@ -27,8 +27,9 @@ public class JavaClass extends GenClass{
       Map<FunctionSignature, Function> funcMap, 
       Map<FunctionSignature, Constructor> constructors, 
       Map<String, Variable> varMap,
+      Set<Descriptor> descriptors,
       boolean isInterface) {
-    super(typeInfo, parent, interfaces, funcMap, constructors, varMap, isInterface);
+    super(typeInfo, parent, interfaces, funcMap, constructors, varMap, descriptors, isInterface);
   }
 
   @Override
@@ -67,7 +68,7 @@ public class JavaClass extends GenClass{
       }
       
       JavaClass javaClass = new JavaClass(targetType, parent, interfaces, 
-          methods, constructors, varMap, target.isInterface());
+          methods, constructors, varMap, Descriptor.translateModifiers(target.getModifiers()), target.isInterface());
       
       //add class variables
       for (Field field : target.getFields()) {
@@ -105,6 +106,8 @@ public class JavaClass extends GenClass{
         
         methods.put(methodSig, new JavaMethod(methodIdentity, method));
       }
+      
+      loadedClasses.put(target, javaClass);
       
       return javaClass;
     }

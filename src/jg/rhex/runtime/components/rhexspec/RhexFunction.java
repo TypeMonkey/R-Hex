@@ -11,7 +11,7 @@ public class RhexFunction extends Function{
   private final RFunc original;
   
   public RhexFunction(FunctionIdentity identity, RFunc original) {
-    super(identity);
+    super(identity, original.getDescriptors());
     this.original = original;
   }
   

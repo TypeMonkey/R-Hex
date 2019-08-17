@@ -12,6 +12,7 @@ import jg.rhex.compile.components.ExpectedConstants;
 import jg.rhex.compile.components.errors.FormationException;
 import jg.rhex.compile.components.errors.RepeatedStructureException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
+import jg.rhex.compile.components.errors.RhexConstructionException;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.expr.GramPracTokenizer;
 import jg.rhex.compile.components.structs.FunctionInfo;
@@ -202,6 +203,9 @@ public final class ClassParser {
           else {
             //parse as function
             RFunc func = FunctionParser.parseFunctionHeader(true, unknownSequence.listIterator(), fileName);
+            if (container.isAnInterface() && !func.getDescriptors().contains(Descriptor.ABSTRACT)) {
+              throw new RhexConstructionException("Cannot have non-abstract methods in an interface, at <ln:"+func.getName().getStartLine()+">", fileName);
+            }
             source.previous(); //roll back main source for body parsing
             StatementParser.parseBlock(func.getBody(), source, fileName);
             container.addMethod(func);

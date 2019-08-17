@@ -16,6 +16,8 @@ import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.errors.SimilarFunctionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.runtime.components.rhexspec.RhexClass;
+import jg.rhex.runtime.components.rhexspec.RhexConstructor;
+import jg.rhex.runtime.components.rhexspec.RhexFunction;
 import jg.rhex.runtime.components.rhexspec.RhexVariable;
 
 /**
@@ -105,11 +107,17 @@ public class ClassExtractor {
           throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
         }
 
+        classTemplate.placeFunction(new RhexFunction(identity, rFunc));
+        
         System.out.println("**IDENTITY - CLASS "+rawClass.getName().getImage()+" : "+identity);
       }
       else {
         identity = formConstructorIdentity(rFunc, classTemplate.getTypeInfo());
+        
+        classTemplate.placeConstructor(new RhexConstructor(classTemplate, identity.getFuncSig(), rFunc));
       }
+      
+      System.out.println("<<<<<< PLACED: "+identity.getFuncSig()+"  |  HOST: "+classTemplate.getTypeInfo());
     }
 
     return classTemplate;

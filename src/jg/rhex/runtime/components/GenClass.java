@@ -1,10 +1,12 @@
 package jg.rhex.runtime.components;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 
@@ -12,6 +14,7 @@ public abstract class GenClass {
 
   private final Type typeInfo;
   private final boolean isInterface;
+  private final Set<Descriptor> descriptors;
   
   protected GenClass parent;
   protected Set<GenClass> interfaces;
@@ -24,11 +27,13 @@ public abstract class GenClass {
       Map<FunctionSignature, Function> funMap, 
       Map<FunctionSignature, Constructor> consMap, 
       Map<String, Variable> varMap,
+      Set<Descriptor> descriptors,
       boolean isInterface){
     this.typeInfo = typeInfo;
     this.parent = parent;
     this.interfaces = interfaces;
     this.isInterface = isInterface;
+    this.descriptors = descriptors;
     
     functionMap = funMap;
     constructorMap = consMap;
@@ -87,7 +92,7 @@ public abstract class GenClass {
   }
   
   public abstract Map<String, Variable> cloneVariableMap();
-
+  
   public Map<FunctionSignature, Function> getFunctionMap() {
     return functionMap;
   }
@@ -100,8 +105,12 @@ public abstract class GenClass {
     return isInterface;
   }
   
-  public Set<? extends GenClass> getInterfaces(){
+  public Set<GenClass> getInterfaces(){
     return interfaces;
+  }
+  
+  public Set<Descriptor> getDescriptors(){
+    return descriptors;
   }
   
   public GenClass getParent(){
@@ -110,5 +119,9 @@ public abstract class GenClass {
   
   public String toString() {
     return "Class: "+typeInfo;
+  }
+  
+  public static Set<FunctionSignature> getAllInstanceMethods(GenClass genClass){
+    HashSet<>
   }
 }

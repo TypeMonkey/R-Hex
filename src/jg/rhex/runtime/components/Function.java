@@ -1,5 +1,8 @@
 package jg.rhex.runtime.components;
 
+import java.util.Set;
+
+import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 
@@ -12,8 +15,11 @@ public abstract class Function {
 
   private final FunctionIdentity identity;
   
-  public Function(FunctionIdentity identity) {
+  private final Set<Descriptor> descriptors;
+  
+  public Function(FunctionIdentity identity, Set<Descriptor> descriptors) {
     this.identity = identity;
+    this.descriptors = descriptors;
   }
   
   /**
@@ -45,6 +51,10 @@ public abstract class Function {
   
   public FunctionSignature getSignature(){
     return identity.getFuncSig();
+  }
+  
+  public Set<Descriptor> getDescriptors(){
+    return descriptors;
   }
   
   public FunctionIdentity getIdentity() {

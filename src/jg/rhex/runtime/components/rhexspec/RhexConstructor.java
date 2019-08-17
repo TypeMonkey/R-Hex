@@ -12,7 +12,7 @@ public class RhexConstructor extends Constructor{
   private final RFunc original;
   
   public RhexConstructor(RhexClass hostClass, FunctionSignature signature, RFunc original) {
-    super(hostClass, signature);
+    super(hostClass, signature, original.getDescriptors());
     this.original = original;
   }
 
