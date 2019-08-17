@@ -43,10 +43,10 @@ public class FunctionStructureVerifier {
   
   private RhexCompiler compiler;
   private RhexFile hostFile;
-  private TypeStore store;
+  private NameResolver store;
   private RhexFunction function;
   
-  public FunctionStructureVerifier(TypeStore store, RhexCompiler compiler,  RhexFile hostFile, RhexFunction function) {
+  public FunctionStructureVerifier(NameResolver store, RhexCompiler compiler,  RhexFile hostFile, RhexFunction function) {
     this.compiler = compiler;
     this.hostFile = hostFile;
     this.store = store;

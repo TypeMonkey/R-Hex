@@ -3,6 +3,9 @@ package jg.rhex.compile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,11 +14,18 @@ import java.util.Set;
 
 import com.google.common.io.Files;
 
+import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.components.FileBuilder;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
-import jg.rhex.compile.verify.FileVerifier;
-import jg.rhex.compile.verify.UseableType;
+import jg.rhex.compile.components.tnodes.atoms.TType;
+import jg.rhex.compile.verify.ClassExtractor;
+import jg.rhex.compile.verify.errors.RedundantExtensionException;
+import jg.rhex.compile.verify.errors.UnfoundTypeException;
+import jg.rhex.runtime.components.GenClass;
+import jg.rhex.runtime.components.java.JavaClass;
+import jg.rhex.runtime.components.rhexspec.RhexClass;
 
 /**
  * Represents the front-end of the core Rhex compiler
@@ -58,7 +68,6 @@ public class RhexCompiler {
   //private Map<String, Class<?>> javaStandard; //the String keys are full binary names of the classes
 
   private Map<String, RFile> rhexFiles;
-  private Map<String, UseableType> compiledTypes;
   private Map<String, Set<RFile>> packages;
   
   private Status currentStatus;
@@ -73,7 +82,6 @@ public class RhexCompiler {
   public RhexCompiler(String ... files){
     rhexFiles = new HashMap<>();
     packages = new HashMap<>();
-    compiledTypes = new HashMap<>();
     currentStatus = Status.NONE;
     providedFiles = files;
   }
@@ -131,7 +139,7 @@ public class RhexCompiler {
   /**
    * Forms the source files
    */
-  public void formSourceFiles(){
+  public void formSourceFiles(){    
     for(String currentPath : providedFiles){
       if (Files.getFileExtension(currentPath).equals("rhex")) {
         File sourceFile = new File(currentPath);
@@ -177,7 +185,6 @@ public class RhexCompiler {
           // And the code above enforces file name uniqueness package-local (no two files in a package
           // has the same name).
           
-          compiledTypes.put(classBinName, new UseableType(rClass, rhexFile));
           if (rhexFiles.containsKey(classBinName)) {
             /*
              * What about class name and file name conflict (binary names)?
@@ -207,11 +214,58 @@ public class RhexCompiler {
   /**
    * Verifies and checks the source files
    */
-  public void verifySources(){
+  public void verifySources(){    
+    HashMap<Type, RhexClass> classTemplates = new HashMap<>();
+    
+    //collect all classes from all files
     for (RFile sourceFile : rhexFiles.values()) {
-      FileVerifier verifier = new FileVerifier(sourceFile, this);
-      verifier.verify();
+      ClassExtractor verifier = new ClassExtractor(sourceFile, this);
+      Map<Type, RhexClass> templates = verifier.extract();
+      classTemplates.putAll(templates);
     }
+    
+    //attach GenClasses to super types
+    for(RhexClass rhexClass : classTemplates.values()) {      
+      //get parent, then interfaces
+      List<TType> allSupersTypes = rhexClass.getOriginal().getSuperTypes();
+      if (allSupersTypes.size() == 0) {
+        rhexClass.setParent(JavaClass.getJavaClassRep(Object.class));
+      }
+      else {
+        for(int i = 0; i <  allSupersTypes.size(); i++) {
+          GenClass otherSuper = classTemplates.get(allSupersTypes.get(i).getAttachedType());
+          if (otherSuper == null) {
+            try {
+              otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
+            } catch (ClassNotFoundException e) {
+              throw new UnfoundTypeException(allSupersTypes.get(i).getBaseType().get(0).getToken(),
+                  allSupersTypes.get(i).getBaseString(), 
+                  TypeUtils.getHostFileName(allSupersTypes.get(i).getAttachedType()));
+            }
+          }
+          
+          if (i > 0) {
+            if (otherSuper.isInterface()) {
+              rhexClass.addInterface(otherSuper);
+            }
+            else {
+              throw new RuntimeException("The type '"+otherSuper.getTypeInfo()+"' isn't an interface");
+            }
+          }
+          else {
+            rhexClass.setParent(otherSuper);
+          }
+        }
+      }
+    }
+    
+    //check that inheritance is followed
+    /*
+     * Check for circular inheritance (not allowed)
+     * Make sure all interface methods are implemented by decendants
+     *  ^same as a bove, but for abstract classes
+     *  
+     */
     
     currentStatus = Status.VERIFICATION;
   }
@@ -226,30 +280,12 @@ public class RhexCompiler {
   }
   
   /**
-   * Retrieves the RClass with the given name
-   * @param clasSName - the binary name of the RClass to retrieve
-   * @return the corresponding RClass, or null if no such RClass exist
-   */
-  public UseableType retrieveClass(String className){
-    return compiledTypes.get(className);
-  }
-  
-  /**
    * Retrieves all RFiles grouped in the same package
    * @param packName - the package name (full binary name)
    * @return a Set of RFiles in the same package
    */
   public Set<RFile> getPackageFiles(String packName){
     return packages.get(packName);
-  }
-  
-  public UseableType findJavaClass(String fullJavaName){
-    try {
-      Class<?> cl = Class.forName(fullJavaName);
-      return new UseableType(cl);
-    } catch (ClassNotFoundException e) {
-      return null;
-    }
   }
   
   /**
@@ -274,10 +310,6 @@ public class RhexCompiler {
   
   public Map<String, RFile> getSources(){
     return rhexFiles;
-  }
-  
-  public Map<String, UseableType> getRhexTypes(){
-    return compiledTypes;
   }
   
   public Status getCurrentStatus() {

@@ -23,12 +23,12 @@ public class JavaClass extends GenClass{
   
   private static final Map<Class<?>, JavaClass> loadedClasses = new HashMap<>();
 
-  protected JavaClass(Type typeInfo, JavaClass parent, Set<JavaClass> interfaces, 
+  protected JavaClass(Type typeInfo, JavaClass parent, Set<GenClass> interfaces, 
       Map<FunctionSignature, Function> funcMap, 
       Map<FunctionSignature, Constructor> constructors, 
       Map<String, Variable> varMap,
       boolean isInterface) {
-    super(typeInfo, parent,  interfaces, funcMap, constructors, varMap, isInterface);
+    super(typeInfo, parent, interfaces, funcMap, constructors, varMap, isInterface);
   }
 
   @Override
@@ -36,32 +36,38 @@ public class JavaClass extends GenClass{
     
     return null;
   }
+  
+  public static JavaClass getJavaClassRep(String fullName) throws ClassNotFoundException{
+    return getJavaClassRep(Class.forName(fullName));
+  }
 
   public static JavaClass getJavaClassRep(Class<?> target){
     if (loadedClasses.containsKey(target)) {
-      return loadedClasses.get(loadedClasses);
+      return loadedClasses.get(target);
     }
     else {
       Type targetType = TypeUtils.formType(target);   
       
       JavaClass parent = null;
-      HashSet<Type> parents = new HashSet<>();
+      HashSet<GenClass> interfaces = new HashSet<>();
       
       HashMap<FunctionSignature, Function> methods = new HashMap<>();
       HashMap<FunctionSignature, Constructor> constructors = new HashMap<>();
       HashMap<String, Variable> varMap = new HashMap<>();
       
-      JavaClass javaClass = new JavaClass(targetType, parents, methods, constructors, varMap);
       
       //add super type (start with parent)
       if (target.getSuperclass() != null) {
-        parents.add(TypeUtils.formType(target.getSuperclass()));
+        parent = getJavaClassRep(target.getSuperclass());
       }
       
       //add interface types
-      for(Class<?> interfaces : target.getInterfaces()) {
-        parents.add(TypeUtils.formType(interfaces));
+      for(Class<?> inters : target.getInterfaces()) {
+        interfaces.add(getJavaClassRep(inters));
       }
+      
+      JavaClass javaClass = new JavaClass(targetType, parent, interfaces, 
+          methods, constructors, varMap, target.isInterface());
       
       //add class variables
       for (Field field : target.getFields()) {
@@ -81,6 +87,7 @@ public class JavaClass extends GenClass{
         }
         
         FunctionSignature signature = new FunctionSignature(targetType.getSimpleName(), params);
+
         JavaConstructor javaConstructor = new JavaConstructor(javaClass, signature, constructor);
         
         constructors.put(signature, javaConstructor); 

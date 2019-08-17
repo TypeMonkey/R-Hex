@@ -11,15 +11,16 @@ import jg.rhex.common.Type;
 public abstract class GenClass {
 
   private final Type typeInfo;
-  private final GenClass parent;
-  private final Set<? extends GenClass> interfaces;
   private final boolean isInterface;
+  
+  protected GenClass parent;
+  protected Set<GenClass> interfaces;
   
   protected Map<FunctionSignature, Constructor> constructorMap;
   protected Map<FunctionSignature, Function> functionMap;
   protected Map<String, Variable> variableMap;
   
-  public GenClass(Type typeInfo, GenClass parent, Set<? extends GenClass> interfaces, 
+  public GenClass(Type typeInfo, GenClass parent, Set<GenClass> interfaces, 
       Map<FunctionSignature, Function> funMap, 
       Map<FunctionSignature, Constructor> consMap, 
       Map<String, Variable> varMap,
@@ -52,11 +53,18 @@ public abstract class GenClass {
    * Checks if this GenClass is a child of the provided type
    * @param type - the potential parent type
    * @return true if type is a paren of this GenClas, false if else
-   
-  public boolean isAChildOf(Type type){
-    return parents.contains(type);
+   **/
+  public boolean decendsFrom(GenClass ancestor){
+    if (equals(ancestor) || parent.equals(ancestor) || parent.decendsFrom(ancestor)) {
+      for(GenClass inter : interfaces) {
+        if (!inter.decendsFrom(ancestor)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
-  */
   
   public Constructor retrieveConstructor(FunctionSignature signature){
     return constructorMap.get(signature);
@@ -99,4 +107,8 @@ public abstract class GenClass {
   public GenClass getParent(){
     return parent;
   }  
+  
+  public String toString() {
+    return "Class: "+typeInfo;
+  }
 }

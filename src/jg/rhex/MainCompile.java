@@ -34,10 +34,6 @@ public class MainCompile {
     compiler.formSourceFiles();
     System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     
-    for (String string : compiler.getRhexTypes().keySet()) {
-      System.out.println("  NAME? "+string);
-    }
-    
     System.out.println("-------VERIFYING--------");
     compiler.verifySources();
     

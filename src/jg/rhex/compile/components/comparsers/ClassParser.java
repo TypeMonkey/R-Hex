@@ -106,7 +106,6 @@ public final class ClassParser {
         }
         else if (current.getId() == GramPracConstants.COLON) {         
           //parse first type name (Assume as super)
-          iterator.next(); //advance iterator          
           extensions.add(TypeParser.parseType(iterator, fileName));
           
           expected.replace(GramPracConstants.COMMA, GramPracConstants.OP_CU_BRACK);

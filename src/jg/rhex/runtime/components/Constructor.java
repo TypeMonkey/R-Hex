@@ -6,8 +6,11 @@ import jg.rhex.common.Type;
 
 public abstract class Constructor extends Function{
   
-  public Constructor(Type hostType, FunctionSignature signature) {
-    super(new FunctionIdentity(signature, hostType), true);
+  private final GenClass hostClass;
+  
+  public Constructor(GenClass hostClass, FunctionSignature signature) {
+    super(new FunctionIdentity(signature, hostClass.getTypeInfo()));
+    this.hostClass = hostClass;
   }
   
   public abstract Instance createInstance(SymbolTable table, Instance ... parameters);
@@ -17,4 +20,7 @@ public abstract class Constructor extends Function{
     return createInstance(table, parameters);  
   }
   
+  public GenClass getHostClass() {
+    return hostClass;
+  }
 }

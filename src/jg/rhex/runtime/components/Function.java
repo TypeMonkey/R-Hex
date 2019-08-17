@@ -11,11 +11,9 @@ import jg.rhex.common.FunctionSignature;
 public abstract class Function {
 
   private final FunctionIdentity identity;
-  private final boolean isConstructor;
   
-  public Function(FunctionIdentity identity, boolean isConstructor) {
+  public Function(FunctionIdentity identity) {
     this.identity = identity;
-    this.isConstructor = isConstructor;
   }
   
   /**
@@ -27,7 +25,7 @@ public abstract class Function {
    * @return the function's output, or null if the function returns no output (void), or the function 
    *         intentionally returned null. 
    */
-  public abstract Instance eval(SymbolTable table, Instance instance,  Instance ... parameters);
+  public abstract Instance eval(SymbolTable table, Instance instance, Instance ... parameters);
   
   public boolean equals(Object object){
     if (object instanceof Function) {
@@ -39,10 +37,6 @@ public abstract class Function {
   
   public int hashCode(){
     return identity.getFuncSig().hashCode();
-  }
-  
-  public boolean isAConstructor(){
-    return isConstructor;
   }
 
   public String getName(){

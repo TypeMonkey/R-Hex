@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jg.rhex.common.ArrayType;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.UseDeclaration;
+import jg.rhex.compile.components.tnodes.atoms.TType;
 
 /**
  * Resolves the names of type names to realized, full binary names
@@ -39,6 +42,38 @@ public class NameResolver {
     packageTypes = new HashMap<>();
 
     loadAllClasses(rhexFile);
+  }
+  
+  public Type retrieveType(TType proType){
+    Type concreteType = null;
+
+    if (TypeUtils.isPrimitive(proType.getBaseString())) {
+      concreteType = TypeUtils.PRIMITIVE_TYPES.get(proType.getBaseString());
+    }
+    else if (TypeUtils.isVoid(proType.getBaseString())) {
+      concreteType = Type.VOID_TYPE;
+    }
+    else if (proType.getBaseString().contains(".")) {
+      //full type name provided
+      String [] split = proType.getBaseString().split("\\.");
+      concreteType = new Type(split[split.length - 1], proType.getBaseString());
+
+    }
+    else {
+      //only simple name provided
+      String potential = getFullName(proType.getBaseString());
+      if (potential == null) {
+        return null;
+      }
+      
+      concreteType = new Type(proType.getBaseString(), potential);
+    }
+    
+    if (proType.getArrayDimensions() > 0) {
+      concreteType = new ArrayType(proType.getArrayDimensions(), concreteType);
+    }
+    
+    return concreteType;
   }
 
   /**
@@ -74,10 +109,7 @@ public class NameResolver {
    */
   public String queryJavaLang(String simpleName){
     final String JAVA_LANG_PREFIX = "java.lang.";
-    if (compiler.javaLangClassExists(JAVA_LANG_PREFIX+simpleName)) {
-      return JAVA_LANG_PREFIX+simpleName;
-    }
-    return null;
+    return JAVA_LANG_PREFIX+simpleName;
   }
   
   /**
@@ -173,11 +205,6 @@ public class NameResolver {
     }
   }
   
-  public boolean confirmExistanceOfType(Type type) {
-    return compiler.rhexClassExists(type.getFullName())  || 
-        compiler.javaLangClassExists(type.getFullName());
-  }
-
   public Map<String, String> getLocalTypes() {
     return localTypes;
   }

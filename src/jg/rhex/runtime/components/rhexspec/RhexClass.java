@@ -1,9 +1,8 @@
 package jg.rhex.runtime.components.rhexspec;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import jg.rhex.common.Descriptor;
 import jg.rhex.common.Type;
@@ -15,9 +14,17 @@ public class RhexClass extends GenClass{
   
   private final RClass original;
 
-  public RhexClass(Type typeInfo, GenClass parent, Set<GenClass> parents, RClass original) {
-    super(typeInfo, parent, parents, new HashMap<>(), new HashMap<>(), new LinkedHashMap<>(), original.isAnInterface());
+  public RhexClass(Type typeInfo, RClass original) {
+    super(typeInfo, null, new HashSet<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), original.isAnInterface());
     this.original = original;
+  }
+  
+  public void setParent(GenClass parent) {
+    this.parent = parent;
+  }
+  
+  public boolean addInterface(GenClass inter) {
+    return interfaces.add(inter);
   }
   
   public void placeConstructor(RhexConstructor constructor){

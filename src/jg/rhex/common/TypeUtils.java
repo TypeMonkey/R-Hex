@@ -37,6 +37,11 @@ public final class TypeUtils {
     return Type.VOID_TYPE.equals(type);
   }
   
+  public static String getHostFileName(Type type) {
+    String [] split = type.getFullName().split("\\.");
+    return split[split.length - 2];
+  }
+  
   public static Type formType(Class<?> javaClass){
     String [] totalName = javaClass.getCanonicalName().split("\\[]",-1);
     String [] baseTypeSplit = totalName[0].split("\\.");

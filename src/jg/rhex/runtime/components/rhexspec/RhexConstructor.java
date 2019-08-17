@@ -16,13 +16,9 @@ public class RhexConstructor extends Constructor{
     this.original = original;
   }
 
- 
-
   public RFunc getOriginal(){
     return original;
   }
-
-
 
   @Override
   public Instance createInstance(SymbolTable table, Instance... parameters) {

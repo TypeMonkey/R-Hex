@@ -30,13 +30,14 @@ public class JavaStaticVariable extends Variable{
   @Override
   public Instance getValue() {
     // TODO Auto-generated method stub
-    return null;
+    return field.get(null);
   }
 
   @Override
   public void setValue(Instance instance) {
-    // TODO Auto-generated method stub
-    
+    if (getDescriptors().contains(Descriptor.FINAL)) {
+      throw new RuntimeException("Cannot change final static variable '"+getName()+"'");
+    }
   }
 
 }
