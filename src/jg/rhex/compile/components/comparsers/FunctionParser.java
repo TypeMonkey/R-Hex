@@ -84,7 +84,7 @@ public final class FunctionParser {
         }
         else if (current.getId() == GramPracConstants.ABSTRACT || current.getId() == GramPracConstants.FINAL) {
           //should only be valid for class function
-          if (function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
+          if (!function.addDescriptor(Descriptor.getEnumEquivalent(current.getId()))) {
             throw FormationException.createException("Function", current, expected, fileName);
           }
           expected.replace(GramPracConstants.VOID, GramPracConstants.NAME);
@@ -186,8 +186,11 @@ public final class FunctionParser {
         }
         else if (current.getId() == GramPracConstants.CL_PAREN) {
           expected.replace(GramPracConstants.THROWS, GramPracConstants.OP_CU_BRACK);
+          if (isClassFunc) {
+            expected.add(GramPracConstants.SEMICOLON);
+          }
         }
-        else if (current.getId() == GramPracConstants.OP_CU_BRACK) {
+        else if (current.getId() == GramPracConstants.OP_CU_BRACK || current.getId() == GramPracConstants.SEMICOLON) {
           iterator.previous();
           expected.clear();
           break;
@@ -198,12 +201,15 @@ public final class FunctionParser {
           
           ExpectedSet throwExpected = new ExpectedSet(GramPracConstants.COMMA, 
                                                       GramPracConstants.OP_CU_BRACK);
+          if (isClassFunc) {
+            throwExpected.add(GramPracConstants.SEMICOLON);
+          }
           
           while (iterator.hasNext()) {
             Token nextToken = iterator.next();
             throwExpected.noContainsThrow(nextToken, "Function", fileName);
 
-            if (nextToken.getId() == GramPracConstants.OP_CU_BRACK) {
+            if (nextToken.getId() == GramPracConstants.OP_CU_BRACK || nextToken.getId() == GramPracConstants.SEMICOLON) {
               iterator.previous();  //rollback iterator
               throwExpected.clear();
               break; 
@@ -233,6 +239,7 @@ public final class FunctionParser {
     return function;
   }
   
+  /*
   public static void main(String [] args) {
     String target = "List!(String) hello(int val = 10, String x) throws java.lang.What, List!(What){"+
                     "    what();      "+
@@ -258,5 +265,5 @@ public final class FunctionParser {
       System.out.println(statement);
     }
   }
-  
+  */
 }

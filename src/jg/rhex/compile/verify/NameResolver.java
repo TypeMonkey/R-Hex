@@ -182,7 +182,13 @@ public class NameResolver {
   private void loadLocalTypes(RFile rhexFile) {
     for (RClass rClass : rhexFile.getClasses()) {
       String simpleName = rClass.getName().getImage();
-      String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+simpleName;
+      String binaryName = null;
+      if (rhexFile.getPackDesignation() == null) {
+        binaryName = rhexFile.getFileName()+"."+simpleName;
+      }
+      else {
+        binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+simpleName;
+      }
 
       localTypes.put(simpleName, binaryName);
     }

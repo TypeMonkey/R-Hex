@@ -60,7 +60,7 @@ public abstract class GenClass {
    * @return true if type is a paren of this GenClas, false if else
    **/
   public boolean decendsFrom(GenClass ancestor){
-    if (equals(ancestor) || parent.equals(ancestor) || parent.decendsFrom(ancestor)) {
+    if (equals(ancestor) || ((parent != null) && (parent.equals(ancestor) || parent.decendsFrom(ancestor)))) {
       for(GenClass inter : interfaces) {
         if (!inter.decendsFrom(ancestor)) {
           return false;
@@ -77,9 +77,6 @@ public abstract class GenClass {
 
   public Function retrieveFunction(FunctionSignature signature){
     Function function = functionMap.get(signature);
-    if (function == null && parent != null) {
-      function = parent.retrieveFunction(signature);
-    }
     return function;
   }
   
@@ -121,7 +118,5 @@ public abstract class GenClass {
     return "Class: "+typeInfo;
   }
   
-  public static Set<FunctionSignature> getAllInstanceMethods(GenClass genClass){
-    HashSet<>
-  }
+  
 }

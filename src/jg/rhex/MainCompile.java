@@ -18,8 +18,10 @@ public class MainCompile {
    */
   public static void main(String [] arg) throws IOException {
 
-    String [] actArgs = {"samplesrcs/Source1.rhex",
-                         "samplesrcs/Source2.rhex"};
+    //String [] actArgs = {"samplesrcs/Source1.rhex",
+    //                     "samplesrcs/Source2.rhex"};
+    
+    String [] actArgs = {"samplesrcs/Inheritance.rhex"};
     arg = actArgs;
     
     System.out.println("--------------- R-HEX COMPILER 1.0 ---------------");

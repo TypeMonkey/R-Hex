@@ -87,7 +87,9 @@ public class JavaClass extends GenClass{
           params[i] = TypeUtils.formType(constructor.getParameterTypes()[i]);
         }
         
-        FunctionSignature signature = new FunctionSignature(targetType.getSimpleName(), params);
+        FunctionSignature signature = new FunctionSignature(targetType.getSimpleName(),
+            params, 
+            Descriptor.translateModifiers(constructor.getModifiers()));
 
         JavaConstructor javaConstructor = new JavaConstructor(javaClass, signature, constructor);
         
@@ -101,7 +103,7 @@ public class JavaClass extends GenClass{
           params[i] = TypeUtils.formType(method.getParameterTypes()[i]);
         }
         
-        FunctionSignature methodSig = new FunctionSignature(method.getName(), params);
+        FunctionSignature methodSig = new FunctionSignature(method.getName(), params, Descriptor.translateModifiers(method.getModifiers()));
         FunctionIdentity methodIdentity = new FunctionIdentity(methodSig, TypeUtils.formType(method.getReturnType()));
         
         methods.put(methodSig, new JavaMethod(methodIdentity, method));

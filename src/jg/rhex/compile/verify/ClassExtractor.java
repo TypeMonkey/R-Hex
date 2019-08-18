@@ -58,6 +58,8 @@ public class ClassExtractor {
      * TFuncCall (when tparams are supported)
      */
 
+    System.out.println(" NAMES: "+typeStore);
+    
     for(RClass rawClass : rhexFile.getClasses()) {
       RhexClass template = attachClassComponents(rawClass);
       fileClasses.put(template.getTypeInfo(), template);
@@ -72,7 +74,14 @@ public class ClassExtractor {
   private RhexClass attachClassComponents(RClass rawClass){
     //verify class declaration and add them to the file's classmap
 
-    String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+rawClass.getName().getImage();
+    String binaryName = null;
+    if (rhexFile.getPackDesignation() == null) {
+      binaryName = rhexFile.getFileName()+"."+rawClass.getName().getImage();
+    }
+    else {
+      binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName()+"."+rawClass.getName().getImage();
+    }
+    
     Type classTypeInfo = new Type(rawClass.getName().getImage(), binaryName);
 
     RhexClass classTemplate = new RhexClass(classTypeInfo, rawClass);
@@ -137,7 +146,7 @@ public class ClassExtractor {
       paramTypes[i] = concreteType;
     }
 
-    return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes), hostType);
+    return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes, rFunc.getDescriptors()), hostType);
   }
   
   private FunctionIdentity formIdentity(RFunc rFunc) {   
@@ -157,11 +166,11 @@ public class ClassExtractor {
     //then, resolve the return type first
     TType returnType = rFunc.getReturnType();
     if (returnType.getBaseString().equals("void")) {
-      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes));
+      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes, rFunc.getDescriptors()));
     }
     else {
       Type actualType = retrieveType(returnType);
-      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes), actualType);
+      return new FunctionIdentity(new FunctionSignature(rFunc.getName().getImage(), paramTypes, rFunc.getDescriptors()), actualType);
     }   
   }
   

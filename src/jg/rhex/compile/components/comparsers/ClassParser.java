@@ -10,6 +10,7 @@ import jg.rhex.common.Descriptor;
 import jg.rhex.compile.ExpectedSet;
 import jg.rhex.compile.components.ExpectedConstants;
 import jg.rhex.compile.components.errors.FormationException;
+import jg.rhex.compile.components.errors.InvalidPlacementException;
 import jg.rhex.compile.components.errors.RepeatedStructureException;
 import jg.rhex.compile.components.errors.RepeatedTParamException;
 import jg.rhex.compile.components.errors.RhexConstructionException;
@@ -150,7 +151,7 @@ public final class ClassParser {
         if (current.getId() == GramPracConstants.OP_CU_BRACK) {
           //initial class opening curly brace
           expected.replace(GramPracConstants.TPARAM, GramPracConstants.CL_CU_BRACK);
-          expected.add(GramPracConstants.NAME);
+          expected.addAll(GramPracConstants.NAME, GramPracConstants.VOID);
           expected.addAll(ExpectedConstants.VAR_FUNC_DESC);
           expected.addAll(ExpectedConstants.CLASS_DESC);
         }
@@ -162,7 +163,8 @@ public final class ClassParser {
         }
         else if (ExpectedConstants.CLASS_DESC.contains(current.getId()) || 
                  ExpectedConstants.VAR_FUNC_DESC.contains(current.getId()) || 
-                 current.getId() == GramPracConstants.NAME) {
+                 current.getId() == GramPracConstants.NAME || 
+                 current.getId() == GramPracConstants.VOID) {
           
           //decide if this is a function or variable
           
@@ -171,10 +173,19 @@ public final class ClassParser {
           
           boolean terminatorFound = false;
           boolean isSemincolonTerm = false;
+          Token abstractToken = null;
+          if (current.getId() == GramPracConstants.ABSTRACT) {
+            abstractToken = current;
+          }
+          
           while (source.hasNext()) {
             Token uCurrent = source.next();
             unknownSequence.add(uCurrent);
-            if (uCurrent.getId() == GramPracConstants.SEMICOLON) {
+            System.out.println("----VAR TOKEN>>>> "+uCurrent);
+            if (uCurrent.getId() == GramPracConstants.ABSTRACT) {
+              abstractToken = uCurrent;
+            }
+            else if (uCurrent.getId() == GramPracConstants.SEMICOLON) {
               terminatorFound = true;
               isSemincolonTerm = true;
               break;
@@ -193,18 +204,41 @@ public final class ClassParser {
           }
           
           if (isSemincolonTerm) {
-            //parse as variable declaration
-            System.out.println("---VAR: "+unknownSequence);
-            RVariable variable = VarDecParsers.parseVariable(unknownSequence.listIterator(), GramPracConstants.SEMICOLON, fileName);
-            if (!container.addClassVar(variable)) {
-              throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
+            //parse as variable declaration or as an abstract function
+            if (container.isAnInterface() || container.getDescriptors().contains(Descriptor.ABSTRACT)) {
+              if (abstractToken != null) {
+                //parse as an abstract function. If it fails, it was meant to fail anyway. 
+                //(there's no such thing as abstract variables in R-Hex, or even Java)
+                RFunc func = FunctionParser.parseFunctionHeader(true, unknownSequence.listIterator(), fileName);
+                if (!func.getDescriptors().contains(Descriptor.ABSTRACT)) {
+                  throw new RhexConstructionException("All abstract functions must be denoted with the 'asbtract' keyword, at <ln:"+func.getName().getStartLine()+">", fileName);
+                }
+                container.addMethod(func);
+              }
+              else {
+                System.out.println("---VAR: "+(abstractToken)+"   "+unknownSequence);
+                RVariable variable = VarDecParsers.parseVariable(unknownSequence.listIterator(), GramPracConstants.SEMICOLON, fileName);
+                if (!container.addClassVar(variable)) {
+                  throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
+                }
+              }
+            }
+            else if (abstractToken != null) {
+              throw new InvalidPlacementException(abstractToken, fileName);
+            }
+            else {
+              System.out.println("---VAR: "+unknownSequence);
+              RVariable variable = VarDecParsers.parseVariable(unknownSequence.listIterator(), GramPracConstants.SEMICOLON, fileName);
+              if (!container.addClassVar(variable)) {
+                throw new RepeatedStructureException(variable.getIdentifier().getActValue(), "Variable", fileName);
+              }
             }
           }
           else {
             //parse as function
             RFunc func = FunctionParser.parseFunctionHeader(true, unknownSequence.listIterator(), fileName);
             if (container.isAnInterface() && !func.getDescriptors().contains(Descriptor.ABSTRACT)) {
-              throw new RhexConstructionException("Cannot have non-abstract methods in an interface, at <ln:"+func.getName().getStartLine()+">", fileName);
+              throw new RhexConstructionException("Cannot have non-abstract methods in an interface or abstract classes, at <ln:"+func.getName().getStartLine()+">", fileName);
             }
             source.previous(); //roll back main source for body parsing
             StatementParser.parseBlock(func.getBody(), source, fileName);

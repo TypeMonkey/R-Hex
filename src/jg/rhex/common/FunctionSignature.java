@@ -2,19 +2,22 @@ package jg.rhex.common;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
 
 public class FunctionSignature {
   
   private final String name;
   private final Type [] paramTypes;
+  private final Set<Descriptor> descriptors;
   
-  public FunctionSignature(String funcName) {
-    this(funcName, new Type[0]);
+  public FunctionSignature(String funcName, Set<Descriptor> descriptors) {
+    this(funcName, new Type[0], descriptors);
   }
   
-  public FunctionSignature(String funcName, Type [] parameterTypes) {
+  public FunctionSignature(String funcName, Type [] parameterTypes, Set<Descriptor> descriptors) {
     this.name = funcName;
     this.paramTypes = parameterTypes;
+    this.descriptors = descriptors;
   }
   
   public boolean equals(Object object) {
@@ -50,6 +53,10 @@ public class FunctionSignature {
     }
     
     return strFormat+" )";
+  }
+  
+  public Set<Descriptor> getDescriptors(){
+    return descriptors;
   }
   
   public String getName() {

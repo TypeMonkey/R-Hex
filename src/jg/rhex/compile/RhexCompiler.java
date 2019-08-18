@@ -23,6 +23,7 @@ import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.ClassExtractor;
+import jg.rhex.compile.verify.LineageChecker;
 import jg.rhex.compile.verify.errors.RedundantExtensionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.runtime.components.Function;
@@ -156,7 +157,13 @@ public class RhexCompiler {
         
         FileBuilder fileBuilder = new FileBuilder(sourceFile);
         RFile rhexFile = fileBuilder.constructFile();
-        String binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName();
+        String binaryName = null;
+        if (rhexFile.getPackDesignation() == null) {
+          binaryName = rhexFile.getFileName();
+        }
+        else {
+          binaryName = rhexFile.getPackDesignation()+"."+rhexFile.getFileName();
+        }
         
         RFile current = rhexFiles.put(binaryName, rhexFile);
         if (current != null) {
@@ -237,6 +244,7 @@ public class RhexCompiler {
       else {
         for(int i = 0; i <  allSupersTypes.size(); i++) {
           GenClass otherSuper = classTemplates.get(allSupersTypes.get(i).getAttachedType());
+          System.out.println(allSupersTypes.get(i).getAttachedType());
           if (otherSuper == null) {
             try {
               otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
@@ -272,61 +280,16 @@ public class RhexCompiler {
       }
     }
     
+    System.out.println(">>>>>>>>ENFORCNG INHERITANCE");
     /*
      * Check for circular inheritance (not allowed)
      * Make sure all interface methods are implemented by decendants
      *  ^same as above, but for abstract classes
      *  
      */
-    for(RhexClass rhexClass : classTemplates.values()){      
-      GenClass parent = rhexClass.getParent();
-      if (parent.decendsFrom(rhexClass)) {
-        throw new RuntimeException(rhexClass.getTypeInfo()+" is both a decendant and ancestor of "+parent.getTypeInfo());
-      }
-      
-      HashSet<FunctionSignature> methods = new HashSet<>(rhexClass.getFunctionMap().keySet());
-      
-      if (parent.getDescriptors().contains(Descriptor.ABSTRACT)) {
-        HashSet<FunctionSignature> abstractMethods = new HashSet<>();
-        
-        for(Function function : parent.getFunctionMap().values()){
-          if (function.getDescriptors().contains(Descriptor.ABSTRACT)) {
-            abstractMethods.add(function.getSignature());
-          }
-        }
-        
-        HashSet<FunctionSignature> intesection = new HashSet<>(abstractMethods);
-        intesection.retainAll(methods);
-        
-        if (abstractMethods.containsAll(intesection) && intesection.containsAll(abstractMethods)) {
-          continue;
-        }
-        else {
-          throw new RuntimeException("the class "+rhexClass.getTypeInfo()+" does not implement all abstract methods of class "+parent.getTypeInfo());
-        }
-      } 
-      
-      //now check all interfaces
-      for(GenClass inter : rhexClass.getInterfaces()){
-        if (inter.decendsFrom(rhexClass)) {
-          throw new RuntimeException(rhexClass.getTypeInfo()+" is both a decendant and ancestor of "+inter.getTypeInfo());
-        }
-        HashSet<FunctionSignature> abstractMethods = new HashSet<>(inter.getFunctionMap().keySet());
-        
-        HashSet<FunctionSignature> intesection = new HashSet<>(abstractMethods);
-        intesection.retainAll(methods);
-        
-        if (abstractMethods.containsAll(intesection) && intesection.containsAll(abstractMethods)) {
-          continue;
-        }
-        else {
-          System.out.println("METHS: "+rhexClass.getFunctionMap().keySet());
-          System.out.println("ABS: "+abstractMethods);
-          System.out.println("INTER: "+intesection);
-          throw new RuntimeException("the class "+rhexClass.getTypeInfo()+" does not implement all abstract methods of interface "+inter.getTypeInfo());
-        }
-      }
-      
+    for(RhexClass rhexClass : classTemplates.values()){
+      LineageChecker checker = new LineageChecker();
+      checker.checkLineage(rhexClass);
     }
     
     currentStatus = Status.VERIFICATION;
