@@ -30,6 +30,7 @@ import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.java.JavaClass;
 import jg.rhex.runtime.components.rhexspec.RhexClass;
+import jg.rhex.runtime.components.rhexspec.RhexFile;
 
 /**
  * Represents the front-end of the core Rhex compiler
@@ -227,11 +228,26 @@ public class RhexCompiler {
   public void verifySources(){    
     HashMap<Type, RhexClass> classTemplates = new HashMap<>();
     
+    HashMap<String, RhexFile> files = new HashMap<>();
     //collect all classes from all files
     for (RFile sourceFile : rhexFiles.values()) {
+      String fileFullName = null;
+      if (sourceFile.getPackDesignation() == null) {
+        fileFullName = sourceFile.getFileName();
+      }
+      else {
+        fileFullName = sourceFile.getPackDesignation()+"."+sourceFile.getFileName();
+      }
+      
       ClassExtractor verifier = new ClassExtractor(sourceFile, this);
       Map<Type, RhexClass> templates = verifier.extract();
       classTemplates.putAll(templates);
+      
+      RhexFile rhexFile = new RhexFile(sourceFile);
+      for(RhexClass curClass : templates.values()){
+        rhexFile.placeClass(curClass);
+      }
+      files.put(fileFullName, rhexFile);
     }
     
     //attach GenClasses to super types
