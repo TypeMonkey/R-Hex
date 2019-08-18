@@ -33,6 +33,7 @@ public class RhexClass extends GenClass{
   
   public void placeFunction(RhexFunction function){
     functionMap.put(function.getSignature(), function);
+    functionIdenMap.put(function.getIdentity(), function);
   }
   
   public void placeVariable(RhexVariable variable){

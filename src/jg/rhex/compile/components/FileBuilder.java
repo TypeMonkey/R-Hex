@@ -111,6 +111,7 @@ public class FileBuilder {
     ExpectedSet expected = new ExpectedSet(GramPracConstants.USE, 
         GramPracConstants.TPARAM, 
         GramPracConstants.CLASS, 
+        GramPracConstants.INTER,
         GramPracConstants.NAME, 
         GramPracConstants.VOID);
     expected.addAll(ExpectedConstants.VAR_FUNC_DESC);

@@ -238,38 +238,58 @@ public class RhexCompiler {
     for(RhexClass rhexClass : classTemplates.values()) {      
       //get parent, then interfaces
       List<TType> allSupersTypes = rhexClass.getOriginal().getSuperTypes();
-      if (allSupersTypes.size() == 0) {
-        rhexClass.setParent(JavaClass.getJavaClassRep(Object.class));
-      }
-      else {
-        for(int i = 0; i <  allSupersTypes.size(); i++) {
-          GenClass otherSuper = classTemplates.get(allSupersTypes.get(i).getAttachedType());
-          System.out.println(allSupersTypes.get(i).getAttachedType());
+      if (rhexClass.isInterface()) {
+        //interface can only implement other interfaces
+        for(TType inter : allSupersTypes){
+          GenClass otherSuper = classTemplates.get(inter.getAttachedType());
+          System.out.println(inter.getAttachedType());
           if (otherSuper == null) {
             try {
-              otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
+              otherSuper = JavaClass.getJavaClassRep(inter.getAttachedType().getFullName());
             } catch (ClassNotFoundException e) {
-              throw new UnfoundTypeException(allSupersTypes.get(i).getBaseType().get(0).getToken(),
-                  allSupersTypes.get(i).getBaseString(), 
-                  TypeUtils.getHostFileName(allSupersTypes.get(i).getAttachedType()));
+              throw new UnfoundTypeException(inter.getBaseType().get(0).getToken(),
+                  inter.getBaseString(), 
+                  TypeUtils.getHostFileName(inter.getAttachedType()));
             }
           }
           
-          if (i > 0) {
-            if (otherSuper.isInterface()) {
-              rhexClass.addInterface(otherSuper);
+          rhexClass.addInterface(otherSuper);
+        }
+      }
+      else {
+        if (allSupersTypes.size() == 0) {
+          rhexClass.setParent(JavaClass.getJavaClassRep(Object.class));
+        }
+        else {
+          for(int i = 0; i <  allSupersTypes.size(); i++) {
+            GenClass otherSuper = classTemplates.get(allSupersTypes.get(i).getAttachedType());
+            System.out.println(allSupersTypes.get(i).getAttachedType());
+            if (otherSuper == null) {
+              try {
+                otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
+              } catch (ClassNotFoundException e) {
+                throw new UnfoundTypeException(allSupersTypes.get(i).getBaseType().get(0).getToken(),
+                    allSupersTypes.get(i).getBaseString(), 
+                    TypeUtils.getHostFileName(allSupersTypes.get(i).getAttachedType()));
+              }
+            }
+            
+            if (i > 0) {
+              if (otherSuper.isInterface()) {
+                rhexClass.addInterface(otherSuper);
+              }
+              else {
+                throw new RuntimeException("The type '"+otherSuper.getTypeInfo()+"' isn't an interface");
+              }
             }
             else {
-              throw new RuntimeException("The type '"+otherSuper.getTypeInfo()+"' isn't an interface");
-            }
-          }
-          else {
-            if (otherSuper.isInterface()) {
-              System.out.println(" is interface: "+otherSuper.getTypeInfo());
-              rhexClass.addInterface(otherSuper);
-            }
-            else {
-              rhexClass.setParent(otherSuper);
+              if (otherSuper.isInterface()) {
+                System.out.println(" is interface: "+otherSuper.getTypeInfo());
+                rhexClass.addInterface(otherSuper);
+              }
+              else {
+                rhexClass.setParent(otherSuper);
+              }
             }
           }
         }
@@ -281,14 +301,15 @@ public class RhexCompiler {
     }
     
     System.out.println(">>>>>>>>ENFORCNG INHERITANCE");
+    
     /*
      * Check for circular inheritance (not allowed)
      * Make sure all interface methods are implemented by decendants
      *  ^same as above, but for abstract classes
      *  
      */
+    LineageChecker checker = new LineageChecker();
     for(RhexClass rhexClass : classTemplates.values()){
-      LineageChecker checker = new LineageChecker();
       checker.checkLineage(rhexClass);
     }
     

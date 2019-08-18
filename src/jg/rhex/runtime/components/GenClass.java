@@ -5,10 +5,15 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jg.rhex.common.Descriptor;
+import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.components.rhexspec.RhexConstructor;
+import jg.rhex.runtime.components.rhexspec.RhexFunction;
+import jg.rhex.runtime.components.rhexspec.RhexVariable;
 
 public abstract class GenClass {
 
@@ -20,7 +25,10 @@ public abstract class GenClass {
   protected Set<GenClass> interfaces;
   
   protected Map<FunctionSignature, Constructor> constructorMap;
+  
+  protected Map<FunctionIdentity, Function> functionIdenMap;
   protected Map<FunctionSignature, Function> functionMap;
+  
   protected Map<String, Variable> variableMap;
   
   public GenClass(Type typeInfo, GenClass parent, Set<GenClass> interfaces, 
@@ -38,6 +46,10 @@ public abstract class GenClass {
     functionMap = funMap;
     constructorMap = consMap;
     variableMap = varMap;
+    
+    functionIdenMap = funMap.values().stream().collect(
+          Collectors.toMap(Function::getIdentity, x -> x)
+        );
   }
    
   @Override
@@ -61,14 +73,14 @@ public abstract class GenClass {
    **/
   public boolean decendsFrom(GenClass ancestor){
     if (equals(ancestor) || ((parent != null) && (parent.equals(ancestor) || parent.decendsFrom(ancestor)))) {
-      for(GenClass inter : interfaces) {
-        if (!inter.decendsFrom(ancestor)) {
-          return false;
-        }
-      }
       return true;
     }
-    return false;
+    for(GenClass inter : interfaces) {
+      if (!inter.decendsFrom(ancestor)) {
+        return false;
+      }
+    }
+    return true;
   }
   
   public Constructor retrieveConstructor(FunctionSignature signature){
@@ -77,6 +89,11 @@ public abstract class GenClass {
 
   public Function retrieveFunction(FunctionSignature signature){
     Function function = functionMap.get(signature);
+    return function;
+  }
+  
+  public Function retrieveFunction(FunctionIdentity identity){
+    Function function = functionIdenMap.get(identity);
     return function;
   }
   
