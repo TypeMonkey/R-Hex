@@ -23,6 +23,8 @@ import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.ClassExtractor;
+import jg.rhex.compile.verify.TypeAttacher;
+import jg.rhex.compile.verify.TypeAttacher;
 import jg.rhex.compile.verify.LineageChecker;
 import jg.rhex.compile.verify.errors.RedundantExtensionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
@@ -327,6 +329,14 @@ public class RhexCompiler {
     LineageChecker checker = new LineageChecker();
     for(RhexClass rhexClass : classTemplates.values()){
       checker.checkLineage(rhexClass);
+    }
+    
+    /*
+     * Now, extract file functions and variables
+     */
+    TypeAttacher attacher = new TypeAttacher(classTemplates, this);
+    for (RhexFile container : files.values()) {
+      attacher.extract(container);
     }
     
     currentStatus = Status.VERIFICATION;

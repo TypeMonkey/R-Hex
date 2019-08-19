@@ -38,8 +38,13 @@ public class JavaClass extends GenClass{
     return null;
   }
   
-  public static JavaClass getJavaClassRep(String fullName) throws ClassNotFoundException{
-    return getJavaClassRep(Class.forName(fullName));
+  public static JavaClass getJavaClassRep(String fullName){
+    try {
+      Class<?> target = Class.forName(fullName);
+      return getJavaClassRep(target);
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
   }
 
   public static JavaClass getJavaClassRep(Class<?> target){
