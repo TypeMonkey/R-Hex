@@ -72,15 +72,20 @@ public abstract class GenClass {
    * @return true if type is a paren of this GenClas, false if else
    **/
   public boolean decendsFrom(GenClass ancestor){
+    System.out.println("for: "+this);
     if (equals(ancestor) || ((parent != null) && (parent.equals(ancestor) || parent.decendsFrom(ancestor)))) {
       return true;
     }
-    for(GenClass inter : interfaces) {
-      if (!inter.decendsFrom(ancestor)) {
-        return false;
+    
+    if (interfaces.size() > 0) {
+      for(GenClass inter : interfaces) {
+        if (!inter.decendsFrom(ancestor)) {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+    return false;
   }
   
   public Constructor retrieveConstructor(FunctionSignature signature){

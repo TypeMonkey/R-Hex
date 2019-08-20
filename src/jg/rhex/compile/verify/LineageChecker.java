@@ -31,7 +31,8 @@ public class LineageChecker {
       GenClass parent = target.getParent();
       if (parent.decendsFrom(target)) {
         if (target.isInterface()) {
-          throw new RuntimeException(target.getTypeInfo()+" is both a decendant and ancestor of one of its children");
+          System.out.println("parent: "+parent+" | "+parent.getInterfaces());
+          throw new RuntimeException(target.getTypeInfo()+" is both a decendant and ancestor of one of its children "+target.getParent());
         }
         else {
           throw new RuntimeException(target.getTypeInfo()+" is both a decendant and ancestor of "+parent.getTypeInfo());

@@ -7,6 +7,7 @@ import com.google.common.collect.HashBiMap;
 import jg.rhex.common.ArrayType;
 import jg.rhex.common.Type;
 import jg.rhex.compile.RhexCompiler;
+import jg.rhex.runtime.components.java.JavaClass;
 
 public class MainCompile {
 
@@ -16,10 +17,11 @@ public class MainCompile {
    * @param arg - list of .rhex files to compile
    * @throws IOException 
    */
-  public static void main(String [] arg) throws IOException {
+  public static void main(String [] arg) throws Exception {
 
     //String [] actArgs = {"samplesrcs/Source1.rhex",
     //                     "samplesrcs/Source2.rhex"};
+    
     
     String [] actArgs = {"samplesrcs/Inheritance.rhex"};
     arg = actArgs;

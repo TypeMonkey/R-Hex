@@ -39,11 +39,40 @@ public class JavaClass extends GenClass{
   }
   
   public static JavaClass getJavaClassRep(String fullName){
-    try {
-      Class<?> target = Class.forName(fullName);
-      return getJavaClassRep(target);
-    } catch (ClassNotFoundException e) {
-      return null;
+    if (TypeUtils.isPrimitive(fullName) || TypeUtils.isVoid(fullName)) {
+      if (fullName.equals(Type.INT.getFullName())) {
+         return getJavaClassRep(int.class);
+      }
+      else if (fullName.equals(Type.DOUBLE.getFullName())) {
+        return getJavaClassRep(double.class);
+      }
+      else if (fullName.equals(Type.LONG.getFullName())) {
+        return getJavaClassRep(long.class);
+      }
+      else if (fullName.equals(Type.FLOAT.getFullName())) {
+        return getJavaClassRep(float.class);
+      }
+      else if (fullName.equals(Type.BYTE.getFullName())) {
+        return getJavaClassRep(byte.class);
+      }
+      else if (fullName.equals(Type.SHORT.getFullName())) {
+        return getJavaClassRep(short.class);
+      }
+      else if (fullName.equals(Type.BYTE.getFullName())) {
+        return getJavaClassRep(byte.class);
+      }
+      else{
+        return getJavaClassRep(void.class);
+      }
+      
+    }
+    else {
+      try {
+        Class<?> target = Class.forName(fullName);
+        return getJavaClassRep(target);
+      } catch (ClassNotFoundException e) {
+        return null;
+      }
     }
   }
 

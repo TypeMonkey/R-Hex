@@ -26,6 +26,7 @@ import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TLong;
 import jg.rhex.compile.components.tnodes.atoms.TMemberInvoke;
 import jg.rhex.compile.components.tnodes.atoms.TNew;
+import jg.rhex.compile.components.tnodes.atoms.TNewArray;
 import jg.rhex.compile.components.tnodes.atoms.TNull;
 import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TOParen;
@@ -321,20 +322,67 @@ public class NewSeer extends GramPracAnalyzer{
     ArrayDeque<TNode> latest = exitEntrance();
     System.out.println("-----EXIT CONSTRUCTOR  "+latest+" | "+latest.peek());
     
+    ArrayList<TType> typeParameters = new ArrayList<>();
     ArrayList<TIden> binaryName = new ArrayList<>();
     //remove the "new" operator
     latest.poll();
     
-    while (!(latest.peek() instanceof TFuncCall)) {
+    while (latest.peek() instanceof TIden) {
       binaryName.add((TIden) latest.poll());
     }
     
-    TFuncCall funcCall = (TFuncCall) latest.poll();
-    binaryName.add(funcCall.getFuncName());
-    System.out.println("CONS: "+binaryName);
+    while (latest.peek() instanceof TType) {
+      typeParameters.add((TType) latest.poll());
+    }
     
-    TNew constructorCall = new TNew(binaryName, funcCall);
-    actualNodes.add(constructorCall);
+    if (latest.peek() instanceof TComma) {
+      latest.poll();
+    }
+        
+    if (latest.peek() instanceof TArrayAcc) {
+      System.out.println("    ---> CONS is for Array! ");
+      TArrayAcc arrayAcc = (TArrayAcc) latest.pop();   
+      
+      if (arrayAcc.getTarget() instanceof TIden) {
+        binaryName.add((TIden) arrayAcc.getTarget());
+      }
+      else if (arrayAcc.getTarget() instanceof TType) {
+        typeParameters.add((TType) arrayAcc.getTarget());
+      }
+      
+      TType baseType = new TType(binaryName);
+      for (TType typeArg : typeParameters) {
+        baseType.addGenericArgType(typeArg);
+      }
+      TNewArray arrayCreate = new TNewArray(baseType, arrayAcc.getIndex());
+      actualNodes.push(arrayCreate);
+    }
+    else {
+      System.out.println("     ---> CONS is for normal type!");
+      
+      while (latest.peek() instanceof TType) {
+        typeParameters.add((TType) latest.poll());
+      }
+      
+      latest.poll(); //remove '('
+      
+      ArrayList<TNode> arguments = new ArrayList<>();
+      
+      while (!(latest.peek() instanceof TCParen)) {
+        TNode current = latest.poll();
+        if (!(current instanceof TComma)) {
+          arguments.add(current);
+        }
+      }
+      
+      TFuncCall funcCall = new TFuncCall(binaryName.get(binaryName.size() - 1));
+      funcCall.addArgs(arguments);
+      for (TType typeArg : typeParameters) {
+        funcCall.addGenericType(typeArg);
+      }
+      TNew newCall = new TNew(new TType(binaryName), funcCall);
+      actualNodes.push(newCall);
+    }
     
     return production;
   }

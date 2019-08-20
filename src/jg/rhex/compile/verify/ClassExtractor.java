@@ -49,14 +49,6 @@ public class ClassExtractor {
      * 5.) Custom classpath jars
      * 4.) JVM Classes ( in the java.lang.* package)
      */
-    
-    //TNodes that need type attachement:
-    /*
-     * TCast
-     * TNew?
-     * TType (of course)
-     * TFuncCall (when tparams are supported)
-     */
 
     System.out.println(" NAMES: "+typeStore);
     

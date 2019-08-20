@@ -262,16 +262,17 @@ public class RhexCompiler {
           GenClass otherSuper = classTemplates.get(inter.getAttachedType());
           System.out.println(inter.getAttachedType());
           if (otherSuper == null) {
-            try {
-              otherSuper = JavaClass.getJavaClassRep(inter.getAttachedType().getFullName());
-            } catch (ClassNotFoundException e) {
+            otherSuper = JavaClass.getJavaClassRep(inter.getAttachedType().getFullName());
+            if (otherSuper == null) {
               throw new UnfoundTypeException(inter.getBaseType().get(0).getToken(),
                   inter.getBaseString(), 
                   TypeUtils.getHostFileName(inter.getAttachedType()));
             }
           }
           
-          rhexClass.addInterface(otherSuper);
+          if(!rhexClass.addInterface(otherSuper)) {
+            throw new RuntimeException("The interface "+rhexClass.getTypeInfo()+" has already implemented "+otherSuper.getTypeInfo());
+          }
         }
       }
       else {
@@ -283,9 +284,8 @@ public class RhexCompiler {
             GenClass otherSuper = classTemplates.get(allSupersTypes.get(i).getAttachedType());
             System.out.println(allSupersTypes.get(i).getAttachedType());
             if (otherSuper == null) {
-              try {
-                otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
-              } catch (ClassNotFoundException e) {
+              otherSuper = JavaClass.getJavaClassRep(allSupersTypes.get(i).getAttachedType().getFullName());
+              if (otherSuper == null) {
                 throw new UnfoundTypeException(allSupersTypes.get(i).getBaseType().get(0).getToken(),
                     allSupersTypes.get(i).getBaseString(), 
                     TypeUtils.getHostFileName(allSupersTypes.get(i).getAttachedType()));
@@ -294,7 +294,9 @@ public class RhexCompiler {
             
             if (i > 0) {
               if (otherSuper.isInterface()) {
-                rhexClass.addInterface(otherSuper);
+                if(!rhexClass.addInterface(otherSuper)) {
+                  throw new RuntimeException("The class "+rhexClass.getTypeInfo()+" has already implemented "+otherSuper.getTypeInfo());
+                }
               }
               else {
                 throw new RuntimeException("The type '"+otherSuper.getTypeInfo()+"' isn't an interface");
@@ -303,7 +305,9 @@ public class RhexCompiler {
             else {
               if (otherSuper.isInterface()) {
                 System.out.println(" is interface: "+otherSuper.getTypeInfo());
-                rhexClass.addInterface(otherSuper);
+                if(!rhexClass.addInterface(otherSuper)) {
+                  throw new RuntimeException("The class "+rhexClass.getTypeInfo()+" has already implemented "+otherSuper.getTypeInfo());
+                }
               }
               else {
                 rhexClass.setParent(otherSuper);
@@ -334,8 +338,10 @@ public class RhexCompiler {
     /*
      * Now, extract file functions and variables
      */
+    System.out.println(">>>>>>>>>>> ATTACHING TYPES <<<<<<<<<<");
     TypeAttacher attacher = new TypeAttacher(classTemplates, this);
     for (RhexFile container : files.values()) {
+      System.out.println("   ---> FOR: "+container.getName());
       attacher.extract(container);
     }
     

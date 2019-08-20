@@ -1,17 +1,15 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
-import java.util.List;
-
 public class TNew extends TAtom<TFuncCall>{
 
-  private List<TIden> binaryName;
+  private TType binaryName;
   
-  public TNew(List<TIden> binaryName, TFuncCall value) {
+  public TNew(TType binaryName, TFuncCall value) {
     super(value);
     this.binaryName = binaryName;
   }
   
-  public List<TIden> getFullBinaryName(){
+  public TType getFullBinaryName(){
     return binaryName;
   }
 
