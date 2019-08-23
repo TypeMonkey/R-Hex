@@ -11,9 +11,6 @@ public class WhileBlock extends RStateBlock{
   }
   
   public void setConditional(RStatement conditional){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     this.conditionalStatement = conditional;
   }
   

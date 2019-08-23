@@ -124,8 +124,13 @@ public class JavaClass extends GenClass{
         FunctionSignature signature = new FunctionSignature(targetType.getSimpleName(),
             params, 
             Descriptor.translateModifiers(constructor.getModifiers()));
+        
+        HashSet<Type> declaredExceptions = new HashSet<>();
+        for(Class<?> ex : constructor.getExceptionTypes()){
+          declaredExceptions.add(TypeUtils.formType(ex));
+        }
 
-        JavaConstructor javaConstructor = new JavaConstructor(javaClass, signature, constructor);
+        JavaConstructor javaConstructor = new JavaConstructor(javaClass, signature, constructor, declaredExceptions);
         
         constructors.put(signature, javaConstructor); 
       }
@@ -137,10 +142,15 @@ public class JavaClass extends GenClass{
           params[i] = TypeUtils.formType(method.getParameterTypes()[i]);
         }
         
+        HashSet<Type> declaredExceptions = new HashSet<>();
+        for(Class<?> ex : method.getExceptionTypes()){
+          declaredExceptions.add(TypeUtils.formType(ex));
+        }
+        
         FunctionSignature methodSig = new FunctionSignature(method.getName(), params, Descriptor.translateModifiers(method.getModifiers()));
         FunctionIdentity methodIdentity = new FunctionIdentity(methodSig, TypeUtils.formType(method.getReturnType()));
         
-        methods.put(methodSig, new JavaMethod(methodIdentity, method));
+        methods.put(methodSig, new JavaMethod(methodIdentity, method, declaredExceptions));
       }
       
       loadedClasses.put(target, javaClass);

@@ -260,6 +260,18 @@ public class GramPracTokenizer extends Tokenizer {
                                    "break");
         addPattern(pattern);
 
+        pattern = new TokenPattern(GramPracConstants.TRY,
+                                   "TRY",
+                                   TokenPattern.STRING_TYPE,
+                                   "try");
+        addPattern(pattern);
+
+        pattern = new TokenPattern(GramPracConstants.CATCH,
+                                   "CATCH",
+                                   TokenPattern.STRING_TYPE,
+                                   "catch");
+        addPattern(pattern);
+
         pattern = new TokenPattern(GramPracConstants.CLASS,
                                    "CLASS",
                                    TokenPattern.STRING_TYPE,

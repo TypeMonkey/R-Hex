@@ -11,8 +11,8 @@ public abstract class Constructor extends Function{
   
   private final GenClass hostClass;
   
-  public Constructor(GenClass hostClass, FunctionSignature signature, Set<Descriptor> descriptors) {
-    super(new FunctionIdentity(signature, hostClass.getTypeInfo()), descriptors);
+  public Constructor(GenClass hostClass, FunctionSignature signature, Set<Descriptor> descriptors, Set<Type> exceptions) {
+    super(new FunctionIdentity(signature, hostClass.getTypeInfo()), descriptors, exceptions);
     this.hostClass = hostClass;
   }
   

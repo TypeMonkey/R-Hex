@@ -5,6 +5,7 @@ import java.util.Set;
 import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
+import jg.rhex.common.Type;
 
 /**
  * Represents callable functions (class, instance, and file functions) along with constructors
@@ -14,12 +15,13 @@ import jg.rhex.common.FunctionSignature;
 public abstract class Function {
 
   private final FunctionIdentity identity;
-  
+  private final Set<Type> exceptions;
   private final Set<Descriptor> descriptors;
   
-  public Function(FunctionIdentity identity, Set<Descriptor> descriptors) {
+  public Function(FunctionIdentity identity, Set<Descriptor> descriptors, Set<Type> exceptions) {
     this.identity = identity;
     this.descriptors = descriptors;
+    this.exceptions = exceptions;
   }
   
   /**
@@ -55,6 +57,10 @@ public abstract class Function {
   
   public Set<Descriptor> getDescriptors(){
     return descriptors;
+  }
+  
+  public Set<Type> getDeclaredExceptions(){
+    return exceptions;
   }
   
   public FunctionIdentity getIdentity() {

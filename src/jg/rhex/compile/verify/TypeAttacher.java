@@ -1,6 +1,7 @@
 package jg.rhex.compile.verify;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -9,11 +10,16 @@ import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.compile.RhexCompiler;
+import jg.rhex.compile.components.structs.CatchBlock;
+import jg.rhex.compile.components.structs.ForBlock;
+import jg.rhex.compile.components.structs.IfBlock;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.RFunc;
 import jg.rhex.compile.components.structs.RStateBlock;
+import jg.rhex.compile.components.structs.RStateBlock.BlockType;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.structs.RVariable;
+import jg.rhex.compile.components.structs.WhileBlock;
 import jg.rhex.compile.components.structs.RStatement.RStateDescriptor;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.atoms.TCast;
@@ -62,8 +68,18 @@ public class TypeAttacher {
     }
     
     for(RFunc func : original.getFunctions()){
+      HashSet<Type> exceptions = new HashSet<>();
+      for (TType type : func.getDeclaredExceptions()) {
+        Type actual = retrieveType(type, nameResolver, file);
+        type.attachType(actual);
+        if (!exceptions.add(actual)) {
+          throw new RuntimeException("The function: "+func.getName().getImage()+
+              " repeats the exception '"+actual+"' , at <ln:"+
+              type.getBaseType().get(0).getToken().getStartLine()+">");
+        }
+      }
       FunctionIdentity identity = formIdentity(func, nameResolver, file);
-      if (!file.placeFunction(new RhexFunction(identity, func))) {
+      if (!file.placeFunction(new RhexFunction(identity, func, exceptions))) {
         throw new SimilarFunctionException(identity, func.getName(), original.getFileName());
       }
       
@@ -91,6 +107,33 @@ public class TypeAttacher {
       System.out.println("---ATTACHING FOR "+rStatement.getDescriptor()+" | "+rStatement.getStatement());
       if (rStatement.getDescriptor() == RStateDescriptor.BLOCK) {
         RStateBlock block = (RStateBlock) rStatement;
+        if (block.getBlockType() == BlockType.ELSE_IF || block.getBlockType() == BlockType.IF) {
+          IfBlock ifBlock = (IfBlock) block;
+          walkExpression(ifBlock.getConditional().getStatement(), resolver, file);
+        }
+        else if (block.getBlockType() == BlockType.WHILE) {
+          WhileBlock whileBlock = (WhileBlock) block;
+          walkExpression(whileBlock.getConditional().getStatement(), resolver, file);
+        }
+        else if (block.getBlockType() == BlockType.FOR) {
+          ForBlock forBlock = (ForBlock) block;
+          if (forBlock.getIntialization() != null) {
+            walkExpression(forBlock.getIntialization().getStatement(), resolver, file);
+          }
+          if (forBlock.getConditional() != null) {
+            walkExpression(forBlock.getConditional().getStatement(), resolver, file);
+          }
+          if (forBlock.getChange() != null) {
+            walkExpression(forBlock.getChange().getStatement(), resolver, file);
+          }
+        }
+        else if (block.getBlockType() == BlockType.CATCH) {
+          CatchBlock catchBlock = (CatchBlock) block;
+          for (TType type : catchBlock.getExceptionTypes()) {
+            Type actual = retrieveType(type, resolver, file);
+            type.attachType(actual);
+          }
+        }
         walkBlock(block.getStatements(), resolver, file);
       }
       else if (rStatement.getDescriptor() == RStateDescriptor.VAR_DEC) {

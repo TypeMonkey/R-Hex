@@ -18,6 +18,7 @@ import jg.rhex.compile.components.expr.ExprParser;
 import jg.rhex.compile.components.expr.GramPracConstants;
 import jg.rhex.compile.components.expr.GramPracParser;
 import jg.rhex.compile.components.expr.NewSeer;
+import jg.rhex.compile.components.structs.CatchBlock;
 import jg.rhex.compile.components.structs.ForBlock;
 import jg.rhex.compile.components.structs.IfBlock;
 import jg.rhex.compile.components.structs.RStateBlock;
@@ -394,6 +395,10 @@ public class StatementParser {
       return parseIfHeader(headerDesciptor, headerList.listIterator(), fileName);
     case GramPracConstants.ELSE:
       return parseElseHeader(headerDesciptor, headerList.listIterator(), fileName);
+    case GramPracConstants.CATCH:
+      return parseCatchHeader(headerDesciptor, headerList.listIterator(), fileName);
+    case GramPracConstants.TRY:
+      return new RStateBlock(headerDesciptor, BlockType.TRY);
     default:
       return new RStateBlock(headerDesciptor, BlockType.GENERAL);
     }   
@@ -566,6 +571,52 @@ public class StatementParser {
     IfBlock ifBlock = new IfBlock(headerDesciptor, BlockType.IF);
     ifBlock.setConditional(whileBlock.getConditional());
     return ifBlock;
+  }
+  
+  public static CatchBlock parseCatchHeader(Token headerDesciptor, ListIterator<Token> iterator, String fileName){
+    CatchBlock catchBlock = new CatchBlock(headerDesciptor);
+    
+    ExpectedSet expected = new ExpectedSet(GramPracConstants.OP_PAREN);   
+    
+    Token identifier = null;
+    
+    while (iterator.hasNext()) {
+      Token current = iterator.next();
+      if (expected.noContainsThrow(current, "CatchBlock", fileName)) {
+        if (current.getId() == GramPracConstants.OP_PAREN) {
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.NAME) {
+          if (identifier == null) {
+            //this identifier is for excpetion type name
+            iterator.previous(); //back track iterator
+            TType exception = TypeParser.parseType(iterator, fileName);
+            catchBlock.addException(exception);
+            
+            expected.replace(GramPracConstants.NAME, GramPracConstants.OR);
+          }
+          else {
+            identifier = current;
+            expected.replace(GramPracConstants.CL_PAREN);
+          }
+        }
+        else if (current.getId() == GramPracConstants.OR) {
+          expected.replace(GramPracConstants.NAME);
+        }
+        else if (current.getId() == GramPracConstants.CL_PAREN) {
+          expected.replace(GramPracConstants.OP_CU_BRACK);
+        }
+        else if (current.getId() == GramPracConstants.OP_CU_BRACK) {
+          break;
+        }
+      }
+    }
+    
+    if (expected.isEmpty() || expected.contains(-1)) {
+      catchBlock.setExceptionIdentifier(new TIden(identifier));
+      return catchBlock;
+    }
+    throw FormationException.createException("CatchBlock", iterator.previous(), expected, fileName);
   }
 
   public static RStateBlock parseElseHeader(Token headerDesciptor, ListIterator<Token> iterator, String fileName){

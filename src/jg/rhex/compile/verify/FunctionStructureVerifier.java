@@ -79,8 +79,7 @@ public class FunctionStructureVerifier {
   
   private Type checkExpression(Map<String, RhexVariable> scope, TNode ... exprBody){
     Stack<Type> valueTypes = new Stack<>();
-    
-    
+       
     /**
      * Expressions are organized in post-fix pattern
      */

@@ -96,50 +96,11 @@ public class RhexCompiler {
   /**
    * Initializes the compiler. 
    * 
-   * A main operation during initialization is the loading of standard java classes (java.lang)
+   * A main operation during initialization is the loading of .class files (from jars)
    */
   public void initialize() throws IOException{
     if (!initialized) {
-      /*
-      URL url = Object.class.getResource("Object.class");
-
-      JarURLConnection jarURLConnection = (JarURLConnection) url.openConnection();
-
-      url = jarURLConnection.getJarFileURL();
-
-      //System.out.println(url.getFile());
-
-      String actual = url.getFile().replace("%20", " ");
-
-      //System.out.println("NEW:  "+actual);
-
-      JarFile jarFile = new JarFile(new File(actual));
-
-      Enumeration<JarEntry> jarEntries = jarFile.entries();
-      while (jarEntries.hasMoreElements()) {
-        JarEntry jarEntry = jarEntries.nextElement();
-        String name = jarEntry.getName();
-        if (name.trim().startsWith("java/lang/")) {         
-          String binaryName = name.replace("/", ".");
-          //the minus 6 is to remove the ".class" extension
-          binaryName = binaryName.substring(0, binaryName.length() - 6);
-          String [] split = binaryName.split("\\.");
-          if (split.length == 3 && !binaryName.contains("$")) {
-            System.out.println(binaryName);
-
-            try {
-              Class<?> loadedClass = getClass().getClassLoader().loadClass(binaryName);
-              javaStandard.put(loadedClass.getName(), loadedClass);
-            } catch (ClassNotFoundException e) {
-              e.printStackTrace();
-            }      
-          }  
-        }
-      }
-      
-      jarFile.close();
-      */
-      initialized = true;
+      //TODO: Load classpath classes
     }
   }
   

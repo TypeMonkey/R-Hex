@@ -1,7 +1,5 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
-import java.util.Objects;
-
 import net.percederberg.grammatica.parser.Token;
 
 public class TIden extends TAtom<Token>{

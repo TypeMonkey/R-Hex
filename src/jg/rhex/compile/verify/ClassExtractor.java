@@ -102,20 +102,32 @@ public class ClassExtractor {
     //verify local variable in class functions
     for(RFunc rFunc : rawClass.getMethods()){
       FunctionIdentity identity = null;
+      
+      HashSet<Type> exceptions = new HashSet<>();
+      for (TType type : rFunc.getDeclaredExceptions()) {
+        Type actual = retrieveType(type);
+        type.attachType(actual);
+        if (!exceptions.add(actual)) {
+          throw new RuntimeException("The function: "+rFunc.getName().getImage()+
+              " repeats the exception '"+actual+"' , at <ln:"+
+              type.getBaseType().get(0).getToken().getStartLine()+">");
+        }
+      }
+      
       if (!rFunc.isConstructor()) {
         identity = formIdentity(rFunc);
         if (signatures.add(identity.getFuncSig()) == false) {
           throw new SimilarFunctionException(identity, rFunc.getName(), rhexFile.getFileName());
         }
 
-        classTemplate.placeFunction(new RhexFunction(identity, rFunc));
+        classTemplate.placeFunction(new RhexFunction(identity, rFunc, exceptions));
         
         System.out.println("**IDENTITY - CLASS "+rawClass.getName().getImage()+" : "+identity);
       }
       else {
         identity = formConstructorIdentity(rFunc, classTemplate.getTypeInfo());
         
-        classTemplate.placeConstructor(new RhexConstructor(classTemplate, identity.getFuncSig(), rFunc));
+        classTemplate.placeConstructor(new RhexConstructor(classTemplate, identity.getFuncSig(), rFunc, exceptions));
       }
       
       System.out.println("<<<<<< PLACED: "+identity.getFuncSig()+"  |  HOST: "+classTemplate.getTypeInfo());

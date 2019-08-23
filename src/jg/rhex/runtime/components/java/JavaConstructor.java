@@ -1,7 +1,10 @@
 package jg.rhex.runtime.components.java;
 
+import java.util.Set;
+
 import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionSignature;
+import jg.rhex.common.Type;
 import jg.rhex.runtime.components.Constructor;
 import jg.rhex.runtime.components.Instance;
 import jg.rhex.runtime.components.SymbolTable;
@@ -10,8 +13,11 @@ public class JavaConstructor extends Constructor{
 
   private final java.lang.reflect.Constructor<?> constructor;
   
-  public JavaConstructor(JavaClass hostClass, FunctionSignature signature, java.lang.reflect.Constructor<?> constructor) {
-    super(hostClass, signature, Descriptor.translateModifiers(constructor.getModifiers()));
+  public JavaConstructor(JavaClass hostClass, 
+      FunctionSignature signature, 
+      java.lang.reflect.Constructor<?> constructor, 
+      Set<Type> exceptions) {
+    super(hostClass, signature, Descriptor.translateModifiers(constructor.getModifiers()), exceptions);
     this.constructor = constructor;
   }
 

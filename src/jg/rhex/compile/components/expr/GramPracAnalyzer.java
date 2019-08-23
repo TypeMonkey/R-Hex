@@ -133,6 +133,12 @@ public abstract class GramPracAnalyzer extends Analyzer {
         case GramPracConstants.BREAK:
             enterBreak((Token) node);
             break;
+        case GramPracConstants.TRY:
+            enterTry((Token) node);
+            break;
+        case GramPracConstants.CATCH:
+            enterCatch((Token) node);
+            break;
         case GramPracConstants.CLASS:
             enterClass((Token) node);
             break;
@@ -410,6 +416,10 @@ public abstract class GramPracAnalyzer extends Analyzer {
             return exitCont((Token) node);
         case GramPracConstants.BREAK:
             return exitBreak((Token) node);
+        case GramPracConstants.TRY:
+            return exitTry((Token) node);
+        case GramPracConstants.CATCH:
+            return exitCatch((Token) node);
         case GramPracConstants.CLASS:
             return exitClass((Token) node);
         case GramPracConstants.INTER:
@@ -1454,6 +1464,54 @@ public abstract class GramPracAnalyzer extends Analyzer {
      * @throws ParseException if the node analysis discovered errors
      */
     protected Node exitBreak(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterTry(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitTry(Token node) throws ParseException {
+        return node;
+    }
+
+    /**
+     * Called when entering a parse tree node.
+     *
+     * @param node           the node being entered
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected void enterCatch(Token node) throws ParseException {
+    }
+
+    /**
+     * Called when exiting a parse tree node.
+     *
+     * @param node           the node being exited
+     *
+     * @return the node to add to the parse tree, or
+     *         null if no parse tree should be created
+     *
+     * @throws ParseException if the node analysis discovered errors
+     */
+    protected Node exitCatch(Token node) throws ParseException {
         return node;
     }
 

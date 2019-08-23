@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.TypeParameter;
-import jg.rhex.compile.components.tnodes.TNode;
 import net.percederberg.grammatica.parser.Token;
 
 public class TType extends TAtom<List<TType>> {

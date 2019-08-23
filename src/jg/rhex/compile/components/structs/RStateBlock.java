@@ -26,7 +26,6 @@ public class RStateBlock extends RStatement {
   
   private List<RStatement> statements;
   private BlockType blockType;
-  protected boolean isSealed;
   
   /**
    * Constructs an empty RStateBlock
@@ -50,16 +49,10 @@ public class RStateBlock extends RStatement {
   }
   
   public void addStatements(Collection<RStatement> statements){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     this.statements.addAll(statements);
   }
   
   public void addStatement(RStatement statement){
-    if (isSealed) {
-      throw new IllegalStateException("This structure has been sealed!");
-    }
     statements.add(statement);
   }
 
