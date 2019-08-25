@@ -1,8 +1,5 @@
 package jg.rhex.runtime.components;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,9 +8,6 @@ import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
-import jg.rhex.runtime.components.rhexspec.RhexConstructor;
-import jg.rhex.runtime.components.rhexspec.RhexFunction;
-import jg.rhex.runtime.components.rhexspec.RhexVariable;
 
 public abstract class GenClass {
 
@@ -92,8 +86,13 @@ public abstract class GenClass {
     return constructorMap.get(signature);
   } 
 
-  public Function retrieveFunction(FunctionSignature signature){
+  public Function retrieveFunction(FunctionSignature signature, boolean recurseSearchParent){
     Function function = functionMap.get(signature);
+    if (function == null && recurseSearchParent) {
+      if (parent != null) {
+        function = parent.retrieveFunction(signature, recurseSearchParent);
+      }
+    }
     return function;
   }
   

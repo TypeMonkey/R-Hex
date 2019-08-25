@@ -30,6 +30,7 @@ import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.errors.SimilarFunctionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.runtime.components.Function;
+import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
 import jg.rhex.runtime.components.java.JavaClass;
 import jg.rhex.runtime.components.rhexspec.RhexClass;
@@ -86,7 +87,7 @@ public class TypeAttacher {
       walkBlock(func.getBody().getStatements(), nameResolver, file);
     }
     
-    for(RhexClass rClass : file.getFileClasses().values()) {
+    for(GenClass rClass : file.getFileClasses().values()) {
       for(Variable variable : rClass.getVariableMap().values()) {
         RhexVariable actualVar = (RhexVariable) variable;
         retrieveType(actualVar.getOriginal().getProvidedType(), nameResolver, file);

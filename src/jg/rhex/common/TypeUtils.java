@@ -7,6 +7,8 @@ import java.util.Map;
 public final class TypeUtils {
 
   public static final Map<String, Type> PRIMITIVE_TYPES;
+  
+  public static final Map<String, Type> WRAPPER_TYPES;
 
   static{   
     HashMap<String, Type> temp = new HashMap<>();
@@ -17,8 +19,20 @@ public final class TypeUtils {
     temp.put(Type.CHAR.getSimpleName(), Type.CHAR);
     temp.put(Type.BYTE.getSimpleName(), Type.BYTE);
     temp.put(Type.SHORT.getSimpleName(), Type.SHORT);
+    temp.put(Type.BOOL.getSimpleName(), Type.BOOL);
 
     PRIMITIVE_TYPES = Collections.unmodifiableMap(temp);
+    
+    temp = new HashMap<>();
+    temp.put("java.lang.Integer", new Type("Integer", "java.lang.Integer"));
+    temp.put("java.lang.Long", new Type("Long", "java.lang.Long"));
+    temp.put("java.lang.Double", new Type("Double", "java.lang.Double"));
+    temp.put("java.lang.Float", new Type("Float", "java.lang.Float"));
+    temp.put("java.lang.Character", new Type("Character", "java.lang.Character"));
+    temp.put("java.lang.Byte", new Type("Byte", "java.lang.Byte"));
+    temp.put("java.lang.Short", new Type("Short", "java.lang.Short"));
+    temp.put("java.lang.Boolean", new Type("Boolean", "java.lang.Boolean"));
+    WRAPPER_TYPES = Collections.unmodifiableMap(temp);
   }
 
   public static boolean isPrimitive(String type){
@@ -35,6 +49,21 @@ public final class TypeUtils {
 
   public static boolean isVoid(Type type){
     return Type.VOID_TYPE.equals(type);
+  }
+  
+  public static boolean isNumericalPrimitive(String type) {
+    if (isPrimitive(type) && !Type.BOOL.getSimpleName().equals(type)) {
+      return true;
+    }
+    return false;
+  }
+  
+  public static boolean isNumerical(String type) {
+    return isNumericalPrimitive(type) || (WRAPPER_TYPES.containsKey(type) && !type.equals("java.lang.Boolean"));
+  }
+  
+  public static boolean isNumerical(Type type) {
+    return isNumerical(type.getFullName());
   }
   
   public static String getHostFileName(Type type) {

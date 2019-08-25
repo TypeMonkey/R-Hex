@@ -6,6 +6,7 @@ import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.SymbolTable;
 
 /**
  * Represents callable functions (class, instance, and file functions) along with constructors
@@ -53,6 +54,10 @@ public abstract class Function {
   
   public FunctionSignature getSignature(){
     return identity.getFuncSig();
+  }
+  
+  public Type getReturnType(){
+    return identity.getReturnType();
   }
   
   public Set<Descriptor> getDescriptors(){

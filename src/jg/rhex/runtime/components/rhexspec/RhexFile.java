@@ -9,14 +9,17 @@ import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.RFile;
 import jg.rhex.compile.components.structs.RVariable;
+import jg.rhex.runtime.components.Function;
+import jg.rhex.runtime.components.GenClass;
+import jg.rhex.runtime.components.Variable;
 
 public class RhexFile {
   
   private final RFile original;
   
-  private Map<FunctionSignature, RhexFunction> fileFunctions;
-  private Map<Type, RhexClass> fileClasses; //String keys are full, binary class names
-  private Map<String, RhexVariable> fileVariables;
+  private Map<FunctionSignature, Function> fileFunctions;
+  private Map<Type, GenClass> fileClasses; //String keys are full, binary class names
+  private Map<String, Variable> fileVariables;
   
   public RhexFile(RFile original) {
     this.original = original;
@@ -53,27 +56,27 @@ public class RhexFile {
     return fileVariables.put(variable.getName(), variable) == null;
   }
   
-  public RhexFunction getFunction(FunctionSignature signature){
+  public Function getFunction(FunctionSignature signature){
     return fileFunctions.get(signature);
   }
   
-  public RhexClass getClass(Type type){
+  public GenClass getClass(Type type){
     return fileClasses.get(type);
   }
   
-  public RhexVariable getVariable(String name){
+  public Variable getVariable(String name){
     return fileVariables.get(name);
   }
   
-  public Map<FunctionSignature, RhexFunction> getFileFunctions() {
+  public Map<FunctionSignature, Function> getFileFunctions() {
     return fileFunctions;
   }
 
-  public Map<Type, RhexClass> getFileClasses() {
+  public Map<Type, GenClass> getFileClasses() {
     return fileClasses;
   }
 
-  public Map<String, RhexVariable> getFileVariables() {
+  public Map<String, Variable> getFileVariables() {
     return fileVariables;
   }
 

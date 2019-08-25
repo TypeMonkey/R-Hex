@@ -22,7 +22,7 @@ public class MainCompile {
     //String [] actArgs = {"samplesrcs/Source1.rhex",
     //                     "samplesrcs/Source2.rhex"};
     
-    
+    /*
     String [] actArgs = {"samplesrcs/Inheritance.rhex"};
     arg = actArgs;
     
@@ -40,6 +40,8 @@ public class MainCompile {
     
     System.out.println("-------VERIFYING--------");
     compiler.verifySources();
+    */
     
+    System.out.println(JavaClass.getJavaClassRep(Integer.class).decendsFrom(JavaClass.getJavaClassRep(Object.class)));
   }
 }

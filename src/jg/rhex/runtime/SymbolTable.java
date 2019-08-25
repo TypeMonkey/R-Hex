@@ -1,4 +1,4 @@
-package jg.rhex.runtime.components;
+package jg.rhex.runtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +8,9 @@ import java.util.Map;
 
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.components.Function;
+import jg.rhex.runtime.components.GenClass;
+import jg.rhex.runtime.components.Variable;
 import jg.rhex.runtime.components.rhexspec.RhexFile;
 
 public class SymbolTable {
@@ -37,7 +40,7 @@ public class SymbolTable {
     if (classMap.containsKey(genClass.getTypeInfo())) {
       return false;
     }
-    return classMap.put(genClass.getTypeInfo(), genClass) == null;
+    return classMap.put(genClass.getTypeInfo(),  genClass) == null;
   }
   
   public void addFunctionMap(Map<FunctionSignature, Function> fMap) {
@@ -75,12 +78,12 @@ public class SymbolTable {
   }
   
   public GenClass findClass(Type type) {
-    return classMap.get(type);
+    return (GenClass) classMap.get(type);
   }
   
   public Function findFunction(FunctionSignature signature) {
-    for (Map<FunctionSignature, Function> map : funcMaps) {
-      Function found = map.get(signature);
+    for (Map<FunctionSignature, ? super Function> map : funcMaps) {
+      Function found = (Function) map.get(signature);
       if (found != null) {
         return found;
       }
@@ -89,8 +92,8 @@ public class SymbolTable {
   }
   
   public Variable findVariable(String varName) {
-    for (Map<String, Variable> map : varMaps) {
-      Variable found = map.get(varName);
+    for (Map<String, ? super Variable> map : varMaps) {
+      Variable found = (Variable) map.get(varName);
       if (found != null) {
         return found;
       }

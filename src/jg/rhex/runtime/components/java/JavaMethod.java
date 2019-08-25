@@ -6,9 +6,9 @@ import java.util.Set;
 import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.Instance;
-import jg.rhex.runtime.components.SymbolTable;
 
 public class JavaMethod extends Function{
 

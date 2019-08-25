@@ -23,6 +23,7 @@ public class Type {
   public static final Type SHORT = new Type("short", "short");
   public static final Type DOUBLE = new Type("double", "double");
   public static final Type FLOAT = new Type("float", "float");
+  public static final Type BOOL = new Type("boolean", "boolean");
   
 
   private final String simpleName;

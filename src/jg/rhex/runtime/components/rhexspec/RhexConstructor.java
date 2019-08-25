@@ -5,10 +5,10 @@ import java.util.Set;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.RFunc;
+import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.Constructor;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Instance;
-import jg.rhex.runtime.components.SymbolTable;
 
 public class RhexConstructor extends Constructor{
 

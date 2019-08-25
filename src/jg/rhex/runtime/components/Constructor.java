@@ -6,6 +6,7 @@ import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.SymbolTable;
 
 public abstract class Constructor extends Function{
   

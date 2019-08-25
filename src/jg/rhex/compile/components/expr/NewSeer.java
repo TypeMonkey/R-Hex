@@ -410,11 +410,11 @@ public class NewSeer extends GramPracAnalyzer{
     if (potentialOp instanceof TOp) {
       TOp op = (TOp) potentialOp;
       if (latest.size() == 1) {
-        actualNodes.push(new TUnary<>(latest.poll(), op));
+        actualNodes.push(new TUnary(latest.poll(), op));
       }
       else {
         TExpr expr = new TExpr(new ArrayList<>(latest));
-        actualNodes.push(new TUnary<>(expr, op));
+        actualNodes.push(new TUnary(expr, op));
       }
       
       System.out.println("----POST: Top");
