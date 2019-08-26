@@ -1,8 +1,11 @@
 package jg.rhex.compile.verify;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import jg.rhex.common.FunctionSignature;
@@ -23,20 +26,15 @@ import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TLong;
 import jg.rhex.compile.components.tnodes.atoms.TMemberInvoke;
-import jg.rhex.compile.components.tnodes.atoms.TNumber;
 import jg.rhex.compile.components.tnodes.atoms.TString;
 import jg.rhex.compile.components.tnodes.atoms.TUnary;
-import jg.rhex.compile.verify.errors.UnfoundFunctionException;
-import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.compile.verify.errors.UnfoundVariableException;
 import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
 import jg.rhex.runtime.components.java.JavaClass;
-import jg.rhex.runtime.components.rhexspec.RhexFile;
-import jg.rhex.runtime.components.rhexspec.RhexFunction;
-import jg.rhex.runtime.components.rhexspec.RhexVariable;
+import jg.rhex.runtime.components.rhexspec.RhexFile;;
 
 /**
  * Class that verifies that the provided function is correctly structured
@@ -45,7 +43,7 @@ import jg.rhex.runtime.components.rhexspec.RhexVariable;
  *      the function returns something in all control paths (if not void),
  *      type checks expressions and assignments.
  */
-public class FunctionStructureVerifier {
+public class ExpressionTypeChecker {
   
   /**
    * Type checks the expression and returns the type of the expression
@@ -68,8 +66,41 @@ public class FunctionStructureVerifier {
      * Expressions are organized in post-fix pattern
      */
     for (TNode node : exprBody) {
-      if (node instanceof TOp) {
+      if (node instanceof TOp) {   
+        GenClass left = valueTypes.pop();
+        GenClass right = valueTypes.pop();
+        TOp op = (TOp) node;
         
+        //check if operator is numerical
+        HashSet<String> arithOps = new HashSet<>(Arrays.asList("+","-","/","*","%"));
+        HashSet<String> numCompOps = new HashSet<>(Arrays.asList("<","<=",">",">="));
+        HashSet<String> uniCompOps = new HashSet<>(Arrays.asList("==", "!="));
+        if (arithOps.contains(op.getOpString())) {
+          Type result = getResultingArithmeticType(left.getTypeInfo(), right.getTypeInfo());
+          valueTypes.push(table.findClass(result));
+        }
+        else if (op.getOpString().equals("=")) {
+          if (right.decendsFrom(left)) {
+            valueTypes.push(right);
+          }
+          else {
+            throw new RuntimeException("Cannot assign instance of '"+right.getTypeInfo()+"' to variable "+
+                "of type '"+left.getTypeInfo()+"'"+
+                " , at <ln:"+op.getOperatorToken().getStartLine()+">, file: "+file.getName());
+          }
+        }
+        else if(numCompOps.contains(op.getOpString())){
+          if (TypeUtils.isNumerical(left.getTypeInfo()) && TypeUtils.isNumerical(right.getTypeInfo())) {
+            valueTypes.push(JavaClass.getJavaClassRep(boolean.class));
+          }
+          else {
+            throw new RuntimeException("Not both operands are numbers, op: "+op.getOpString()+
+                " , at <ln:"+op.getOperatorToken().getStartLine()+"> , file: "+file.getName());
+          }
+        }
+        else if(uniCompOps.contains(op.getOpString())){
+          valueTypes.push(JavaClass.getJavaClassRep(boolean.class));
+        }
       }
       else if (node instanceof TFuncCall) {
         TFuncCall funcCall = (TFuncCall) node;
@@ -120,7 +151,7 @@ public class FunctionStructureVerifier {
             if (actualFunction == null) {
               throw new RuntimeException("Cannot find class function "+toLookFor+" from class '"+firstType.getTypeInfo()+"' "+
                   " , at <ln:"+funcCall.getFuncName().getToken().getStartLine()+"> , at "+file.getName());
-            }
+            }              
             firstType = table.findClass(actualFunction.getReturnType());
           }
         }
@@ -131,7 +162,10 @@ public class FunctionStructureVerifier {
         TCast cast = (TCast) node;
         GenClass desiredType = table.findClass(cast.getDesiredType().getAttachedType());      
         GenClass targetType = typeCheckExpression(cast.getTarget(), file, table);
-        if (!desiredType.decendsFrom(targetType) && !targetType.decendsFrom(desiredType)) {
+        
+        //numerical types can be converted between each other
+        if ( !(TypeUtils.isNumerical(desiredType.getTypeInfo()) && TypeUtils.isNumerical(targetType.getTypeInfo())) &&
+             (!desiredType.decendsFrom(targetType) && !targetType.decendsFrom(desiredType)) ) {
           //desired type and target type have no common ancestry. Cast isn't possible
           throw new RuntimeException("Cast type '"+desiredType.getTypeInfo()+"' has no common ancestry with"+
                      " target '"+targetType.getTypeInfo()+
@@ -199,5 +233,33 @@ public class FunctionStructureVerifier {
         valueTypes.push(JavaClass.getJavaClassRep(Type.BOOL.getFullName()));
       }
     }
+    
+    return valueTypes.pop();
+  }
+  
+  public static Type getResultingArithmeticType(Type left, Type right){
+    if (TypeUtils.isNumerical(right) && TypeUtils.isNumerical(right)) {
+      if (left.equals(right)) {
+        //if the same type, their addition should be the same
+        return left;
+      }
+      else if (TypeUtils.isFloatingNumType(left) && TypeUtils.isFloatingNumType(right)) {
+        return Type.DOUBLE;
+      }
+      else if (TypeUtils.isIntegralNumType(left) && TypeUtils.isIntegralNumType(right)) {
+        if ((left.getSimpleName().equals("Long") || left.equals(Type.LONG)) || 
+            (right.getSimpleName().equals("Long") || right.equals(Type.LONG))) {
+          return Type.LONG;
+        }
+        else{
+          return Type.INT;
+        }
+      }
+      else if ( (TypeUtils.isFloatingNumType(left) && TypeUtils.isNumerical(right)) || 
+                (TypeUtils.isIntegralNumType(left) && TypeUtils.isFloatingNumType(right)) ) {
+        return Type.DOUBLE;
+      }
+    }
+    return null;
   }
 }

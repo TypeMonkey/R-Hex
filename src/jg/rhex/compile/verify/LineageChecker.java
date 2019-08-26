@@ -26,7 +26,6 @@ public class LineageChecker {
     System.out.println("---> checking "+target.getTypeInfo());
     if (!visitedClasses.contains(target)) {
       System.out.println("   -> Type NOT visited. Checking....");
-      String fileName = TypeUtils.getHostFileName(target.getTypeInfo());
       
       GenClass parent = target.getParent();
       if (parent.decendsFrom(target)) {
@@ -37,6 +36,9 @@ public class LineageChecker {
         else {
           throw new RuntimeException(target.getTypeInfo()+" is both a decendant and ancestor of "+parent.getTypeInfo());
         }
+      }
+      else if (parent.getDescriptors().contains(Descriptor.FINAL)) {
+        throw new RuntimeException(target.getTypeInfo()+" cannot extend the final class "+parent.getTypeInfo());
       }
       else {
         System.out.println(">>>>> The parent "+parent+" isn't a decendant of "+target);

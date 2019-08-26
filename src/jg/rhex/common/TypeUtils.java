@@ -51,11 +51,8 @@ public final class TypeUtils {
     return Type.VOID_TYPE.equals(type);
   }
   
-  public static boolean isNumericalPrimitive(String type) {
-    if (isPrimitive(type) && !Type.BOOL.getSimpleName().equals(type)) {
-      return true;
-    }
-    return false;
+  public static boolean isNumericalPrimitive(String type) { 
+    return isPrimitive(type) && !Type.BOOL.getSimpleName().equals(type);  
   }
   
   public static boolean isNumerical(String type) {
@@ -64,6 +61,26 @@ public final class TypeUtils {
   
   public static boolean isNumerical(Type type) {
     return isNumerical(type.getFullName());
+  }
+  
+  public static boolean isIntegralNumType(Type type){
+    return isIntegralNumType(type.getFullName());
+  }
+  
+  public static boolean isIntegralNumType(String type){
+    return isNumerical(type) && 
+        !(type.equals("double") || type.equals("java.lang.Double")) && 
+        !(type.equals("float") || type.equals("java.lang.Float"));
+  }
+  
+  public static boolean isFloatingNumType(Type type){
+    return isFloatingNumType(type.getFullName());
+  }
+  
+  public static boolean isFloatingNumType(String type){
+    return isNumerical(type) && 
+        (type.equals("double") || type.equals("java.lang.Double")) && 
+        (type.equals("float") || type.equals("java.lang.Float"));
   }
   
   public static String getHostFileName(Type type) {

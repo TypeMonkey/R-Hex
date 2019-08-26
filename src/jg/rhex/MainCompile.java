@@ -42,6 +42,13 @@ public class MainCompile {
     compiler.verifySources();
     */
     
-    System.out.println(JavaClass.getJavaClassRep(Integer.class).decendsFrom(JavaClass.getJavaClassRep(Object.class)));
+    Object object = null;
+    
+    byte l = 10;
+    int r = 5000;
+    
+    object = l + r;
+    
+    System.out.println(object.getClass());
   }
 }

@@ -3,6 +3,7 @@ package jg.rhex.runtime.components.java;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,6 +23,25 @@ import jg.rhex.runtime.components.Variable;
 public class JavaClass extends GenClass{
   
   private static final Map<Class<?>, JavaClass> loadedClasses = new HashMap<>();
+  static{
+    loadedClasses.put(Void.class, new JavaClass(new Type("Void", "java.lang.Void"), 
+        null, 
+        new HashSet<>(), 
+        new HashMap<>(), 
+        new HashMap<>(), 
+        new HashMap<>(), 
+        new HashSet<>(Arrays.asList(Descriptor.FINAL)),
+        false));
+    
+    loadedClasses.put(void.class, new JavaClass(Type.VOID_TYPE, 
+        null, 
+        new HashSet<>(), 
+        new HashMap<>(), 
+        new HashMap<>(), 
+        new HashMap<>(), 
+        new HashSet<>(Arrays.asList(Descriptor.FINAL)),
+        false));
+  }
 
   protected JavaClass(Type typeInfo, JavaClass parent, Set<GenClass> interfaces, 
       Map<FunctionSignature, Function> funcMap, 
@@ -60,6 +80,12 @@ public class JavaClass extends GenClass{
       }
       else if (fullName.equals(Type.BYTE.getFullName())) {
         return getJavaClassRep(byte.class);
+      }
+      else if (fullName.equals(Type.BOOL.getFullName())) {
+        return getJavaClassRep(boolean.class);
+      }
+      else if (fullName.equals(Type.VOID_TYPE.getFullName())) {
+        return getJavaClassRep(Void.class);
       }
       else{
         return getJavaClassRep(void.class);

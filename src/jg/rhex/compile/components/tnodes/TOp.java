@@ -3,7 +3,7 @@ package jg.rhex.compile.components.tnodes;
 import net.percederberg.grammatica.parser.Token;
 
 /**
- * Represents a binary, arithmetic operator (ex: + , - , * , / , %, =, new )
+ * Represents a binary, arithmetic operator (ex: + , - , * , / , %, =, ==, !=, ||, <, <=, >, >=, &&, | , &)
  * 
  * @author Jose
  *

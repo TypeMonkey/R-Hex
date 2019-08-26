@@ -32,6 +32,8 @@ public class StructureVerifier {
       //at variable declaration, the variable being declared to cannot be referred to
       TNode value = actualVariable.getOriginal().getValue();
       
+      GenClass varType = 
+      ExpressionTypeChecker.typeCheckExpression(value, file, table);
       
       //at the end of evaluation, then add the variable
       table.addLocalVariable(variable);
