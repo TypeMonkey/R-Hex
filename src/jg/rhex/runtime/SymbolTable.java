@@ -8,12 +8,16 @@ import java.util.Map;
 
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
+import jg.rhex.runtime.components.java.JavaClass;
 import jg.rhex.runtime.components.rhexspec.RhexFile;
 
 public class SymbolTable {
+  
+  private ClassLoader classLoader;
 
   private Map<String, RhexFile> rhexFileMap;
   
@@ -23,12 +27,14 @@ public class SymbolTable {
   
   private List<Map<String, Variable>> varMaps;
   
-  public SymbolTable(Map<String, RhexFile> fileMap, 
+  public SymbolTable(ClassLoader classLoader,
+      Map<String, RhexFile> fileMap, 
       Map<Type, GenClass> classMap, 
       Map<String, Variable> localVars, 
       Map<FunctionSignature, Function> localFunctions) {   
+    this.classLoader = classLoader;
     rhexFileMap = new HashMap<>(fileMap);
-    classMap = new HashMap<>();
+    this.classMap = classMap;
     varMaps = new ArrayList<>();
     funcMaps = new ArrayList<>();
     
@@ -78,7 +84,19 @@ public class SymbolTable {
   }
   
   public GenClass findClass(Type type) {
-    return (GenClass) classMap.get(type);
+    if (TypeUtils.isPrimitive(type)) {
+      return JavaClass.getJavaClassRep(type.getFullName());
+    }
+    GenClass genClass = classMap.get(type);
+    if (genClass == null) {
+      try {
+        Class<?> compClass = classLoader.loadClass(type.getFullName());
+        genClass = JavaClass.getJavaClassRep(compClass);
+      } catch (ClassNotFoundException e) {
+        return null;
+      }
+    }
+    return genClass;
   }
   
   public Function findFunction(FunctionSignature signature) {

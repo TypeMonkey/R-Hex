@@ -22,8 +22,8 @@ public class MainCompile {
     //String [] actArgs = {"samplesrcs/Source1.rhex",
     //                     "samplesrcs/Source2.rhex"};
     
-    /*
-    String [] actArgs = {"samplesrcs/Inheritance.rhex"};
+    
+    String [] actArgs = {"samplesrcs/Source1.rhex"};
     arg = actArgs;
     
     System.out.println("--------------- R-HEX COMPILER 1.0 ---------------");
@@ -40,15 +40,6 @@ public class MainCompile {
     
     System.out.println("-------VERIFYING--------");
     compiler.verifySources();
-    */
     
-    Object object = null;
-    
-    byte l = 10;
-    int r = 5000;
-    
-    object = l + r;
-    
-    System.out.println(object.getClass());
   }
 }

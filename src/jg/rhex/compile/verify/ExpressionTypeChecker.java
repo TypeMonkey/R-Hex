@@ -75,9 +75,29 @@ public class ExpressionTypeChecker {
         HashSet<String> arithOps = new HashSet<>(Arrays.asList("+","-","/","*","%"));
         HashSet<String> numCompOps = new HashSet<>(Arrays.asList("<","<=",">",">="));
         HashSet<String> uniCompOps = new HashSet<>(Arrays.asList("==", "!="));
+        HashSet<String> boolOps = new HashSet<>(Arrays.asList("&&", "||"));
         if (arithOps.contains(op.getOpString())) {
+          if (op.getOpString().equals("+")) {
+            if (left.getTypeInfo().getFullName().equals("java.lang.String") || 
+                right.getTypeInfo().getFullName().equals("java.lang.String")) {
+              valueTypes.push(table.findClass(new Type("String", "java.lang.String")));
+              continue;
+            }
+          }
           Type result = getResultingArithmeticType(left.getTypeInfo(), right.getTypeInfo());
           valueTypes.push(table.findClass(result));
+        }
+        else if (boolOps.contains(op.getOpString())) {
+          if ( (left.getTypeInfo().getFullName().equals("java.lang.Boolean") || 
+                left.getTypeInfo().getFullName().equals("boolean")) && 
+               (right.getTypeInfo().getFullName().equals("java.lang.Boolean") || 
+                right.getTypeInfo().getFullName().equals("boolean"))) {
+            valueTypes.push(table.findClass(Type.BOOL));
+          }
+          else {
+            throw new RuntimeException("'"+op.getOpString()+"' isn't define for non-boolean types, at <ln:"+
+                                          op.getOperatorToken().getStartLine()+"> , at file: "+file.getName());
+          }
         }
         else if (op.getOpString().equals("=")) {
           if (right.decendsFrom(left)) {
@@ -91,7 +111,7 @@ public class ExpressionTypeChecker {
         }
         else if(numCompOps.contains(op.getOpString())){
           if (TypeUtils.isNumerical(left.getTypeInfo()) && TypeUtils.isNumerical(right.getTypeInfo())) {
-            valueTypes.push(JavaClass.getJavaClassRep(boolean.class));
+            valueTypes.push(table.findClass(Type.BOOL));
           }
           else {
             throw new RuntimeException("Not both operands are numbers, op: "+op.getOpString()+
@@ -99,7 +119,7 @@ public class ExpressionTypeChecker {
           }
         }
         else if(uniCompOps.contains(op.getOpString())){
-          valueTypes.push(JavaClass.getJavaClassRep(boolean.class));
+          valueTypes.push(table.findClass(Type.BOOL));
         }
       }
       else if (node instanceof TFuncCall) {
@@ -123,6 +143,7 @@ public class ExpressionTypeChecker {
         TMemberInvoke memberInvoke = (TMemberInvoke) node;
         
         TNode firstMember = memberInvoke.getSequence().get(0);
+        System.out.println("  R_CH: "+firstMember);
         GenClass firstType = typeCheckExpression(firstMember, file, table);
         
         for(int i = 1; i < memberInvoke.getSequence().size(); i++){
@@ -139,6 +160,7 @@ public class ExpressionTypeChecker {
           }
           else if (current instanceof TFuncCall) {
             TFuncCall funcCall = (TFuncCall) current;
+            System.out.println(" * MEM FUNC CALL: "+funcCall);
             
             Type [] argTypes = new Type[funcCall.getArgList().size()];
             for (int j = 0; j < argTypes.length; j++) {
@@ -153,9 +175,11 @@ public class ExpressionTypeChecker {
                   " , at <ln:"+funcCall.getFuncName().getToken().getStartLine()+"> , at "+file.getName());
             }              
             firstType = table.findClass(actualFunction.getReturnType());
+            System.out.println("----> MEM FUNC CALL RETURN: "+actualFunction.getReturnType());
           }
         }
         
+        System.out.println(" LATEST MEMBER: "+firstType);
         valueTypes.push(firstType);
       }
       else if (node instanceof TCast) {
@@ -212,28 +236,29 @@ public class ExpressionTypeChecker {
         }
       }
       else if (node instanceof TInt) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.INT.getFullName()));
+        valueTypes.push(table.findClass(Type.INT));
       }
       else if (node instanceof TDouble) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.DOUBLE.getFullName()));
+        valueTypes.push(table.findClass(Type.DOUBLE));
       }
       else if (node instanceof TFloat) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.FLOAT.getFullName()));
+        valueTypes.push(table.findClass(Type.FLOAT));
       }
       else if (node instanceof TLong) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.LONG.getFullName()));
+        valueTypes.push(table.findClass(Type.LONG));
       }
       else if (node instanceof TString) {
-        valueTypes.push(JavaClass.getJavaClassRep("java.lang.String"));
+        valueTypes.push(table.findClass(new Type("String", "java.lang.String")));
       }
       else if (node instanceof TChar) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.CHAR.getFullName()));
+        valueTypes.push(table.findClass(Type.CHAR));
       }
       else if (node instanceof TBool) {
-        valueTypes.push(JavaClass.getJavaClassRep(Type.BOOL.getFullName()));
+        valueTypes.push(table.findClass(Type.BOOL));
       }
     }
     
+    System.out.println("---RETURNING!!! "+valueTypes.peek());
     return valueTypes.pop();
   }
   

@@ -26,6 +26,7 @@ import jg.rhex.compile.verify.ClassExtractor;
 import jg.rhex.compile.verify.TypeAttacher;
 import jg.rhex.compile.verify.TypeAttacher;
 import jg.rhex.compile.verify.LineageChecker;
+import jg.rhex.compile.verify.StructureVerifier;
 import jg.rhex.compile.verify.errors.RedundantExtensionException;
 import jg.rhex.compile.verify.errors.UnfoundTypeException;
 import jg.rhex.runtime.components.Function;
@@ -304,6 +305,15 @@ public class RhexCompiler {
     for (RhexFile container : files.values()) {
       System.out.println("   ---> FOR: "+container.getName());
       attacher.extract(container);
+    }
+    
+    /*
+     * Then, do type checking
+     */   
+    StructureVerifier structureVerifier = new StructureVerifier(classTemplates, files);
+    System.out.println(">>>>>>>>>>> TYPE CHECKING <<<<<<<<<<");
+    for(RhexFile file : files.values()){
+      structureVerifier.verifyFileStructure(file);
     }
     
     currentStatus = Status.VERIFICATION;
