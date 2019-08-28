@@ -132,6 +132,11 @@ public class GramPracParser extends RecursiveDescentParser {
     private static final int SUBPRODUCTION_22 = 3022;
 
     /**
+     * A generated production node identity constant.
+     */
+    private static final int SUBPRODUCTION_23 = 3023;
+
+    /**
      * Creates a new parser with a default analyzer.
      *
      * @param in             the input stream to read from
@@ -354,8 +359,7 @@ public class GramPracParser extends RecursiveDescentParser {
                                         "unit");
         alt = new ProductionPatternAlternative();
         alt.addProduction(SUBPRODUCTION_22, 1, 1);
-        alt.addProduction(GramPracConstants.INVOKE, 0, 1);
-        alt.addProduction(GramPracConstants.ARRAY_ACC, 0, -1);
+        alt.addProduction(SUBPRODUCTION_23, 0, -1);
         alt.addProduction(GramPracConstants.CAST, 0, -1);
         pattern.addAlternative(alt);
         addPattern(pattern);
@@ -569,7 +573,6 @@ public class GramPracParser extends RecursiveDescentParser {
         alt = new ProductionPatternAlternative();
         alt.addToken(GramPracConstants.DOT, 1, 1);
         alt.addProduction(SUBPRODUCTION_18, 1, 1);
-        alt.addProduction(GramPracConstants.ARRAY_ACC, 0, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
 
@@ -632,6 +635,17 @@ public class GramPracParser extends RecursiveDescentParser {
         pattern.addAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.addProduction(GramPracConstants.CONSTRUCTOR, 1, 1);
+        pattern.addAlternative(alt);
+        addPattern(pattern);
+
+        pattern = new ProductionPattern(SUBPRODUCTION_23,
+                                        "Subproduction23");
+        pattern.setSynthetic(true);
+        alt = new ProductionPatternAlternative();
+        alt.addProduction(GramPracConstants.INVOKE, 1, 1);
+        pattern.addAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.addProduction(GramPracConstants.ARRAY_ACC, 1, 1);
         pattern.addAlternative(alt);
         addPattern(pattern);
     }

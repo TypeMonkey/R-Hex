@@ -5,7 +5,7 @@ public class TNew extends TAtom<TFuncCall>{
   private TType binaryName;
   
   public TNew(TType binaryName, TFuncCall value) {
-    super(value);
+    super(value, binaryName.getLineNumber(), binaryName.getColNumber());
     this.binaryName = binaryName;
   }
   

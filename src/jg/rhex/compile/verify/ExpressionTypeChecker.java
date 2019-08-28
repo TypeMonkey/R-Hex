@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.common.TypeUtils;
@@ -15,6 +16,7 @@ import jg.rhex.compile.RhexCompiler;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.compile.components.tnodes.TOp;
+import jg.rhex.compile.components.tnodes.atoms.TArrayAcc;
 import jg.rhex.compile.components.tnodes.atoms.TBool;
 import jg.rhex.compile.components.tnodes.atoms.TCast;
 import jg.rhex.compile.components.tnodes.atoms.TChar;
@@ -26,10 +28,13 @@ import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TInt;
 import jg.rhex.compile.components.tnodes.atoms.TLong;
 import jg.rhex.compile.components.tnodes.atoms.TMemberInvoke;
+import jg.rhex.compile.components.tnodes.atoms.TNew;
+import jg.rhex.compile.components.tnodes.atoms.TNewArray;
 import jg.rhex.compile.components.tnodes.atoms.TString;
 import jg.rhex.compile.components.tnodes.atoms.TUnary;
 import jg.rhex.compile.verify.errors.UnfoundVariableException;
 import jg.rhex.runtime.SymbolTable;
+import jg.rhex.runtime.components.ArrayClass;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
@@ -226,13 +231,83 @@ public class ExpressionTypeChecker {
       }
       else if (node instanceof TIden) {
         TIden iden = (TIden) node;
-        
+
         Variable targetVariable = table.findVariable(iden.getActValue().getImage());
         if (targetVariable == null) {
           throw new UnfoundVariableException(iden.getActValue(), file.getName());
         }
+        else if (targetVariable.getType() instanceof ArrayType) {
+          valueTypes.push(table.findClass((ArrayType) targetVariable.getType()));
+        }
         else {
           valueTypes.push(table.findClass(targetVariable.getType()));
+        }
+
+      }
+      else if (node instanceof TNew) {
+        TNew newInstance = (TNew) node;
+        
+        Type instanceType = newInstance.getFullBinaryName().getAttachedType();
+        GenClass instanceClass = table.findClass(instanceType);
+        valueTypes.push(instanceClass);
+      }
+      else if (node instanceof TNewArray) {
+        TNewArray newArr = (TNewArray) node;
+        
+        GenClass baseType = table.findClass(newArr.getArrayBaseType().getAttachedType());
+        
+        for (TNode dimExpr : newArr.getDimensionSizes()) {
+          GenClass genClass = typeCheckExpression(dimExpr, file, table);
+          if (!genClass.getTypeInfo().getFullName().equals("int") && 
+              !genClass.getTypeInfo().getFullName().equals("java.lang.Integer") ) {
+            System.out.println(" ---> BAD ARRAY "+genClass.getTypeInfo());
+            throw new RuntimeException("Array dimensions can only be set by only integer values, at <ln:"+
+              newArr.getArrayBaseType().getBaseType().get(0).getToken().getStartLine()+"> , at "+
+              file.getName());
+          }
+        }
+        
+        System.out.println("******** NEW ARR "+baseType+" | "+newArr.getDimensionSizes().size());
+        
+        ArrayClass arrayClass = new ArrayClass(baseType, newArr.getDimensionSizes().size());
+        valueTypes.push(arrayClass);
+      }
+      else if (node instanceof TArrayAcc) {
+        TArrayAcc arrayAccess = (TArrayAcc) node;
+        
+        for (TNode dimExpr : arrayAccess.getIndex()) {
+          GenClass genClass = typeCheckExpression(dimExpr, file, table);
+          if (!genClass.getTypeInfo().getFullName().equals("int") && 
+              !genClass.getTypeInfo().getFullName().equals("java.lang.Integer") ) {
+            System.err.println("GOT: "+genClass.getTypeInfo());
+            throw new RuntimeException("Array dimensions can only be set by only integer values, at <ln:"+
+              dimExpr.getLineNumber()+"> , at "+
+              file.getName());
+          }
+        }
+        
+        GenClass targetType = typeCheckExpression(arrayAccess.getTarget(), file, table);
+        if (targetType instanceof ArrayClass) {
+          ArrayClass arrayClass = (ArrayClass) targetType;
+          System.out.println("****** ARR ACCESS");
+          int arrayDiff = arrayClass.getArrayDimensions() - arrayAccess.getIndex().size();
+          System.out.println("***** ARRAY DIFFF "+arrayDiff);
+          if (arrayDiff < 0) {
+            throw new RuntimeException("Attempt to access an array of "+arrayClass.getArrayDimensions()+"-dimensions "
+                +" with "+arrayAccess.getIndex().size()+" indices, at <ln:"+arrayAccess.getLineNumber()+
+                "> , at "+file.getName());
+          }
+          else if (arrayDiff == 0) {
+            valueTypes.push(arrayClass.getBaseType());
+          }
+          else {
+            valueTypes.push(new ArrayClass(arrayClass.getBaseType(), arrayDiff));
+          }
+        }
+        else {
+          System.out.println(targetType);
+          throw new RuntimeException("Attempt to access a non-array type, at <ln:"+arrayAccess.getLineNumber()+
+              "> , at "+file.getName());
         }
       }
       else if (node instanceof TInt) {

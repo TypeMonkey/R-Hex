@@ -84,17 +84,17 @@ public class NewSeer extends GramPracAnalyzer{
   protected Node exitComma(Token node)  throws ParseException{
     //System.out.println("LONG: "+node.getImage()+" | children: "+getChildValues(node));
     //node.addValue(Double.parseDouble(node.getImage().toString()));
-    actualNodes.add(new TComma());
+    actualNodes.add(new TComma(node));
     return node;
   } 
   
   protected Node exitTrue(Token node) throws ParseException{
-    actualNodes.add(new TBool(true));
+    actualNodes.add(new TBool(node));
     return node;
   }
   
   protected Node exitFalse(Token node) throws ParseException{  
-    actualNodes.add(new TBool(false));
+    actualNodes.add(new TBool(node));
     return node;
   }
   
@@ -413,7 +413,7 @@ public class NewSeer extends GramPracAnalyzer{
         actualNodes.push(new TUnary(latest.poll(), op));
       }
       else {
-        TExpr expr = new TExpr(new ArrayList<>(latest));
+        TExpr expr = new TExpr(new ArrayList<>(latest), latest.peek().getLineNumber(), latest.peek().getColNumber());
         actualNodes.push(new TUnary(expr, op));
       }
       
@@ -460,7 +460,7 @@ public class NewSeer extends GramPracAnalyzer{
     
     System.out.println("    ----***> "+latest);
   
-    actualNodes.push(new TExpr(new ArrayList<>(latest))); 
+    actualNodes.push(new TExpr(new ArrayList<>(latest), latest.peek().getLineNumber(), latest.peek().getColNumber())); 
     return production;
   }
 
@@ -506,7 +506,7 @@ public class NewSeer extends GramPracAnalyzer{
       actualIndex = latest.pop();
     }
     else {
-      actualIndex = new TExpr(new ArrayList<TNode>(latest));
+      actualIndex = new TExpr(new ArrayList<TNode>(latest), latest.peek().getLineNumber(), latest.peek().getColNumber());
     }
     
     System.out.println("----> array exit: "+latest);
@@ -531,7 +531,7 @@ public class NewSeer extends GramPracAnalyzer{
 
   protected Node exitInvoke(Production production){
     //So, given the invocation sequence: x1.x2.x3.x4.x5 
-    //(where each xi is either a function call or variable)
+    //(where each xi is either a function call or variable or array access)
     //  "latest" contains x2 , x3 , x4 , x5
     // x1 has been parsed already. We need to pop it from the main node stack
     // and push it back in with x1 x2 x3 x4 x5 as a single sequence
@@ -539,8 +539,9 @@ public class NewSeer extends GramPracAnalyzer{
     ArrayDeque<TNode> latest = exitEntrance();
     latest.addFirst(actualNodes.pop()); //pop x1 off the main node stack
     
-    TMemberInvoke invoke = new TMemberInvoke();
-    invoke.setSequence(new ArrayList<>(latest));
+    TMemberInvoke invoke = new TMemberInvoke(new ArrayList<>(latest), 
+        latest.peek().getLineNumber(), 
+        latest.peek().getColNumber());
     
     actualNodes.push(invoke);
     
@@ -623,7 +624,7 @@ public class NewSeer extends GramPracAnalyzer{
     
     TType targetType = (TType) latest.pollFirst();
     
-    TCast cast = new TCast(new TExpr(targetBody), targetType);
+    TCast cast = new TCast(new TExpr(targetBody, latest.peek().getLineNumber(), latest.peek().getColNumber()), targetType);
     actualNodes.push(cast);
     return production;
   }  

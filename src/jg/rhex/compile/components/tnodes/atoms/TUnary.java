@@ -8,7 +8,7 @@ public class TUnary extends TAtom<TNode>{
   private TOp unaryOp;
   
   public TUnary(TNode value, TOp unary) {
-    super(value);
+    super(value, unary.getLineNumber(), unary.getColNumber());
     this.unaryOp = unary;
   }
   

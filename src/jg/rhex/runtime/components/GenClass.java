@@ -66,7 +66,7 @@ public abstract class GenClass {
    * @return true if type is a paren of this GenClas, false if else
    **/
   public boolean decendsFrom(GenClass ancestor){
-    System.out.println("for: "+this);
+    System.out.println("for: "+this+" || vs "+ancestor);
     if (equals(ancestor) || ((parent != null) && (parent.equals(ancestor) || parent.decendsFrom(ancestor)))) {
       return true;
     }

@@ -5,7 +5,7 @@ import net.percederberg.grammatica.parser.Token;
 public class TChar extends TAtom<Token>{
 
   public TChar(Token value) {
-    super(value);
+    super(value, value.getStartLine(), value.getEndColumn());
   }
 
   @Override

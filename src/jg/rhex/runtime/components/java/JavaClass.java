@@ -54,7 +54,6 @@ public class JavaClass extends GenClass{
 
   @Override
   public Map<String, Variable> cloneVariableMap() {
-    
     return null;
   }
   

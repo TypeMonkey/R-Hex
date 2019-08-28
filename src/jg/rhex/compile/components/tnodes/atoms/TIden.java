@@ -5,7 +5,7 @@ import net.percederberg.grammatica.parser.Token;
 public class TIden extends TAtom<Token>{
 
   public TIden(Token name) {
-    super(name);
+    super(name, name.getStartLine(), name.getStartColumn());
   }
   
   public boolean equals(Object object){

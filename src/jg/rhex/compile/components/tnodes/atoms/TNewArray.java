@@ -10,7 +10,7 @@ public class TNewArray extends TAtom<TType>{
   private List<TNode> dimSizes;
   
   public TNewArray(TType type, List<TNode> dimSizes) {
-    super(type);
+    super(type, type.getLineNumber(), type.getColNumber());
     this.dimSizes = dimSizes;
   }
   

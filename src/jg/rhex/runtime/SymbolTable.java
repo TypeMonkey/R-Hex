@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.common.TypeUtils;
+import jg.rhex.runtime.components.ArrayClass;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
@@ -97,6 +99,17 @@ public class SymbolTable {
       }
     }
     return genClass;
+  }
+  
+  public ArrayClass findClass(ArrayType type) {
+    System.out.println("---- F CLASS - arr type");
+    GenClass baseType = findClass(new Type(type.getSimpleName(), type.getFullName()));
+    if (baseType == null) {
+      return null;
+    }
+    else {
+      return new ArrayClass(baseType, type.getDimensions());
+    }
   }
   
   public Function findFunction(FunctionSignature signature) {

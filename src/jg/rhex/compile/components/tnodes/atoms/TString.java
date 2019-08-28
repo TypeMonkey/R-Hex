@@ -5,7 +5,7 @@ import net.percederberg.grammatica.parser.Token;
 public class TString extends TAtom<Token>{
 
   public TString(Token value) {
-    super(value);
+    super(value, value.getStartLine(), value.getStartColumn());
   }
 
   @Override

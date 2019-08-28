@@ -1,11 +1,12 @@
 package jg.rhex.compile.components.tnodes.atoms;
 
 import jg.rhex.compile.components.tnodes.TNode;
+import net.percederberg.grammatica.parser.Token;
 
-public class TBool extends TAtom<Boolean> {
+public class TBool extends TAtom<Token> {
 
-  public TBool(Boolean value) {
-    super(value);
+  public TBool(Token value) {
+    super(value, value.getStartLine(), value.getStartColumn());
   }
   
   public boolean equals(Object obj) {

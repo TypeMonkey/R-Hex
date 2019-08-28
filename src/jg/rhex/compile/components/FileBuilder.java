@@ -163,7 +163,6 @@ public class FileBuilder {
               StatementParser.parseBlock(func.getBody(), iterator, fileName);
               rhexFile.addFunction(func);
             } catch (RhexConstructionException e) {
-              e.printStackTrace();
               System.out.println("--------------");
               //if function parsing fails, try to parse the header as a class declaration
               try {

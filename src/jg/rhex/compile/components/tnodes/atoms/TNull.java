@@ -5,7 +5,7 @@ import net.percederberg.grammatica.parser.Token;
 public class TNull extends TAtom<Token>{
 
   public TNull(Token nullToken) {
-    super(nullToken);
+    super(nullToken, nullToken.getStartLine(), nullToken.getStartColumn());
   }
 
   @Override

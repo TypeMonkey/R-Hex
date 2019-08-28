@@ -123,7 +123,9 @@ public class ASTBuilder {
             individArgs.add(parsed.poll());
           }
           else {
-            individArgs.add(new TExpr(new ArrayList<>(parsed)));
+            individArgs.add(new TExpr(new ArrayList<>(parsed), 
+                parsed.peek().getLineNumber(), 
+                parsed.peek().getColNumber()));
           }
           temp = new ArrayList<>();
         }
@@ -138,7 +140,7 @@ public class ASTBuilder {
         individArgs.add(lastArg.poll());
       }
       else {
-        individArgs.add(new TExpr(new ArrayList<>(lastArg)));
+        individArgs.add(new TExpr(new ArrayList<>(lastArg), lastArg.peek().getLineNumber(), lastArg.peek().getColNumber()));
       }
       
       //replace the TFuncCall object's arg list with our new one

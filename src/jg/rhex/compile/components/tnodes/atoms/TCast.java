@@ -5,7 +5,7 @@ public class TCast extends TAtom<TType> {
   private TExpr target;
 
   public TCast(TExpr target, TType desiredType) {
-    super(desiredType);
+    super(desiredType, desiredType.getLineNumber(), desiredType.getColNumber());
     this.target = target;
   }
 

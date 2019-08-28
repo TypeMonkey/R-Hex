@@ -144,7 +144,7 @@ public final class VarDecParsers {
             
             List<TNode> exprNodes = ExprParser.getUniversalParser().parseExpression(valueContent);
             
-            value = new TExpr(new ArrayList<>(exprNodes));
+            value = new TExpr(new ArrayList<>(exprNodes), exprNodes.get(0).getLineNumber(), exprNodes.get(0).getColNumber());
             expected.clear();
             break;
           } catch (ParserLogException e) {

@@ -21,13 +21,13 @@ public class TType extends TAtom<List<TType>> {
   private Token inferType;
     
   public TType(List<TIden> rawBody) {
-    super(new ArrayList<>());
+    super(new ArrayList<>(), rawBody.get(0).getLineNumber(), rawBody.get(0).getColNumber());
     this.rawTypeBody = rawBody;
     this.arrayDimensions = 0;
   }
   
   public TType(Token inferredType) {
-    super(new ArrayList<>());
+    super(new ArrayList<>(), inferredType.getStartLine(), inferredType.getStartColumn());
     this.inferType = inferredType;
   }
   

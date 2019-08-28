@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.RStatement;
@@ -40,9 +41,16 @@ public class StructureVerifier {
       //at variable declaration, the variable being declared to cannot be referred to
       TNode value = actualVariable.getOriginal().getValue();
       
-      System.out.println(value);
+      System.out.println("------------CHECKING: "+actualVariable.getName()+" | "+value);
       
-      GenClass declaredType = table.findClass(actualVariable.getType());
+      GenClass declaredType = null;
+      if (actualVariable.getType() instanceof ArrayType) {
+        declaredType = table.findClass((ArrayType) actualVariable.getType());
+      }
+      else {
+        declaredType = table.findClass(actualVariable.getType());
+      }
+      
       GenClass varType = ExpressionTypeChecker.typeCheckExpression(value, file, table);
       //the java.lang.Object is for smooth assignments from primitive types
       if (!declaredType.getTypeInfo().getFullName().equals("java.lang.Object") && 

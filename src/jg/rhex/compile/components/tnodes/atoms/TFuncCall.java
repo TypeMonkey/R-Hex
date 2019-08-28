@@ -13,7 +13,7 @@ public class TFuncCall extends TAtom<List<TNode>> {
   private List<TType> typeArguments;
   
   public TFuncCall(TIden name) {
-    super(new ArrayList<>());
+    super(new ArrayList<>(), name.getLineNumber(), name.getColNumber());
     this.name = name;
     this.typeArguments = new ArrayList<>();
   }

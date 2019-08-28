@@ -7,12 +7,12 @@ import jg.rhex.compile.components.tnodes.TNode;
 
 public class TExpr extends TAtom<List<TNode>> {
 
-  public TExpr() {
-    this(new ArrayList<>());
+  public TExpr(int lineNumber, int colNumber) {
+    this(new ArrayList<>(), lineNumber, colNumber);
   }
 
-  public TExpr(List<TNode> body) {
-    super(body);
+  public TExpr(List<TNode> body, int lineNumber, int colNumber) {
+    super(body, lineNumber, colNumber);
   }
 
   public void addNode(TNode node) {

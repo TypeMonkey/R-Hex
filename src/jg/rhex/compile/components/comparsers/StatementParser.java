@@ -252,7 +252,8 @@ public class StatementParser {
         return statement;
       }
       else {
-        RStatement statement = new RStatement(descriptor, firstToken, new TExpr(exprNodes));
+        RStatement statement = new RStatement(descriptor, firstToken, 
+            new TExpr(exprNodes, exprNodes.get(0).getLineNumber(), exprNodes.get(0).getColNumber()));
         return statement;
       }
     }
@@ -494,7 +495,9 @@ public class StatementParser {
             changeStatement = new RStatement(postFix.get(0));
           }
           else {
-            changeStatement = new RStatement(new TExpr(postFix));
+            changeStatement = new RStatement(new TExpr(postFix, 
+                postFix.get(0).getLineNumber(), 
+                postFix.get(0).getColNumber()));
           }
           
         } catch (ParserLogException e1) {
@@ -548,7 +551,9 @@ public class StatementParser {
             conditionStatement = new RStatement(postFix.get(0));
           }
           else {
-            conditionStatement = new RStatement(new TExpr(postFix));
+            conditionStatement = new RStatement(new TExpr(postFix, 
+                postFix.get(0).getLineNumber(), 
+                postFix.get(0).getColNumber()));
           }
           
         } catch (ParserLogException e1) {

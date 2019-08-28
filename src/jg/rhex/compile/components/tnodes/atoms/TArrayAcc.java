@@ -12,7 +12,7 @@ public class TArrayAcc extends TAtom<List<TNode>> {
   private TNode target;
 
   public TArrayAcc(TNode target) {
-    super(new ArrayList<>());
+    super(new ArrayList<>(), target.getLineNumber(), target.getColNumber());
     this.target = target;
   }
 
@@ -24,13 +24,15 @@ public class TArrayAcc extends TAtom<List<TNode>> {
     return getActValue();
   }
 
+  /*
   public void setTarget(Collection<TNode> body) {
     this.target = new TExpr(new ArrayList<>(body));
   }
 
-  public void setTarget(TNode... body) {
+  public void setTarget(TNode [] body) {
     this.target = new TExpr(new ArrayList<>(Arrays.asList(body)));
   }
+  */
 
   public void setTarget(TNode target) {
     this.target = target;

@@ -30,12 +30,8 @@ import jg.rhex.compile.components.tnodes.TNode;
  */
 public class TMemberInvoke extends TAtom<List<TNode>> {
 
-  public TMemberInvoke() {
-    super(new ArrayList<TNode>());
-  }
-
-  public void setSequence(List<TNode> sequence) {
-    getActValue().addAll(sequence);
+  public TMemberInvoke(List<TNode> nodes, int lineNumber, int colNumber) {
+    super(nodes, lineNumber, colNumber);
   }
 
   public List<TNode> getSequence() {

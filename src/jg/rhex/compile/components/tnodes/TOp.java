@@ -11,7 +11,7 @@ import net.percederberg.grammatica.parser.Token;
 public class TOp extends TNode {
   
   public TOp(Token op) {
-    super(op);
+    super(op, op.getStartLine(), op.getStartColumn());
   }
   
   public Token getOperatorToken(){
