@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import jg.rhex.common.Descriptor;
+import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.runtime.components.GenClass;
@@ -32,8 +33,17 @@ public class RhexClass extends GenClass{
   }
   
   public void placeFunction(RhexFunction function){
-    functionMap.put(function.getSignature(), function);
-    functionIdenMap.put(function.getIdentity(), function);
+    if (functionMap.put(function.getSignature(), function) == null) {
+      functionIdenMap.put(function.getIdentity(), function);
+      if (funcsByName.containsKey(function.getName())) {
+        funcsByName.get(function.getName()).add(function.getIdentity());
+      }
+      else {
+        HashSet<FunctionIdentity> identities = new HashSet<>();
+        identities.add(function.getIdentity());
+        funcsByName.put(function.getName(), identities);
+      }
+    }
   }
   
   public void placeVariable(RhexVariable variable){

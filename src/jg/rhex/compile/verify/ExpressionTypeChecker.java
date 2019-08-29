@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import jg.rhex.common.ArrayType;
+import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.common.TypeUtils;
@@ -35,11 +37,13 @@ import jg.rhex.compile.components.tnodes.atoms.TUnary;
 import jg.rhex.compile.verify.errors.UnfoundVariableException;
 import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.ArrayClass;
+import jg.rhex.runtime.components.Constructor;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
 import jg.rhex.runtime.components.java.JavaClass;
-import jg.rhex.runtime.components.rhexspec.RhexFile;;
+import jg.rhex.runtime.components.rhexspec.RhexFile;
+import net.percederberg.grammatica.parser.Token;;
 
 /**
  * Class that verifies that the provided function is correctly structured
@@ -129,20 +133,38 @@ public class ExpressionTypeChecker {
       }
       else if (node instanceof TFuncCall) {
         TFuncCall funcCall = (TFuncCall) node;
+        Token calleeName = funcCall.getFuncName().getActValue();
         
-        Type [] argTypes = new Type[funcCall.getArgList().size()];
+        GenClass [] argTypes = new GenClass[funcCall.getArgList().size()];
         for (int i = 0; i < argTypes.length; i++) {
-          argTypes[i] = typeCheckExpression(funcCall.getArgList().get(i), file, table).getTypeInfo();
+          argTypes[i] = typeCheckExpression(funcCall.getArgList().get(i), file, table);
         }
         
-        FunctionSignature toLookFor = new FunctionSignature(funcCall.getFuncName().getToken().getImage(), 
-            argTypes, null);
-        Function actualFunction = table.findFunction(toLookFor);
-        if (actualFunction == null) {
+        FunctionSignature toLookFor = new FunctionSignature(calleeName.getImage(), 
+            Arrays.stream(argTypes).map(x -> x.getTypeInfo()).toArray(Type[]::new) ,null);
+        
+        System.out.println(" ----> SIG: "+toLookFor+" || "+funcCall.getArgList().size());
+        System.out.println("           "+funcCall);
+        
+        Function foundFunction = table.findFunction(toLookFor);
+        FunctionIdentity foundIdentity = null;
+        if (foundFunction == null) {
+          foundIdentity = decidedFunctionCall(calleeName.getImage(), 
+              argTypes, 
+              table.findFunctionIdentities(calleeName.getImage(), true), 
+              table, 
+              file);
+        }
+        else {
+          foundIdentity = foundFunction.getIdentity();
+        }
+        
+        if (foundIdentity == null) {
           throw new RuntimeException("Cannot find file function "+toLookFor+" from '"+file.getName()+"' "+
               " , at <ln:"+funcCall.getFuncName().getToken().getStartLine()+">");
         }
-        valueTypes.push(table.findClass(actualFunction.getReturnType()));
+        System.out.println("---CONNECTED TO: "+foundIdentity);
+        valueTypes.push(table.findClass(foundIdentity.getReturnType()));
       }
       else if (node instanceof TMemberInvoke) {
         TMemberInvoke memberInvoke = (TMemberInvoke) node;
@@ -236,9 +258,6 @@ public class ExpressionTypeChecker {
         if (targetVariable == null) {
           throw new UnfoundVariableException(iden.getActValue(), file.getName());
         }
-        else if (targetVariable.getType() instanceof ArrayType) {
-          valueTypes.push(table.findClass((ArrayType) targetVariable.getType()));
-        }
         else {
           valueTypes.push(table.findClass(targetVariable.getType()));
         }
@@ -249,6 +268,40 @@ public class ExpressionTypeChecker {
         
         Type instanceType = newInstance.getFullBinaryName().getAttachedType();
         GenClass instanceClass = table.findClass(instanceType);
+        
+        //examine function call.....
+        TFuncCall actualConsCall = newInstance.getActValue();
+        Token constName = actualConsCall.getFuncName().getToken();
+        
+        GenClass [] argTypes = new GenClass[actualConsCall.getArgList().size()];
+        for (int i = 0; i < argTypes.length; i++) {
+          argTypes[i] = typeCheckExpression(actualConsCall.getArgList().get(i), file, table);
+        }
+        
+        FunctionSignature toLookFor = new FunctionSignature(constName.getImage(), 
+            Arrays.stream(argTypes).map(x -> x.getTypeInfo()).toArray(Type[]::new) ,null);
+        
+        Function foundFunction = instanceClass.retrieveConstructor(toLookFor);
+        FunctionIdentity foundIdentity = null;
+        if (foundFunction == null) {
+          
+          
+          foundIdentity = decidedFunctionCall(constName.getImage(), 
+              argTypes, 
+              instanceClass.getConstructors().values().stream().map(Constructor::getIdentity).collect(Collectors.toSet()), 
+              table, 
+              file);
+        }
+        else {
+          foundIdentity = foundFunction.getIdentity();
+        }
+        
+        if (foundIdentity == null) {
+          throw new RuntimeException("Cannot find file function "+toLookFor+" from '"+file.getName()+"' "+
+              " , at <ln:"+newInstance.getLineNumber()+">");
+        }
+        //constructor call examined...
+        
         valueTypes.push(instanceClass);
       }
       else if (node instanceof TNewArray) {
@@ -335,6 +388,52 @@ public class ExpressionTypeChecker {
     
     System.out.println("---RETURNING!!! "+valueTypes.peek());
     return valueTypes.pop();
+  }
+  
+  public static FunctionIdentity decidedFunctionCall(String name, GenClass [] argTypes, 
+      Set<FunctionIdentity> identities, 
+      SymbolTable table, 
+      RhexFile file){
+    
+    System.out.println(" ----- DECIDING: "+identities);
+    for(FunctionIdentity identity : identities){
+      System.out.println("  *** CUR: "+identity);
+      FunctionSignature functionSignature = identity.getFuncSig();
+      if (functionSignature.getParamTypes().length == argTypes.length) {
+        Type [] paramTypes = functionSignature.getParamTypes();
+        
+        boolean notTargetFunction = false;
+        for(int i = 0; i < paramTypes.length; i++){
+          //load param type to a genclass
+          Type currentParType = paramTypes[i];
+          GenClass paramTypeClass = null;
+          if (currentParType instanceof ArrayType) {
+            paramTypeClass = table.findClass((ArrayType) currentParType);
+          }
+          else {
+            paramTypeClass = table.findClass(currentParType);
+          }
+          
+          System.out.println(" COMP: DEC "+paramTypeClass.getTypeInfo()+" | PROV: "+argTypes[i].getTypeInfo());
+          if (!paramTypeClass.getTypeInfo().equals(Type.OBJECT)
+              && !argTypes[i].decendsFrom(paramTypeClass)) {
+            System.out.println("---");
+            notTargetFunction = true;
+            break;
+          }
+        }
+        
+        if (!notTargetFunction) {
+          return identity;
+        }
+      }
+      else {
+        System.out.println(" --- NOT ENOUGH ARGS!!! "+argTypes.length);
+      }
+    }
+    
+    System.out.println(" ----- DECIDNG -> NOTHING");
+    return null;
   }
   
   public static Type getResultingArithmeticType(Type left, Type right){

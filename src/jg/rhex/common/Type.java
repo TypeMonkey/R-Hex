@@ -14,6 +14,8 @@ import java.util.Objects;
  */
 public class Type {
   
+  public static final Type OBJECT = new Type("Object", "java.lang.Object");
+  
   public static final Type VOID_TYPE = new Type("void", "void");
   
   public static final Type INT = new Type("int", "int");

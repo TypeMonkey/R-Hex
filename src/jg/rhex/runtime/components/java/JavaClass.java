@@ -88,8 +88,7 @@ public class JavaClass extends GenClass{
       }
       else{
         return getJavaClassRep(void.class);
-      }
-      
+      }     
     }
     else {
       try {

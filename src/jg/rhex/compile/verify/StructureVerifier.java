@@ -53,7 +53,7 @@ public class StructureVerifier {
       
       GenClass varType = ExpressionTypeChecker.typeCheckExpression(value, file, table);
       //the java.lang.Object is for smooth assignments from primitive types
-      if (!declaredType.getTypeInfo().getFullName().equals("java.lang.Object") && 
+      if (!declaredType.getTypeInfo().equals(Type.OBJECT) && 
           !varType.decendsFrom(declaredType)) {
         throw new RuntimeException("'"+variable.getName()+"' type of "+actualVariable.getType()+" isn't compatible with "
                        +"assigned type "+varType.getTypeInfo()

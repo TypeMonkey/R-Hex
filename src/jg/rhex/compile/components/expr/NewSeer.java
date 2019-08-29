@@ -484,15 +484,37 @@ public class NewSeer extends GramPracAnalyzer{
     latest.pollFirst();
     latest.pollLast();  
     
+    ArrayList<TNode> argExpr = new ArrayList<>();
     while (!latest.isEmpty()) {
       TNode current = latest.pollFirst();
       if (current instanceof TComma) {
-        continue;
+        if (argExpr.size() == 1) {
+          funcCall.addArg(argExpr.get(0));
+        }
+        else {
+          funcCall.addArg(new TExpr(argExpr, 
+              argExpr.get(0).getLineNumber(), 
+              argExpr.get(0).getColNumber()));
+        }
+        argExpr = new ArrayList<>();
       }
-      
-      funcCall.addArg(current);
+      else {
+        argExpr.add(current);
+      }
+    }
+    
+    if (!argExpr.isEmpty()) {
+      if (argExpr.size() == 1) {
+        funcCall.addArg(argExpr.get(0));
+      }
+      else {
+        funcCall.addArg(new TExpr(argExpr, 
+            argExpr.get(0).getLineNumber(), 
+            argExpr.get(0).getColNumber()));
+      }
     }
 
+    System.out.println(" -----> RESULT: "+funcCall);
     actualNodes.push(funcCall); 
 
     return production;

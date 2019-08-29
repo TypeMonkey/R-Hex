@@ -1,7 +1,10 @@
 package jg.rhex.runtime.components;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jg.rhex.common.Descriptor;
@@ -22,6 +25,7 @@ public abstract class GenClass {
   
   protected Map<FunctionIdentity, Function> functionIdenMap;
   protected Map<FunctionSignature, Function> functionMap;
+  protected Map<String, Set<FunctionIdentity>> funcsByName;
   
   protected Map<String, Variable> variableMap;
   
@@ -44,6 +48,18 @@ public abstract class GenClass {
     functionIdenMap = funMap.values().stream().collect(
           Collectors.toMap(Function::getIdentity, x -> x)
         );
+    
+    funcsByName = new HashMap<>();
+    for(FunctionIdentity identity : functionIdenMap.keySet()){
+      if (funcsByName.containsKey(identity.getFuncSig().getName())) {
+        funcsByName.get(identity.getFuncSig().getName()).add(identity);
+      }
+      else {
+        HashSet<FunctionIdentity> identities = new HashSet<>();
+        identities.add(identity);
+        funcsByName.put(identity.getFuncSig().getName(), identities);
+      }
+    }
   }
    
   @Override
@@ -101,6 +117,10 @@ public abstract class GenClass {
     return function;
   }
   
+  public Set<FunctionIdentity> retrieveFuncIdens(String funcName){
+    return funcsByName.get(funcName);
+  }
+  
   public Variable retrieveVariable(String name){
     return variableMap.get(name);
   }
@@ -113,6 +133,10 @@ public abstract class GenClass {
   
   public Map<FunctionSignature, Function> getFunctionMap() {
     return functionMap;
+  }
+  
+  public Map<FunctionSignature, Constructor> getConstructors(){
+    return constructorMap;
   }
 
   public Map<String, Variable> getVariableMap() {

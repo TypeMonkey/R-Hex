@@ -26,7 +26,7 @@ public class ASTBuilder {
     return build(tokens.toArray(new TNode[tokens.size()]));
   }
   
-  public Deque<TNode> build(TNode [] tokens){
+  public Deque<TNode> build(TNode ... tokens){
     Stack<TOp> operators = new Stack<>();
     Deque<TNode> output = new ArrayDeque<>();
     
@@ -107,42 +107,26 @@ public class ASTBuilder {
   private void parseFuncArgs(TFuncCall call){
     //if function invocation actually has args, then parse it
     if (!call.getArgList().isEmpty()) {
-      
+      System.out.println(" >>>>>>> FOR CALL: "+call.getFuncName().getToken()+" <<<<<<< ");
       ArrayList<TNode> individArgs = new ArrayList<>();
       
       //first, separate the TFuncCall object's original argument body
       //into actual separate arguments (split the original list by commas)
       
-      ArrayList<TNode> temp = new ArrayList<>();
+      System.out.println(" ******* "+call.getArgList());
       for(TNode node : call.getArgList()){
-        if (node instanceof TComma) {
-          Deque<TNode> parsed = build(temp);
-          
-          //if this is a "true" atom, then there's no need to wrap it around a TExpr node
-          if (parsed.size() == 1) {
-            individArgs.add(parsed.poll());
-          }
-          else {
-            individArgs.add(new TExpr(new ArrayList<>(parsed), 
-                parsed.peek().getLineNumber(), 
-                parsed.peek().getColNumber()));
-          }
-          temp = new ArrayList<>();
+        Deque<TNode> parsed = build(node);
+        if (parsed.size() == 1) {
+          individArgs.add(parsed.poll());
         }
         else {
-          temp.add(node);
+          individArgs.add(new TExpr(new ArrayList<>(parsed), 
+              parsed.peek().getLineNumber(), 
+              parsed.peek().getColNumber()));
         }
-      }
+      }    
       
-      //add last argument after the last comma
-      Deque<TNode> lastArg = build(temp);
-      if (lastArg.size() == 1) {
-        individArgs.add(lastArg.poll());
-      }
-      else {
-        individArgs.add(new TExpr(new ArrayList<>(lastArg), lastArg.peek().getLineNumber(), lastArg.peek().getColNumber()));
-      }
-      
+      System.out.println(" >>>>>> AS ARG: "+individArgs);
       //replace the TFuncCall object's arg list with our new one
       call.setArgs(individArgs);
     }

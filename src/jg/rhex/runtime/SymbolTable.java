@@ -3,10 +3,14 @@ package jg.rhex.runtime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import jg.rhex.common.ArrayType;
+import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.common.TypeUtils;
@@ -86,7 +90,10 @@ public class SymbolTable {
   }
   
   public GenClass findClass(Type type) {
-    if (TypeUtils.isPrimitive(type)) {
+    if (type instanceof ArrayType) {
+      return findClass((ArrayType) type);
+    }
+    else if (TypeUtils.isPrimitive(type)) {
       return JavaClass.getJavaClassRep(type.getFullName());
     }
     GenClass genClass = classMap.get(type);
@@ -110,6 +117,22 @@ public class SymbolTable {
     else {
       return new ArrayClass(baseType, type.getDimensions());
     }
+  }
+  
+  public Set<FunctionIdentity> findFunctionIdentities(String name, boolean searchOnlyLocal){
+    HashSet<FunctionIdentity> identities = new HashSet<>();   
+    for (Map<FunctionSignature, Function> funcMap : funcMaps) {
+      for (Entry<FunctionSignature, Function> indivEntry : funcMap.entrySet()) {
+        if (indivEntry.getKey().getName().equals(name)) {
+          identities.add(indivEntry.getValue().getIdentity());
+        }
+      }
+      
+      if (searchOnlyLocal) {
+        break;
+      }
+    }  
+    return identities;
   }
   
   public Function findFunction(FunctionSignature signature) {

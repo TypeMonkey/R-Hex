@@ -2,9 +2,12 @@ package jg.rhex.runtime.components.rhexspec;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
+import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
 import jg.rhex.compile.components.structs.RFile;
@@ -18,6 +21,8 @@ public class RhexFile {
   private final RFile original;
   
   private Map<FunctionSignature, Function> fileFunctions;
+  private Map<String, Set<FunctionIdentity>> funcsByName;
+  
   private Map<Type, GenClass> fileClasses; //String keys are full, binary class names
   private Map<String, Variable> fileVariables;
   
@@ -27,6 +32,8 @@ public class RhexFile {
     fileFunctions = new HashMap<>();
     fileClasses = new HashMap<>();    
     fileVariables = new LinkedHashMap<>();
+    
+    funcsByName = new HashMap<>();
   }
   
   /**
@@ -35,7 +42,18 @@ public class RhexFile {
    * @return true if a function of the same signature hasn't been added
    */
   public boolean placeFunction(RhexFunction function){
-    return fileFunctions.put(function.getSignature(), function) == null;
+    if (fileFunctions.put(function.getSignature(), function) == null) {
+      if (funcsByName.containsKey(function.getName())) {
+        funcsByName.get(function.getName()).add(function.getIdentity());
+      }
+      else {
+        HashSet<FunctionIdentity> identities = new HashSet<>();
+        identities.add(function.getIdentity());
+        funcsByName.put(function.getName(), identities);
+      }
+      return true;
+    }
+    return false;
   }
   
   /**
@@ -58,6 +76,10 @@ public class RhexFile {
   
   public Function getFunction(FunctionSignature signature){
     return fileFunctions.get(signature);
+  }
+  
+  public Set<FunctionIdentity> getFunctions(String name){
+    return funcsByName.get(name);
   }
   
   public GenClass getClass(Type type){
