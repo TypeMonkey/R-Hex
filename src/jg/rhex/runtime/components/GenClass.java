@@ -2,6 +2,7 @@ package jg.rhex.runtime.components;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collector;
@@ -11,6 +12,7 @@ import jg.rhex.common.Descriptor;
 import jg.rhex.common.FunctionIdentity;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.runtime.components.java.JavaClass;
 
 public abstract class GenClass {
 
@@ -61,7 +63,7 @@ public abstract class GenClass {
       }
     }
   }
-   
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof GenClass) {
