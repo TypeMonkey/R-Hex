@@ -1,12 +1,15 @@
 package jg.rhex.compile.verify;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.tnodes.TNode;
 import jg.rhex.runtime.SymbolTable;
@@ -22,6 +25,28 @@ public class StructureVerifier {
   
   private final Map<Type, RhexClass> classes;
   private final Map<String, RhexFile> rhexFiles;
+  
+  public static class BlockNode{
+    private RStateBlock current;
+    private List<RStateBlock> children;
+    
+    public BlockNode(RStateBlock current){
+      this.current = current;
+      children = new ArrayList<>();
+    }
+    
+    public void addChild(RStateBlock block){
+      children.add(block);
+    }
+    
+    public List<RStateBlock> getChildren(){
+      return children;
+    }
+    
+    public RStateBlock getCurrentBlock(){
+      return current;
+    }
+  }
   
   public StructureVerifier(Map<Type, RhexClass> classes, Map<String, RhexFile> rhexFiles){
     this.classes = classes;

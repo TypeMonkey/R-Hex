@@ -21,6 +21,7 @@ public class RhexFile extends GenClass{
   
   private final RFile original;
   
+  private Map<String, GenClass> importedClasses;
   private Map<Type, GenClass> fileClasses; //String keys are full, binary class names
   
   public RhexFile(RFile original) {
@@ -73,6 +74,10 @@ public class RhexFile extends GenClass{
     return variableMap.put(variable.getName(), variable) == null;
   }
   
+  public void setImpotedTypes(Map<String, GenClass> imported){
+    this.importedClasses = imported;
+  }
+  
   public Function getFunction(FunctionSignature signature){
     return functionMap.get(signature);
   }
@@ -99,6 +104,10 @@ public class RhexFile extends GenClass{
 
   public Map<String, Variable> getFileVariables() {
     return variableMap;
+  }
+  
+  public Map<String, GenClass> getImportedClasses(){
+    return importedClasses;
   }
 
   public RFile getOriginal(){

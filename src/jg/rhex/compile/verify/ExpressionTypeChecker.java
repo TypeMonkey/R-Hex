@@ -256,6 +256,7 @@ public class ExpressionTypeChecker {
 
         Variable targetVariable = table.findVariable(iden.getActValue().getImage());
         if (targetVariable == null) {
+          Type possibleClass = 
           throw new UnfoundVariableException(iden.getActValue(), file.getName());
         }
         else {

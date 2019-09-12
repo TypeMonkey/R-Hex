@@ -21,6 +21,8 @@ import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.components.FileBuilder;
 import jg.rhex.compile.components.structs.RClass;
 import jg.rhex.compile.components.structs.RFile;
+import jg.rhex.compile.components.structs.UseDeclaration;
+import jg.rhex.compile.components.tnodes.atoms.TIden;
 import jg.rhex.compile.components.tnodes.atoms.TType;
 import jg.rhex.compile.verify.ClassExtractor;
 import jg.rhex.compile.verify.TypeAttacher;
@@ -195,13 +197,9 @@ public class RhexCompiler {
     HashMap<String, RhexFile> files = new HashMap<>();
     //collect all classes from all files
     for (RFile sourceFile : rhexFiles.values()) {
-      String fileFullName = null;
-      if (sourceFile.getPackDesignation() == null) {
-        fileFullName = sourceFile.getFileName();
-      }
-      else {
-        fileFullName = sourceFile.getPackDesignation()+"."+sourceFile.getFileName();
-      }
+      String fileFullName = sourceFile.getPackDesignation() == null ? 
+          sourceFile.getFileName() : 
+          sourceFile.getPackDesignation()+"."+sourceFile.getFileName();
       
       ClassExtractor verifier = new ClassExtractor(sourceFile, this);
       Map<Type, RhexClass> templates = verifier.extract();
@@ -212,6 +210,33 @@ public class RhexCompiler {
         rhexFile.placeClass(curClass);
       }
       files.put(fileFullName, rhexFile);
+    }
+    
+    //attach imported types to rhexfiles
+    for (RhexFile file : files.values()) {
+      RFile original = file.getOriginal();     
+      
+      HashMap<String, GenClass> importedClass = new HashMap<>();
+      for (UseDeclaration imported : original.getUseDeclarations()) {
+        int fullSize = imported.getBaseImport().getBaseType().size();
+        String fullName = imported.getBaseImport().getBaseString();
+        TIden simpName = imported.getBaseImport().getBaseType().get(fullSize - 1);
+        
+        Type importType = new Type(simpName.getActValue().getImage(), fullName);
+        GenClass actual = classTemplates.get(importType);
+        if (actual == null) {
+          actual = JavaClass.getJavaClassRep(fullName);
+          if (actual == null) {
+            throw new UnfoundTypeException(imported.getUseToken(),
+                fullName, 
+                file.getTypeInfo().getFullName());
+          }
+        }
+        
+        importedClass.put(simpName.getActValue().getImage(), actual);
+      }
+      
+      file.setImpotedTypes(importedClass);
     }
     
     //attach GenClasses to super types
