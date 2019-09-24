@@ -29,60 +29,12 @@ public class SymbolTable {
   
   private Map<Type, GenClass> classMap;
   
-  private List<Map<FunctionSignature, Function>> funcMaps;
-  
-  private List<Map<String, Variable>> varMaps;
-  
   public SymbolTable(ClassLoader classLoader,
       Map<String, RhexFile> fileMap, 
-      Map<Type, GenClass> classMap, 
-      Map<String, Variable> localVars, 
-      Map<FunctionSignature, Function> localFunctions) {   
+      Map<Type, GenClass> classMap) {   
     this.classLoader = classLoader;
-    rhexFileMap = new HashMap<>(fileMap);
+    this.rhexFileMap = fileMap;
     this.classMap = classMap;
-    varMaps = new ArrayList<>();
-    funcMaps = new ArrayList<>();
-    
-    varMaps.add(localVars);
-    funcMaps.add(localFunctions);
-  }
-  
-  public boolean addClass(GenClass genClass) {
-    if (classMap.containsKey(genClass.getTypeInfo())) {
-      return false;
-    }
-    return classMap.put(genClass.getTypeInfo(),  genClass) == null;
-  }
-  
-  public void addFunctionMap(Map<FunctionSignature, Function> fMap) {
-    funcMaps.add(fMap);
-  }
-  
-  public boolean addLocalFunction(Function function) {
-    if (funcMaps.get(0).containsKey(function.getSignature())) {
-      return false;
-    }
-    return funcMaps.get(0).put(function.getSignature(), function) == null;
-  }
-  
-  public void setLocalFuncMap(Map<FunctionSignature, Function> funcMap) {
-    funcMaps.set(0, funcMap);
-  }
-  
-  public void addVariableMap(Map<String, Variable> varMap) {
-    varMaps.add(varMap);
-  }
-  
-  public boolean addLocalVariable(Variable variable) {
-    if (varMaps.get(0).containsKey(variable.getName())) {
-      return false;
-    }
-    return varMaps.get(0).put(variable.getName(), variable) == null;
-  }
-  
-  public void setLocalVarMap(Map<String, Variable> varMap) {
-    varMaps.set(0, varMap);
   }
   
   public RhexFile findFile(String fullName) {
@@ -117,41 +69,5 @@ public class SymbolTable {
     else {
       return new ArrayClass(baseType, type.getDimensions());
     }
-  }
-  
-  public Set<FunctionIdentity> findFunctionIdentities(String name, boolean searchOnlyLocal){
-    HashSet<FunctionIdentity> identities = new HashSet<>();   
-    for (Map<FunctionSignature, Function> funcMap : funcMaps) {
-      for (Entry<FunctionSignature, Function> indivEntry : funcMap.entrySet()) {
-        if (indivEntry.getKey().getName().equals(name)) {
-          identities.add(indivEntry.getValue().getIdentity());
-        }
-      }
-      
-      if (searchOnlyLocal) {
-        break;
-      }
-    }  
-    return identities;
-  }
-  
-  public Function findFunction(FunctionSignature signature) {
-    for (Map<FunctionSignature, ? super Function> map : funcMaps) {
-      Function found = (Function) map.get(signature);
-      if (found != null) {
-        return found;
-      }
-    }
-    return null;
-  }
-  
-  public Variable findVariable(String varName) {
-    for (Map<String, ? super Variable> map : varMaps) {
-      Variable found = (Variable) map.get(varName);
-      if (found != null) {
-        return found;
-      }
-    }
-    return null;
   }
 }

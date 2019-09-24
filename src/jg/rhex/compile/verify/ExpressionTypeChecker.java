@@ -35,6 +35,7 @@ import jg.rhex.compile.components.tnodes.atoms.TNewArray;
 import jg.rhex.compile.components.tnodes.atoms.TString;
 import jg.rhex.compile.components.tnodes.atoms.TUnary;
 import jg.rhex.compile.verify.errors.UnfoundVariableException;
+import jg.rhex.runtime.Context;
 import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.ArrayClass;
 import jg.rhex.runtime.components.Constructor;
@@ -42,6 +43,7 @@ import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
 import jg.rhex.runtime.components.Variable;
 import jg.rhex.runtime.components.java.JavaClass;
+import jg.rhex.runtime.components.rhexspec.RhexClass;
 import jg.rhex.runtime.components.rhexspec.RhexFile;
 import net.percederberg.grammatica.parser.Token;;
 
@@ -57,9 +59,9 @@ public class ExpressionTypeChecker {
   /**
    * Type checks the expression and returns the type of the expression
    * @param node - the TNode to type check
-   * @param table - the SymbolTable to use
+   * @param context - the SymbolTable to use
    */
-  public static GenClass typeCheckExpression(TNode expr, RhexFile file, SymbolTable table){    
+  public static GenClass typeCheckExpression(TNode expr, RhexFile file, Context context){    
     //Note that with respect to arithmetic operators, expressions are organized in postfix style
     ArrayList<TNode> exprBody = new ArrayList<>();
     if (expr instanceof TExpr) {
@@ -89,19 +91,19 @@ public class ExpressionTypeChecker {
           if (op.getOpString().equals("+")) {
             if (left.getTypeInfo().getFullName().equals("java.lang.String") || 
                 right.getTypeInfo().getFullName().equals("java.lang.String")) {
-              valueTypes.push(table.findClass(new Type("String", "java.lang.String")));
+              valueTypes.push(context.findGenClass(new Type("String", "java.lang.String")));
               continue;
             }
           }
           Type result = getResultingArithmeticType(left.getTypeInfo(), right.getTypeInfo());
-          valueTypes.push(table.findClass(result));
+          valueTypes.push(context.getSymbolTable().findClass(result));
         }
         else if (boolOps.contains(op.getOpString())) {
           if ( (left.getTypeInfo().getFullName().equals("java.lang.Boolean") || 
                 left.getTypeInfo().getFullName().equals("boolean")) && 
                (right.getTypeInfo().getFullName().equals("java.lang.Boolean") || 
                 right.getTypeInfo().getFullName().equals("boolean"))) {
-            valueTypes.push(table.findClass(Type.BOOL));
+            valueTypes.push(context.findGenClass(Type.BOOL));
           }
           else {
             throw new RuntimeException("'"+op.getOpString()+"' isn't define for non-boolean types, at <ln:"+
@@ -120,7 +122,7 @@ public class ExpressionTypeChecker {
         }
         else if(numCompOps.contains(op.getOpString())){
           if (TypeUtils.isNumerical(left.getTypeInfo()) && TypeUtils.isNumerical(right.getTypeInfo())) {
-            valueTypes.push(table.findClass(Type.BOOL));
+            valueTypes.push(context.findGenClass(Type.BOOL));
           }
           else {
             throw new RuntimeException("Not both operands are numbers, op: "+op.getOpString()+
@@ -128,7 +130,7 @@ public class ExpressionTypeChecker {
           }
         }
         else if(uniCompOps.contains(op.getOpString())){
-          valueTypes.push(table.findClass(Type.BOOL));
+          valueTypes.push(context.findGenClass(Type.BOOL));
         }
       }
       else if (node instanceof TFuncCall) {
@@ -137,7 +139,7 @@ public class ExpressionTypeChecker {
         
         GenClass [] argTypes = new GenClass[funcCall.getArgList().size()];
         for (int i = 0; i < argTypes.length; i++) {
-          argTypes[i] = typeCheckExpression(funcCall.getArgList().get(i), file, table);
+          argTypes[i] = typeCheckExpression(funcCall.getArgList().get(i), file, context);
         }
         
         FunctionSignature toLookFor = new FunctionSignature(calleeName.getImage(), 
@@ -146,13 +148,13 @@ public class ExpressionTypeChecker {
         System.out.println(" ----> SIG: "+toLookFor+" || "+funcCall.getArgList().size());
         System.out.println("           "+funcCall);
         
-        Function foundFunction = table.findFunction(toLookFor);
+        Function foundFunction = context.findFunction(toLookFor, true);
         FunctionIdentity foundIdentity = null;
         if (foundFunction == null) {
           foundIdentity = decidedFunctionCall(calleeName.getImage(), 
               argTypes, 
-              table.findFunctionIdentities(calleeName.getImage(), true), 
-              table, 
+              context.findFunctionIdentities(calleeName.getImage(), true), 
+              context, 
               file);
         }
         else {
@@ -164,14 +166,14 @@ public class ExpressionTypeChecker {
               " , at <ln:"+funcCall.getFuncName().getToken().getStartLine()+">");
         }
         System.out.println("---CONNECTED TO: "+foundIdentity);
-        valueTypes.push(table.findClass(foundIdentity.getReturnType()));
+        valueTypes.push(context.findGenClass(foundIdentity.getReturnType()));
       }
       else if (node instanceof TMemberInvoke) {
         TMemberInvoke memberInvoke = (TMemberInvoke) node;
         
         TNode firstMember = memberInvoke.getSequence().get(0);
         System.out.println("  R_CH: "+firstMember);
-        GenClass firstType = typeCheckExpression(firstMember, file, table);
+        GenClass firstType = typeCheckExpression(firstMember, file, context);
         
         for(int i = 1; i < memberInvoke.getSequence().size(); i++){
           TNode current = memberInvoke.getSequence().get(i);
@@ -179,11 +181,27 @@ public class ExpressionTypeChecker {
             TIden iden = (TIden) current;
             Variable variable = firstType.retrieveVariable(iden.getToken().getImage());
             if (variable == null) {
-              throw new RuntimeException("Cannot find class variable "+iden.getToken().getImage()+
-                                         " from class '"+firstType.getTypeInfo()+"' "+
-                                         " , at <ln:"+iden.getToken().getStartLine()+"> , at "+file.getName());
+              if (firstType instanceof RhexFile) {
+                RhexFile rhexFile = (RhexFile) firstType;
+                GenClass nestedClass = rhexFile.getClass(iden.getActValue().getImage());
+                if (nestedClass == null) {
+                  throw new RuntimeException("Cannot find class variable "+iden.getToken().getImage()+
+                      " from class '"+firstType.getTypeInfo()+"' "+
+                      " , at <ln:"+iden.getToken().getStartLine()+"> , at "+file.getName());
+                }
+                else {
+                  firstType = nestedClass;
+                }
+              }
+              else {
+                throw new RuntimeException("Cannot find class variable "+iden.getToken().getImage()+
+                    " from class '"+firstType.getTypeInfo()+"' "+
+                    " , at <ln:"+iden.getToken().getStartLine()+"> , at "+file.getName());
+              }
             }
-            firstType = table.findClass(variable.getType());
+            else {
+              firstType = context.findGenClass(variable.getType());
+            }
           }
           else if (current instanceof TFuncCall) {
             TFuncCall funcCall = (TFuncCall) current;
@@ -191,7 +209,7 @@ public class ExpressionTypeChecker {
             
             Type [] argTypes = new Type[funcCall.getArgList().size()];
             for (int j = 0; j < argTypes.length; j++) {
-              argTypes[j] = typeCheckExpression(funcCall.getArgList().get(j), file, table).getTypeInfo();
+              argTypes[j] = typeCheckExpression(funcCall.getArgList().get(j), file, context).getTypeInfo();
             }
             
             FunctionSignature toLookFor = new FunctionSignature(funcCall.getFuncName().getToken().getImage(), 
@@ -201,7 +219,7 @@ public class ExpressionTypeChecker {
               throw new RuntimeException("Cannot find class function "+toLookFor+" from class '"+firstType.getTypeInfo()+"' "+
                   " , at <ln:"+funcCall.getFuncName().getToken().getStartLine()+"> , at "+file.getName());
             }              
-            firstType = table.findClass(actualFunction.getReturnType());
+            firstType = context.findGenClass(actualFunction.getReturnType());
             System.out.println("----> MEM FUNC CALL RETURN: "+actualFunction.getReturnType());
           }
         }
@@ -211,8 +229,8 @@ public class ExpressionTypeChecker {
       }
       else if (node instanceof TCast) {
         TCast cast = (TCast) node;
-        GenClass desiredType = table.findClass(cast.getDesiredType().getAttachedType());      
-        GenClass targetType = typeCheckExpression(cast.getTarget(), file, table);
+        GenClass desiredType = context.findGenClass(cast.getDesiredType().getAttachedType());      
+        GenClass targetType = typeCheckExpression(cast.getTarget(), file, context);
         
         //numerical types can be converted between each other
         if ( !(TypeUtils.isNumerical(desiredType.getTypeInfo()) && TypeUtils.isNumerical(targetType.getTypeInfo())) &&
@@ -227,7 +245,7 @@ public class ExpressionTypeChecker {
       }
       else if (node instanceof TUnary) {
         TUnary unary = (TUnary) node;
-        GenClass targetType = typeCheckExpression(unary.getActValue(), file, table);
+        GenClass targetType = typeCheckExpression(unary.getActValue(), file, context);
         switch (unary.getUnaryOp().getOpString()) {
         case "-":
           if (!TypeUtils.isNumerical(targetType.getTypeInfo())) {
@@ -249,18 +267,25 @@ public class ExpressionTypeChecker {
         valueTypes.push(targetType);
       }
       else if (node instanceof TExpr) {
-        valueTypes.push(typeCheckExpression(node, file, table));
+        valueTypes.push(typeCheckExpression(node, file, context));
       }
       else if (node instanceof TIden) {
         TIden iden = (TIden) node;
 
-        Variable targetVariable = table.findVariable(iden.getActValue().getImage());
+        Variable targetVariable = context.findVariable(iden.getActValue().getImage());
         if (targetVariable == null) {
-          Type possibleClass = 
-          throw new UnfoundVariableException(iden.getActValue(), file.getName());
+          GenClass possibleClass = context.findClass(iden.getActValue().getImage());
+          if (possibleClass == null) {
+            possibleClass = context.findFile(iden.getActValue().getImage());
+            if (possibleClass == null) {
+              throw new UnfoundVariableException(iden.getActValue(), file.getName());
+            }
+          }
+          
+          valueTypes.push(possibleClass);
         }
         else {
-          valueTypes.push(table.findClass(targetVariable.getType()));
+          valueTypes.push(context.findGenClass(targetVariable.getType()));
         }
 
       }
@@ -268,7 +293,7 @@ public class ExpressionTypeChecker {
         TNew newInstance = (TNew) node;
         
         Type instanceType = newInstance.getFullBinaryName().getAttachedType();
-        GenClass instanceClass = table.findClass(instanceType);
+        GenClass instanceClass = context.findGenClass(instanceType);
         
         //examine function call.....
         TFuncCall actualConsCall = newInstance.getActValue();
@@ -276,7 +301,7 @@ public class ExpressionTypeChecker {
         
         GenClass [] argTypes = new GenClass[actualConsCall.getArgList().size()];
         for (int i = 0; i < argTypes.length; i++) {
-          argTypes[i] = typeCheckExpression(actualConsCall.getArgList().get(i), file, table);
+          argTypes[i] = typeCheckExpression(actualConsCall.getArgList().get(i), file, context);
         }
         
         FunctionSignature toLookFor = new FunctionSignature(constName.getImage(), 
@@ -290,7 +315,7 @@ public class ExpressionTypeChecker {
           foundIdentity = decidedFunctionCall(constName.getImage(), 
               argTypes, 
               instanceClass.getConstructors().values().stream().map(Constructor::getIdentity).collect(Collectors.toSet()), 
-              table, 
+              context, 
               file);
         }
         else {
@@ -308,10 +333,10 @@ public class ExpressionTypeChecker {
       else if (node instanceof TNewArray) {
         TNewArray newArr = (TNewArray) node;
         
-        GenClass baseType = table.findClass(newArr.getArrayBaseType().getAttachedType());
+        GenClass baseType = context.findGenClass(newArr.getArrayBaseType().getAttachedType());
         
         for (TNode dimExpr : newArr.getDimensionSizes()) {
-          GenClass genClass = typeCheckExpression(dimExpr, file, table);
+          GenClass genClass = typeCheckExpression(dimExpr, file, context);
           if (!genClass.getTypeInfo().getFullName().equals("int") && 
               !genClass.getTypeInfo().getFullName().equals("java.lang.Integer") ) {
             System.out.println(" ---> BAD ARRAY "+genClass.getTypeInfo());
@@ -330,7 +355,7 @@ public class ExpressionTypeChecker {
         TArrayAcc arrayAccess = (TArrayAcc) node;
         
         for (TNode dimExpr : arrayAccess.getIndex()) {
-          GenClass genClass = typeCheckExpression(dimExpr, file, table);
+          GenClass genClass = typeCheckExpression(dimExpr, file, context);
           if (!genClass.getTypeInfo().getFullName().equals("int") && 
               !genClass.getTypeInfo().getFullName().equals("java.lang.Integer") ) {
             System.err.println("GOT: "+genClass.getTypeInfo());
@@ -340,7 +365,7 @@ public class ExpressionTypeChecker {
           }
         }
         
-        GenClass targetType = typeCheckExpression(arrayAccess.getTarget(), file, table);
+        GenClass targetType = typeCheckExpression(arrayAccess.getTarget(), file, context);
         if (targetType instanceof ArrayClass) {
           ArrayClass arrayClass = (ArrayClass) targetType;
           System.out.println("****** ARR ACCESS");
@@ -365,25 +390,25 @@ public class ExpressionTypeChecker {
         }
       }
       else if (node instanceof TInt) {
-        valueTypes.push(table.findClass(Type.INT));
+        valueTypes.push(context.findGenClass(Type.INT));
       }
       else if (node instanceof TDouble) {
-        valueTypes.push(table.findClass(Type.DOUBLE));
+        valueTypes.push(context.findGenClass(Type.DOUBLE));
       }
       else if (node instanceof TFloat) {
-        valueTypes.push(table.findClass(Type.FLOAT));
+        valueTypes.push(context.findGenClass(Type.FLOAT));
       }
       else if (node instanceof TLong) {
-        valueTypes.push(table.findClass(Type.LONG));
+        valueTypes.push(context.findGenClass(Type.LONG));
       }
       else if (node instanceof TString) {
-        valueTypes.push(table.findClass(new Type("String", "java.lang.String")));
+        valueTypes.push(context.findGenClass(new Type("String", "java.lang.String")));
       }
       else if (node instanceof TChar) {
-        valueTypes.push(table.findClass(Type.CHAR));
+        valueTypes.push(context.findGenClass(Type.CHAR));
       }
       else if (node instanceof TBool) {
-        valueTypes.push(table.findClass(Type.BOOL));
+        valueTypes.push(context.findGenClass(Type.BOOL));
       }
     }
     
@@ -391,11 +416,7 @@ public class ExpressionTypeChecker {
     return valueTypes.pop();
   }
   
-  public static FunctionIdentity decidedFunctionCall(String name, GenClass [] argTypes, 
-      Set<FunctionIdentity> identities, 
-      SymbolTable table, 
-      RhexFile file){
-    
+  public static FunctionIdentity decidedFunctionCall(String name, GenClass [] argTypes, Set<FunctionIdentity> identities, Context context, RhexFile file){ 
     System.out.println(" ----- DECIDING: "+identities);
     for(FunctionIdentity identity : identities){
       System.out.println("  *** CUR: "+identity);
@@ -409,10 +430,10 @@ public class ExpressionTypeChecker {
           Type currentParType = paramTypes[i];
           GenClass paramTypeClass = null;
           if (currentParType instanceof ArrayType) {
-            paramTypeClass = table.findClass((ArrayType) currentParType);
+            paramTypeClass = context.findGenClass((ArrayType) currentParType);
           }
           else {
-            paramTypeClass = table.findClass(currentParType);
+            paramTypeClass = context.findGenClass(currentParType);
           }
           
           System.out.println(" COMP: DEC "+paramTypeClass.getTypeInfo()+" | PROV: "+argTypes[i].getTypeInfo());

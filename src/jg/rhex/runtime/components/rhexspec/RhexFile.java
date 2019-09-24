@@ -22,7 +22,8 @@ public class RhexFile extends GenClass{
   private final RFile original;
   
   private Map<String, GenClass> importedClasses;
-  private Map<Type, GenClass> fileClasses; //String keys are full, binary class names
+  
+  private Map<String, GenClass> fileClasses; //String keys are simple class names
   
   public RhexFile(RFile original) {
    super(new Type(original.getFileName(), original.getPackDesignation()+"."+original.getFileName()), 
@@ -34,6 +35,7 @@ public class RhexFile extends GenClass{
        new HashSet<>(), false);
     
     this.original = original;
+    fileClasses = new HashMap<>();
   }
   
   /**
@@ -62,7 +64,7 @@ public class RhexFile extends GenClass{
    * @return true if a class of the same name hasn't been added
    */
   public boolean placeClass(RhexClass rhexClass){
-    return fileClasses.put(rhexClass.getTypeInfo(), rhexClass) == null;
+    return fileClasses.put(rhexClass.getTypeInfo().getSimpleName(), rhexClass) == null;
   }
   
   /**
@@ -86,8 +88,8 @@ public class RhexFile extends GenClass{
     return funcsByName.get(name);
   }
   
-  public GenClass getClass(Type type){
-    return fileClasses.get(type);
+  public GenClass getClass(String simpleName){
+    return fileClasses.get(simpleName);
   }
   
   public Variable getVariable(String name){
@@ -98,7 +100,7 @@ public class RhexFile extends GenClass{
     return functionMap;
   }
 
-  public Map<Type, GenClass> getFileClasses() {
+  public Map<String, GenClass> getFileClasses() {
     return fileClasses;
   }
 

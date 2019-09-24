@@ -1,6 +1,7 @@
 package jg.rhex.compile.verify;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,9 +10,11 @@ import java.util.Map.Entry;
 import jg.rhex.common.ArrayType;
 import jg.rhex.common.FunctionSignature;
 import jg.rhex.common.Type;
+import jg.rhex.common.TypeUtils;
 import jg.rhex.compile.components.structs.RStateBlock;
 import jg.rhex.compile.components.structs.RStatement;
 import jg.rhex.compile.components.tnodes.TNode;
+import jg.rhex.runtime.Context;
 import jg.rhex.runtime.SymbolTable;
 import jg.rhex.runtime.components.Function;
 import jg.rhex.runtime.components.GenClass;
@@ -57,12 +60,45 @@ public class StructureVerifier {
     //first, check file variables and their values
     
     //this is needed to for SymbolTable
+    HashMap<String, GenClass> packageClasses = new HashMap<>();
+    HashMap<String, GenClass> fileClasses = new HashMap<>();
+    
+    HashMap<String, RhexFile> packageFiles = new HashMap<>();
+    HashMap<String, RhexFile> importedFiles = new HashMap<>();
+    
     HashMap<Type, GenClass> converted = new HashMap<>();
     for(Entry<Type, RhexClass> con : classes.entrySet()){
       converted.put(con.getKey(), con.getValue());
+      
+      String packDesig = con.getKey().getFullName();
+      if (packDesig.startsWith(file.getOriginal().getPackDesignation())) {
+        packageClasses.put(con.getKey().getSimpleName(), con.getValue());
+      }
+      if (packDesig.startsWith(file.getTypeInfo().getFullName())) {
+        fileClasses.put(con.getKey().getSimpleName(), con.getValue());
+      }
     }
     
-    SymbolTable table = new SymbolTable(getClass().getClassLoader(), rhexFiles, converted, new HashMap<>(), file.getFileFunctions());
+    for (Entry<String, RhexFile> entry : rhexFiles.entrySet()) {
+      if (entry.getKey().startsWith(file.getOriginal().getPackDesignation())) {
+        packageFiles.put(entry.getValue().getName(), entry.getValue());
+      }
+    }
+    
+    for (Entry<String, GenClass> entry : file.getImportedClasses().entrySet()) {
+      if (entry.getValue() instanceof RhexFile) {
+        importedFiles.put(entry.getValue().getTypeInfo().getSimpleName(), (RhexFile) entry.getValue());
+      }
+    }
+    
+    SymbolTable table = new SymbolTable(getClass().getClassLoader(), rhexFiles, converted);
+    
+    Context context = new Context(table);
+    context.setClassMaps(new ArrayList<>(Arrays.asList(fileClasses, file.getImportedClasses(), packageClasses)));
+    context.setFileMaps(new ArrayList<>(Arrays.asList(importedFiles, packageFiles)));
+    context.setFuncMaps(new ArrayList<>(Arrays.asList(file.getFileFunctions())));
+    context.setLocalVarMap(new HashMap<>());
+    
     System.out.println("--->>>VERIFYING FILE VARIABLES<<<---");
     for (Variable variable : file.getFileVariables().values()) {
       RhexVariable actualVariable = (RhexVariable) variable;
@@ -79,7 +115,7 @@ public class StructureVerifier {
         declaredType = table.findClass(actualVariable.getType());
       }
       
-      GenClass varType = ExpressionTypeChecker.typeCheckExpression(value, file, table);
+      GenClass varType = ExpressionTypeChecker.typeCheckExpression(value, file, context);
       //the java.lang.Object is for smooth assignments from primitive types
       if (!declaredType.getTypeInfo().equals(Type.OBJECT) && 
           !varType.decendsFrom(declaredType)) {
@@ -93,7 +129,7 @@ public class StructureVerifier {
       System.out.println("  --->  TYPED CHECK F-VAR: "+variable.getName()+" | TYPE: "+varType+" | GIVEN: "+declaredType);
       
       //at the end of evaluation, then add the variable
-      table.addLocalVariable(variable);
+      context.addLocalVariable(variable);
     }
     
     //second, check file functions
